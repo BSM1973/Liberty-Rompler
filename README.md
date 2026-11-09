@@ -1,3 +1,26 @@
+# Liberty Rompler — Effets et audit des accents (v0.4)
+
+## Nouveautés : deux effets audio réels
+- **Delay stéréo** : temps de 60 à 1500 ms, feedback 0 à 85 %, mixage sec/humide.
+- **Distorsion** : gain d'entrée (Drive) de 0 à 30 dB, contrôle tonalité (500 à 18 000 Hz), mixage parallèle.
+- **Quatre modules sans chevauchement** : Chorus, Réverbération, Delay, Distorsion, dans une grille 2 × 2.
+- Les 6 nouveaux paramètres sont enregistrés dans les projets DAW et initialisés à MIX = 0 pour préserver les anciens sons.
+
+## Protection renforcée des textes français
+- Les textes internes C++ utilisent des séquences Unicode explicites UTF-8 ; tous les caractères français (é, è, ê, à, ç, etc.) sont pris en compte.
+- `tools/audit_ui_text.py` vérifie les sources, les libellés et les manifestes de banques, détecte les séquences de type `Ã©`, les caractères de remplacement et les caractères non imprimables. Le build échoue avant compilation si l'audit échoue.
+- 13 tests hors ligne couvrent notamment la disposition des quatre effets, la sauvegarde des paramètres et l'absence de chevauchement sur plusieurs dimensions de fenêtre.
+
+## Télécharger
+Ouvrir [GitHub Actions](https://github.com/BSM1973/Liberty-Rompler/actions/workflows/build-rompler.yml) et télécharger l'artifact du dernier build **vert**, au format ZIP ou DMG macOS arm64.
+
+**Prototype** : l'audit automatique vérifie le texte et la géométrie, mais les polices et le rendu final doivent être contrôlés visuellement dans Ableton ou Logic. Le Delay ne possède pas encore la synchro au tempo et la Distorsion n'utilise pas encore de suréchantillonnage.
+
+### Source v0.4
+La compilation reconstruit v0.1 → v0.2 → v0.3 → v0.4. Le patch v0.4 est dans `assets/ui-v04/part-{1..3}.b64`, contrôlé par SHA-256 avant application.
+
+---
+
 # Liberty Rompler — Interface v0.3
 
 **Nouvelle interface avec quatre pages fonctionnelles : PRESETS / EFFETS / MODULATION / RÉGLAGES.**
