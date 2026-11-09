@@ -1,0 +1,2 @@
+# Notice de droits — Liberty Rompler
+Prototype public de développement. Copyright (c) Liberty Music Software. Tous droits réservés sauf autorisation explicite. Les exemples audio sont générés par des algorithmes originaux et ne constituent pas des banques de sons commerciales. JUCE est téléchargé pendant la compilation et reste soumis à sa propre licence. Ne distribuer aucune banque payante, clé de signature ou secret d'activation dans ce dépôt public.

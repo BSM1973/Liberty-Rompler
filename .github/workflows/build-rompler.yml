@@ -1,0 +1,116 @@
+name: Liberty Rompler - Build macOS AU VST3 Standalone
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/rompler-source-v0.1.tar.xz'
+      - '.github/workflows/build-rompler.yml'
+      - 'scripts/install_mac.command'
+      - 'README.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rompler-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-macos:
+    name: macOS Apple Silicon - AU + VST3 + Standalone
+    runs-on: macos-15
+    timeout-minutes: 50
+
+    steps:
+      - name: Checkout Liberty Rompler
+        uses: actions/checkout@v4
+
+      - name: Verify and unpack prototype source
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '0da09c77c326780c5f972a45984be0f345ff3a39639c340192e04c2a33476e9e  assets/rompler-source-v0.1.tar.xz' | shasum -a 256 --check
+          tar -xJf assets/rompler-source-v0.1.tar.xz
+          test -f CMakeLists.txt
+          test -f Source/PluginProcessor.cpp
+          test -f tools/make_demo_banks.py
+
+      - name: Configure Python for demo bank generator
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate and verify factory + expansion banks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check numpy
+          python3 tools/make_demo_banks.py
+          python3 tools/validate_banks.py
+          python3 -m unittest discover -s tests -v
+          test -f Banks/Factory-Starter/manifest.json
+          test -f Banks/Expansion-Demo/manifest.json
+
+      - name: Download JUCE 8.0.10
+        uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: '8.0.10'
+          path: JUCE
+          fetch-depth: 1
+
+      - name: Configure CMake for arm64
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S . -B build -G Xcode \
+            -DJUCE_DIR="$GITHUB_WORKSPACE/JUCE" \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+
+      - name: Compile AU, VST3 and standalone
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake --build build --config Release \
+            --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
+            --parallel 3
+
+      - name: Package test builds, installer and bank files
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="dist/Liberty-Rompler-macOS-arm64-Prototype"
+          mkdir -p "$target"
+          app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
+          vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
+          au="$(find build/LibertyRompler_artefacts -type d -name '*.component' -print -quit)"
+          test -n "$app" && test -n "$vst" && test -n "$au"
+          ditto "$app" "$target/Liberty Rompler.app"
+          ditto "$vst" "$target/Liberty Rompler.vst3"
+          ditto "$au" "$target/Liberty Rompler.component"
+          ditto Banks "$target/Banks"
+          cp scripts/install_mac.command "$target/INSTALLER_MAC.command"
+          chmod +x "$target/INSTALLER_MAC.command"
+          for bundle in "$target/Liberty Rompler.app" "$target/Liberty Rompler.vst3" "$target/Liberty Rompler.component"; do
+            codesign --force --deep --sign - "$bundle"
+            codesign --verify --deep --verbose "$bundle"
+          done
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-Prototype Liberty-Rompler-macOS-arm64-Prototype.zip)
+          hdiutil create -volname "Liberty Rompler Prototype" \
+            -srcfolder "$target" -ov -format UDZO \
+            dist/Liberty-Rompler-macOS-arm64-Prototype.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-Prototype.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-Prototype.dmg
+
+      - name: Upload downloadable macOS builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: Liberty-Rompler-macOS-arm64-AU-VST3-Standalone
+          path: |
+            dist/Liberty-Rompler-macOS-arm64-Prototype.zip
+            dist/Liberty-Rompler-macOS-arm64-Prototype.dmg
+          if-no-files-found: error
+          retention-days: 30
