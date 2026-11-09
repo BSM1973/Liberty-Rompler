@@ -4,7 +4,7 @@
 - Tous les fichiers source restent en UTF-8.
 - Les littéraux avec accents de l'éditeur sont exprimés via `u8"...\\u00e9..."` afin que le compilateur produise des octets UTF-8 corrects.
 - Utiliser `juce::String::fromUTF8` et une police capable de rendre les caractères.
-- Rejeter toute occurrence de `�` ou de séquences de mojibake comme `Ã©`.
+- Rejeter toute occurrence de `U+FFFD` ou de séquences de mauvais décodage comme `U+00C3 U+00A9`.
 - Tester notamment : Bibliothèques, Catégories, Résonance, Relâchement, Préset sélectionné.
 
 ## 2. Aucun chevauchement

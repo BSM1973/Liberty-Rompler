@@ -8,7 +8,7 @@
 
 ## Protection renforcée des textes français
 - Les textes internes C++ utilisent des séquences Unicode explicites UTF-8 ; tous les caractères français (é, è, ê, à, ç, etc.) sont pris en compte.
-- `tools/audit_ui_text.py` vérifie les sources, les libellés et les manifestes de banques, détecte les séquences de type `Ã©`, les caractères de remplacement et les caractères non imprimables. Le build échoue avant compilation si l'audit échoue.
+- `tools/audit_ui_text.py` vérifie les sources, les libellés et les manifestes de banques, détecte les suites d'octets mal interprétées (par exemple les codes `U+00C3 U+00A9`), les caractères de remplacement et les caractères non imprimables. Le build échoue avant compilation si l'audit échoue.
 - 13 tests hors ligne couvrent notamment la disposition des quatre effets, la sauvegarde des paramètres et l'absence de chevauchement sur plusieurs dimensions de fenêtre.
 
 ## Télécharger
