@@ -1,3 +1,21 @@
+# Liberty Rompler — Version UI v0.5
+
+**Fonctions ajoutées sur une base v0.4 validée :**
+
+- Nouvel onglet **MODULATEURS** : enveloppe ADSR d'amplitude (attaque, déclin, maintien, relâchement) et enveloppe ADSR de filtre (les mêmes réglages plus profondeur bipolaire). L'enveloppe de filtre est globale, déclenchée par les notes MIDI et le clavier virtuel. Les paramètres d'amplitude s'appliquent aux nouvelles notes.
+- Deux LFO avec vitesse et **quatre formes d'onde** (sinusoïdale, triangle, dent de scie, carrée), utilisables dans les 4 routages de la matrice existante.
+- Onglet **EFFETS** : 6 modules en grille 3 colonnes × 2 rangées, conservant Chorus, Réverbération, Delay et Distorsion, plus un **EQ 3 bandes** (grave 140 Hz, médium 1 100 Hz, aigu 7 600 Hz, ±12 dB) et un **Compresseur** (seuil, ratio, gain de sortie ; attaque 15 ms et relâchement 130 ms fixes pour ce prototype).
+- Toutes les valeurs des nouveaux modules sont incluses dans l'état de session DAW. Valeurs neutres par défaut pour préserver les anciens projets (EQ plat, compression ratio 1:1, profondeur enveloppe filtre 0).
+- **Règles de qualité non négociables :** chaînes françaises UTF-8, pas de caractères de substitution, aucun chevauchement des contrôles. Des tests de géométrie sont exécutés aux tailles minimales et maximales de l'interface.
+
+Cette version reste un **prototype** : l'audit de code et les tests de zones ne remplacent pas les inspections visuelles dans Logic Pro/Ableton, les écoutes, ni les tests de stabilité. La bibliothèque comprend toujours 9 presets de démonstration. L'installation de banques payantes sous licence n'est pas encore implémentée.
+
+Le dépôt conserve le chemin reconstructible v0.1 → v0.2 → v0.3 → v0.4 → **v0.5**. L'archive v0.5 est vérifiée par SHA256 puis appliquée avant les tests et le build GitHub Actions.
+
+[Télécharger la dernière compilation](https://github.com/BSM1973/Liberty-Rompler/actions/workflows/build-rompler.yml) en ouvrant le dernier run vert, section **Artifacts**.
+
+---
+
 # Liberty Rompler — Effets et audit des accents (v0.4)
 
 ## Nouveautés : deux effets audio réels
