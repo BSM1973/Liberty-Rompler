@@ -1,4 +1,26 @@
-# Liberty Rompler — Liberty Music Software
+# Liberty Rompler — Interface v0.3
+
+**Nouvelle interface avec quatre pages fonctionnelles : PRESETS / EFFETS / MODULATION / RÉGLAGES.**
+
+- **PRESETS** : le navigateur v0.2 et les banques d'extensions sont conservés.
+- **EFFETS** : vrai Chorus stéréo et vraie Réverbération JUCE ; chaque module possède trois paramètres audios.
+- **MODULATION** : quatre routages indépendants, sources LFO 1/LFO 2/Molette MIDI (CC1), destinations filtre/volume, intensité bipolaire, vitesses des LFO.
+- **RÉGLAGES** : ouvrir le dossier de banques, actualiser la bibliothèque.
+- **CLAVIER MIDI** : 7 octaves C–B (84 notes), 49 touches blanches, largeur adaptée à **100 % de la fenêtre** et scroll désactivé.
+- Paramètres effets et routages enregistrés/restaurés dans l'état du projet DAW ; Mix à zéro par défaut pour préserver le son v0.2.
+- Contrôles de non-chevauchement de l'UI, accents français UTF-8 et géométrie du clavier intégrés aux tests Python.
+
+Le build macOS du prototype est dans [GitHub Actions](https://github.com/BSM1973/Liberty-Rompler/actions/workflows/build-rompler.yml), sous **Artifacts** lorsque la compilation est verte.
+
+**Limites :** prototype (9 presets de démonstration), non notarisé et non prêt pour la vente. Les tests de géométrie ne remplacent pas un contrôle visuel dans un hôte macOS. Le contrôle des effets et des routes est une première version, pas encore une matrice professionnelle de centaines de destinations.
+
+## Détails techniques du correctif v0.3
+
+Les fichiers sources v0.2 sont reconstruits depuis `assets/ui-v02/`. Le workflow applique ensuite `assets/ui-v03/part-{1..4}.b64` (patch C++ compressé, SHA256 vérifié) avant les tests et la compilation. Les banques et le moteur multisample original restent intacts.
+
+---
+
+## Historique : interface v0.2
 
 ## Prototype UI v0.2 (macOS Apple Silicon)
 
