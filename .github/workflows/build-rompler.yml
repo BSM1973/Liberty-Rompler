@@ -1,22 +1,6 @@
 name: Liberty Rompler - Build macOS AU VST3 Standalone
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'assets/rompler-source-v0.1.tar.xz'
-      - 'assets/ui-v02/**'
-      - 'assets/ui-v03/**'
-      - 'assets/ui-v04/**'
-      - 'assets/ui-v05/**'
-      - 'assets/ui-v06/**'
-      - 'assets/ui-v07/**'
-      - 'assets/ui-v08/**'
-      - '.github/workflows/build-rompler.yml'
-      - 'scripts/fix_v06_header.py'
-      - 'tests/test_v06_header_contract.py'
-      - 'scripts/install_mac.command'
-      - 'README.md'
   workflow_dispatch:
 
 permissions:
