@@ -48,6 +48,7 @@ jobs:
           test -f tests/test_ui_regression.py
           test -f Source/PluginEditor.cpp
           test -f Source/SampleEngine.h
+          python3 scripts/fix_ui_v02_compiler.py
 
       - name: Configure Python for demo bank generator
         uses: actions/setup-python@v5
