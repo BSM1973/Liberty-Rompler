@@ -1,3 +1,28 @@
+# Liberty Rompler v0.8 — Arpégiateur professionnel
+
+Le nouvel onglet **ARPÉGIATEUR** est directement connecté au moteur MIDI de l'instrument à quatre couches. Il est **OFF par défaut**, afin que les presets historiques et les projets existants se comportent comme avant.
+
+### Fonctionnalités
+- **1 à 32 pas** configurables ; 32 cellules en grille de 2 × 16.
+- Modes **UP**, **DOWN**, **RANDOM** (aléatoire) et **CHORD** (accord).
+- **1 à 4 octaves**, choix de division musicale 1/4, 1/8, 1/16 ou 1/32.
+- **Swing 0–75 %**, **Gate 5–98 %**.
+- Pour chaque pas : vélocité 1–127, transposition de −24 à +24 demi-tons, pas actif ou silencieux.
+- Édition : glisser = vélocité ; Maj + glisser = transposition ; clic droit = activer/désactiver un pas. Pas courant surligné durant le jeu.
+- Horloge basée sur le **BPM du DAW** avec alignement initial à la grille **PPQ** si le transport le fournit. Si le DAW n'indique pas de tempo, horloge de secours à 120 BPM.
+- Notes MIDI générées **avant** les filtres, enveloppes et quatre couches ; événements programmés à l'échantillon près dans chaque bloc.
+- Gestion des notes tenues et libérées, arrêt propre lorsque le dernier doigt quitte le clavier, lors d'une désactivation, et réinitialisation sur changement de position de transport.
+- Paramètres et 32 pas enregistrés/restaurés avec l'état DAW. Compatibilité conservée avec les versions v0.1 à v0.7.
+
+### Qualité et limites
+**34 tests** passés localement, dont une suite C++ native testant réellement les événements MIDI Up/Down/Random/Chord, octaves, Swing, Gate, vélocité, transposition, PPQ et libération des notes. Audit Unicode français et géométrie 8 onglets vérifiés. Le rendu visuel, les hôtes DAW et le timing de transport sur Mac doivent néanmoins être validés en usage réel.
+
+Prototype : l'arpégiateur génère les notes **à l'intérieur de l'instrument** pour les couches Liberty ; il n'exporte pas encore de piste MIDI vers d'autres instruments. La synchronisation utilise les informations disponibles dans le DAW ; des hôtes ne fournissant pas PPQ ne peuvent bénéficier que du tempo BPM.
+
+[Voir la dernière compilation](https://github.com/BSM1973/Liberty-Rompler/actions/workflows/build-rompler.yml), et télécharger le ZIP/DMG depuis **Artifacts** après validation verte.
+
+---
+
 # Liberty Rompler v0.7 — Onglet ROUTAGE graphique
 
 **Routage fonctionnel, pas une illustration statique.** Le nouveau panneau ROUTAGE visualise les quatre couches audio et leur convergence vers la chaîne principale.
