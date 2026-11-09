@@ -35,7 +35,7 @@ jobs:
           xz -dc /tmp/ui05.patch.xz | patch -p1
           python3 tools/audit_ui_text.py
           mkdir -p export
-          tar -czf export/liberty-rompler-source-v0.5.tar.gz Source tests tools docs CMakeLists.txt README_FR.md requirements-dev.txt
+          tar -czf export/liberty-rompler-source-v0.5.tar.gz Source tests tools docs CMakeLists.txt
       - name: Upload editable sources
         uses: actions/upload-artifact@v4
         with:
