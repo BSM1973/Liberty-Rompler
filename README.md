@@ -1,47 +1,53 @@
 # Liberty Rompler — Liberty Music Software
 
-**Prototype technique v0.1 · GitHub Actions macOS Apple Silicon**
+## Prototype UI v0.2 (macOS Apple Silicon)
 
-Instrument multisample original en **JUCE 8/C++**, indépendant de PluginMaker.ai et du dépôt Liberty DAW.
+Instrument ROMpler JUCE 8/C++, indépendant de PluginMaker.ai et de Liberty DAW. **L'interface est inspirée de l'organisation générale du navigateur Nexus 5, avec un design et une identité Liberty originaux.** Aucun actif graphique ni code de reFX n'est utilisé.
 
-## Télécharger une compilation
+### Installer depuis GitHub Actions
 
-1. Ouvrir [GitHub Actions — Liberty Rompler](https://github.com/BSM1973/Liberty-Rompler/actions/workflows/build-rompler.yml).
-2. Ouvrir le run **Liberty Rompler - Build macOS AU VST3 Standalone**.
-3. Quand le run est **vert**, descendre à **Artifacts** et télécharger **Liberty-Rompler-macOS-arm64-AU-VST3-Standalone**.
-4. Décompresser l'archive du run. Elle contient un ZIP et un DMG ; les deux contiennent le même prototype.
-5. Dans le dossier fourni, exécuter `INSTALLER_MAC.command` depuis le Terminal avec `bash INSTALLER_MAC.command`. L'installateur copie l'app, les plugins et les banques dans les dossiers utilisateur.
+1. Ouvrir [Actions : Liberty Rompler](https://github.com/BSM1973/Liberty-Rompler/actions/workflows/build-rompler.yml).
+2. Ouvrir la dernière compilation verte (UI v0.2).
+3. Dans **Artifacts**, télécharger `Liberty-Rompler-macOS-arm64-UI-v0.2-AU-VST3-Standalone`.
+4. Décompresser le téléchargement, ouvrir le DMG et utiliser le script `INSTALLER_MAC.command`, au besoin depuis le Terminal avec `bash INSTALLER_MAC.command`.
 
-**Ce prototype n'est pas signé Developer ID ni notarisé.** macOS peut avertir ou bloquer son lancement. Il ne s'agit pas encore d'un installateur commercial.
+**Prototype de test : signature ad hoc, non notarisé, non destiné à la distribution commerciale.**
 
-## Capacités actuelles
+### Nouveautés v0.2
 
-- Lecture multisample WAV polyphonique ; mapping notes/vélocité, boucles, ADSR.
-- Navigateur de presets et de banques, recherche et filtres.
-- 2 banques : Factory Starter (6 presets) et Expansion Demo (3 presets).
-- Extension séparée des fichiers du plugin ; la protection commerciale/licence reste à développer.
-- Cibles de compilation : **AU, VST3 et application autonome macOS arm64**.
+- **Trois colonnes** : banques/extensions, navigateur de presets, modules audio.
+- Palette graphite, cyan et or ; titres, espacements et graphes redessinés.
+- Recherche sur nom, catégorie et banque ; catégories horizontales défilantes.
+- Favoris par preset mémorisés sur le Mac ; navigation preset précédent/suivant.
+- Filtre passe-bas DSP réel avec fréquence de coupure et résonance sauvegardées avec le projet.
+- Enveloppe d'amplitude et volume toujours fonctionnels.
+- Interface redimensionnable (minimum 1120 × 750) ; troncature des textes trop longs.
+- **Accents français encodés en Unicode explicite**, sans symboles de remplacement.
+- Tests hors ligne de zones sans chevauchement à 15 tailles et de chaînes Unicode.
 
-## Source et banques
+### Banques de démonstration
 
-Le code C++ et les utilitaires Python sont conservés dans `assets/rompler-source-v0.1.tar.xz` ; le workflow vérifie son SHA256 et l'extrait avant la compilation. Les échantillons **originaux de démonstration** sont générés pendant le build par `tools/make_demo_banks.py`, vérifiés avec les tests Python, puis livrés avec les binaires.
+Factory Starter : **6 presets** ; Expansion Demo : **3 presets**. Les banques restent distinctes du plugin et sont installables sans recompiler l'instrument. Il ne s'agit pas encore des 100 presets professionnels ni d'extensions commerciales licenciées.
 
-Pour reproduire en local :
+### Structure du projet
 
+- `assets/rompler-source-v0.1.tar.xz` : socle du moteur (JUCE/CMake, sample maps, génération des banques).
+- `assets/ui-v02/part-1.b64` à `part-5.b64` : patch source UTF-8 compressé (nouvel éditeur C++, filtres DSP, tests géométriques).
+- `.github/workflows/build-rompler.yml` : reconstitue et vérifie les deux archives, exécute les tests, compile et produit ZIP + DMG.
+
+Pour extraire les sources v0.2 sur macOS :
 ```bash
 tar -xJf assets/rompler-source-v0.1.tar.xz
-python3 -m pip install numpy
-python3 tools/make_demo_banks.py
-python3 tools/validate_banks.py
-python3 -m unittest discover -s tests -v
+cat assets/ui-v02/part-{1..5}.b64 | base64 -D | tar -xJf -
 ```
 
-Pour compiler, il faut JUCE 8.0.10, CMake >=3.24 et Xcode. Le workflow les utilise automatiquement sur GitHub Actions.
+### Critères de validation non négociables
 
-## Limites de cette v0.1
+1. **Jamais de caractères erronés à la place des lettres françaises** (é, è, ê, à, ç, etc.).
+2. **Aucun chevauchement** de textes, menus, boutons et panneaux.
 
-**Ce n'est ni un équivalent de Nexus 5, ni une bibliothèque premium de 100 presets.** Il manque notamment le streaming disque, les 100 sons définitifs, les banques payantes activables sous licence et les validations DAW. Le code et les banques sont publics ; ne pas y placer de futurs samples commerciaux.
+Les tests de géométrie préviennent les régressions évidentes, mais la validation **visuelle dans l'application sur macOS** reste nécessaire. Voir `docs/UI_RULES.md`.
 
-## Licence
+### Licence
 
-Prototype public à finalité de développement. Les droits sur le code, les sons et le nom Liberty sont réservés à Liberty Music Software. JUCE, utilisé par le workflow, possède sa propre licence ; vérifier les conditions de redistribution avant commercialisation.
+Prototype public. Copyright Liberty Music Software ; droits réservés hors autorisation explicite. JUCE est sous sa propre licence et doit être vérifié avant la vente.

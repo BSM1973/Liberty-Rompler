@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'assets/rompler-source-v0.1.tar.xz'
+      - 'assets/ui-v02/**'
       - '.github/workflows/build-rompler.yml'
       - 'scripts/install_mac.command'
       - 'README.md'
@@ -19,7 +20,7 @@ concurrency:
 
 jobs:
   build-macos:
-    name: macOS Apple Silicon - AU + VST3 + Standalone
+    name: macOS Apple Silicon - UI v0.2 / AU + VST3 + Standalone
     runs-on: macos-15
     timeout-minutes: 50
 
@@ -37,19 +38,30 @@ jobs:
           test -f Source/PluginProcessor.cpp
           test -f tools/make_demo_banks.py
 
+      - name: Apply new Nexus-style Liberty UI, audio filter and regression checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v02/part-{1..5}.b64 | base64 -D > /tmp/liberty-ui-v02.tar.xz
+          echo '3cfe2791987fd1a9e4b51abb60696b24b24da4ef09d45a9ce93e59652d9fe061  /tmp/liberty-ui-v02.tar.xz' | shasum -a 256 --check
+          tar -xJf /tmp/liberty-ui-v02.tar.xz
+          test -f tests/test_ui_regression.py
+          test -f Source/PluginEditor.cpp
+          test -f Source/SampleEngine.h
+
       - name: Configure Python for demo bank generator
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Generate and verify factory + expansion banks
+      - name: Validate bank files, Unicode and no-overlap geometry
         shell: bash
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check numpy
           python3 tools/make_demo_banks.py
           python3 tools/validate_banks.py
-          python3 -m unittest discover -s tests -v
+          python3 -m unittest discover -s tests -p 'test_*.py' -v
           test -f Banks/Factory-Starter/manifest.json
           test -f Banks/Expansion-Demo/manifest.json
 
@@ -78,11 +90,11 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
-      - name: Package test builds, installer and bank files
+      - name: Package UI v0.2, installer and both demo banks
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-Prototype"
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.2"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -98,19 +110,19 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-Prototype Liberty-Rompler-macOS-arm64-Prototype.zip)
-          hdiutil create -volname "Liberty Rompler Prototype" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.2 Liberty-Rompler-macOS-arm64-UI-v0.2.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.2" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-Prototype.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-Prototype.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-Prototype.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.2.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.2.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.2.dmg
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.2-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-Prototype.zip
-            dist/Liberty-Rompler-macOS-arm64-Prototype.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.2.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.2.dmg
           if-no-files-found: error
           retention-days: 30
