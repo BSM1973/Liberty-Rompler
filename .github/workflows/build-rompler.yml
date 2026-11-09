@@ -11,6 +11,8 @@ on:
       - 'assets/ui-v05/**'
       - 'assets/ui-v06/**'
       - '.github/workflows/build-rompler.yml'
+      - 'scripts/fix_v06_header.py'
+      - 'tests/test_v06_header_contract.py'
       - 'scripts/install_mac.command'
       - 'README.md'
   workflow_dispatch:
@@ -96,6 +98,7 @@ jobs:
           echo 'fdea4e597422beba2f9dbf2a902e53a81e204d579dca786211d1583c8dfd1f1a  /tmp/liberty-ui-v06.patch.xz' | shasum -a 256 --check
           xz -dc /tmp/liberty-ui-v06.patch.xz > /tmp/liberty-ui-v06.patch
           patch -p1 < /tmp/liberty-ui-v06.patch
+          python3 scripts/fix_v06_header.py
           test -f tests/test_layers_v06.py
           test -f Source/SampleEngine.cpp
           test -f Source/BankLibrary.cpp
