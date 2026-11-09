@@ -1,0 +1,45 @@
+name: Liberty Rompler - Prepare source for v0.6 development
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/export-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export-sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct sources exactly as v0.5
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '0da09c77c326780c5f972a45984be0f345ff3a39639c340192e04c2a33476e9e  assets/rompler-source-v0.1.tar.xz' | sha256sum --check
+          tar -xJf assets/rompler-source-v0.1.tar.xz
+          cat assets/ui-v02/part-{1..5}.b64 | base64 -d > /tmp/ui02.tar.xz
+          echo '3cfe2791987fd1a9e4b51abb60696b24b24da4ef09d45a9ce93e59652d9fe061  /tmp/ui02.tar.xz' | sha256sum --check
+          tar -xJf /tmp/ui02.tar.xz
+          cat assets/ui-v03/part-{1..4}.b64 | base64 -d > /tmp/ui03.patch.xz
+          echo '2048ee0ec90574a07c52fa738a907f7e1570cbf9f373e9305aa0ee6147041c94  /tmp/ui03.patch.xz' | sha256sum --check
+          xz -dc /tmp/ui03.patch.xz | patch -p1
+          cat assets/ui-v04/part-{1..3}.b64 | base64 -d > /tmp/ui04.patch.xz
+          echo '37fce78e5a9eb0dfdb4c6106b25540ad26f1e5f93276ed51d467f47e07950d1d  /tmp/ui04.patch.xz' | sha256sum --check
+          xz -dc /tmp/ui04.patch.xz | patch -p1
+          cat assets/ui-v05/part-{1..5}.b64 | base64 -d > /tmp/ui05.patch.xz
+          echo '103afbbefa19e00f88128e6f21d2980dd6cd7862f410ca09f4987d2cf683fc57  /tmp/ui05.patch.xz' | sha256sum --check
+          xz -dc /tmp/ui05.patch.xz | patch -p1
+          python3 tools/audit_ui_text.py
+          mkdir -p export
+          tar -czf export/liberty-rompler-source-v0.5.tar.gz Source tests tools docs CMakeLists.txt README_FR.md requirements-dev.txt
+      - name: Upload editable sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: Liberty-Rompler-v0.5-sources
+          path: export/liberty-rompler-source-v0.5.tar.gz
+          if-no-files-found: error
+          retention-days: 7
