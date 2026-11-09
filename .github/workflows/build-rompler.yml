@@ -9,6 +9,7 @@ on:
       - 'assets/ui-v03/**'
       - 'assets/ui-v04/**'
       - 'assets/ui-v05/**'
+      - 'assets/ui-v06/**'
       - '.github/workflows/build-rompler.yml'
       - 'scripts/install_mac.command'
       - 'README.md'
@@ -23,7 +24,7 @@ concurrency:
 
 jobs:
   build-macos:
-    name: macOS Apple Silicon - UI v0.5 / AU + VST3 + Standalone
+    name: macOS Apple Silicon - UI v0.6 / AU + VST3 + Standalone
     runs-on: macos-15
     timeout-minutes: 50
 
@@ -87,6 +88,18 @@ jobs:
           test -f Source/PluginEditor.cpp
           test -f Source/PluginProcessor.cpp
 
+      - name: Apply v0.6 four-layer multisample engine and UI
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v06/part-{1..6}.b64 | base64 -D > /tmp/liberty-ui-v06.patch.xz
+          echo 'fdea4e597422beba2f9dbf2a902e53a81e204d579dca786211d1583c8dfd1f1a  /tmp/liberty-ui-v06.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v06.patch.xz > /tmp/liberty-ui-v06.patch
+          patch -p1 < /tmp/liberty-ui-v06.patch
+          test -f tests/test_layers_v06.py
+          test -f Source/SampleEngine.cpp
+          test -f Source/BankLibrary.cpp
+
       - name: Configure Python for demo bank generator
         uses: actions/setup-python@v5
         with:
@@ -129,11 +142,11 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
-      - name: Package UI v0.5, installer and both demo banks
+      - name: Package UI v0.6, installer and both demo banks
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.5"
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.6"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -149,19 +162,19 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.5 Liberty-Rompler-macOS-arm64-UI-v0.5.zip)
-          hdiutil create -volname "Liberty Rompler UI v0.5" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.6 Liberty-Rompler-macOS-arm64-UI-v0.6.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.6" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.5.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.5.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.5.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.6.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.6.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.6.dmg
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-UI-v0.5-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.6-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.5.zip
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.5.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.6.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.6.dmg
           if-no-files-found: error
           retention-days: 30

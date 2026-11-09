@@ -1,3 +1,19 @@
+# Liberty Rompler — v0.6 : moteur multisample à 4 couches
+
+**Le nouveau moteur combine jusqu’à quatre sources sonores dans un même preset.** L'onglet **COUCHES** affiche quatre panneaux distincts en grille 2 × 2. Chaque couche possède : sélection d'une source de banque et d'un preset, activation, **volume, panorama stéréo, transposition en demi-tons, filtre passe-bas, plage de notes et plage de vélocité**. Le moteur charge les zones multisamples référencées et les superpose pendant le jeu, avec 128 voix au maximum sur l'ensemble des couches. Les réglages des couches et les références aux sources sont conservés dans la sauvegarde de session du DAW.
+
+**Compatibilité descendante :** les banques et presets historiques (zones WAV) restent lisibles. L'extension du format JSON accepte une propriété facultative `layers` (4 références au maximum : `source_bank`, `source_preset`, `enabled`, `gain`, `pan`, `transpose`, `cutoffHz`, `lowNote`, `highNote`, `lowVelocity`, `highVelocity`). Chaque couche source désigne un preset de zones directement jouable, et non une autre construction multicouche.
+
+**Preset de test :** « Fusion Horizon » combine quatre sons de la banque Factory Starter. Le nombre de presets de démonstration est maintenant de **10** (7 Factory Starter + 3 Expansion Demo) sans reproduire les samples.
+
+**Qualité :** 24 tests Python validés localement avant compilation, contrôle automatique des caractères français et géométrie des quatre panneaux à 15 résolutions. Le rendu réel macOS et les tests MIDI/audio restent à effectuer dans les hôtes DAW.
+
+**Limites de ce prototype :** maximum 64 zones multisamples chargées par combinaison, chargement WAV en mémoire, pas de streaming disque, ni éditeur de sauvegarde/export de preset multicouche vers une banque externe depuis le plugin, ni protection de licence commerciale. Les presets historiques et leurs sons doivent être retestés avant distribution.
+
+Télécharger la dernière compilation verte depuis [GitHub Actions](https://github.com/BSM1973/Liberty-Rompler/actions/workflows/build-rompler.yml) → **Artifacts**.
+
+---
+
 # Liberty Rompler — Version UI v0.5
 
 **Fonctions ajoutées sur une base v0.4 validée :**
