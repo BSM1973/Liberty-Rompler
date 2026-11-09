@@ -1,3 +1,24 @@
+# Liberty Rompler v0.7 — Onglet ROUTAGE graphique
+
+**Routage fonctionnel, pas une illustration statique.** Le nouveau panneau ROUTAGE visualise les quatre couches audio et leur convergence vers la chaîne principale.
+
+- Quatre synthétiseurs indépendants de **32 voix chacun**, soit jusqu'à 128 voix réparties sur les quatre couches.
+- Chaque couche possède son propre filtre déjà intégré au moteur v0.6 et **deux emplacements d'effets audio indépendants**. Glisser un effet depuis la palette vers un emplacement ; échanger les deux blocs ou déplacer un effet vers une autre couche ; double-cliquer ou faire un clic droit pour retirer l'effet.
+- Six effets disponibles sur chaque couche et sur le bus global : Distorsion, EQ, Compresseur, Chorus, Delay et Réverbération. Chaque couche et le bus global possèdent leurs propres mémoires d'effets (chorus, réverbération, delay, filtre et compresseur) pour éviter les échanges de signal entre couches.
+- **Chaîne globale** de six blocs : déplacer un effet sur un autre pour échanger leurs positions. L'ordre affiché est réellement l'ordre du DSP, après le mélange des couches et le filtre global.
+- **Sauvegarde DAW** des deux emplacements sur chaque couche et de l'ordre des six effets globaux. Les anciens projets conservent la chaîne historique Distorsion → EQ → Compresseur → Chorus → Delay → Réverbération et les slots de couche désactivés.
+- Les réglages de chaque type d'effet restent actuellement partagés avec l'onglet EFFETS ; les traitements et les états DSP sont indépendants par couche. Le routage est **en série**, sans bus auxiliaire ni câblage arbitraire à ce stade.
+- Répartitions clavier, vélocité, volumes, panoramiques et sources des quatre couches restent opérationnels.
+- **30 tests automatisés** avant compilation : interfaces existantes, nouveaux chemins DSP, ordre des effets, sérialisation, calculs sans superposition à 15 tailles de fenêtre. Audit UTF-8 strict : accents français corrects, caractères de remplacement et corruption interdits.
+
+Cette v0.7 reste un **prototype**. L'interface doit être validée visuellement sur macOS et le son doit être écouté après le build. Les effets à 0 % de mixage ou à réglages neutres n'altèrent pas le signal. Les échantillons restent chargés en mémoire, sans streaming disque.
+
+La mise à jour est intégrée sous forme de patch source vérifié par SHA-256, dans `assets/ui-v07/part-{1..5}.b64`. Le workflow reconstruira les versions précédentes, appliquera le correctif du header v0.6, puis la v0.7 avant les tests et la compilation.
+
+[Compiler et télécharger depuis GitHub Actions](https://github.com/BSM1973/Liberty-Rompler/actions/workflows/build-rompler.yml) — ouvrir le dernier run vert, section **Artifacts**.
+
+---
+
 # Liberty Rompler — v0.6 : moteur multisample à 4 couches
 
 **Le nouveau moteur combine jusqu’à quatre sources sonores dans un même preset.** L'onglet **COUCHES** affiche quatre panneaux distincts en grille 2 × 2. Chaque couche possède : sélection d'une source de banque et d'un preset, activation, **volume, panorama stéréo, transposition en demi-tons, filtre passe-bas, plage de notes et plage de vélocité**. Le moteur charge les zones multisamples référencées et les superpose pendant le jeu, avec 128 voix au maximum sur l'ensemble des couches. Les réglages des couches et les références aux sources sont conservés dans la sauvegarde de session du DAW.
