@@ -1,3 +1,26 @@
+# Liberty Rompler v0.9 — Correction de l'arpégiateur et nouveaux motifs
+
+Cette mise à jour regroupe dans **un seul build** :
+- **Correctif JUCE 8.0.10** du compilateur macOS : l'itérateur MIDI du séquenceur utilise désormais la déréférence correcte, sans accès invalide par pointeur
+- **6 modèles de séquences** : Droit, House, Trance, Basse, Syncope et Montée 32 pas
+- **4 outils musicaux** directement dans l'onglet ARPÉGIATEUR : Inverser, Décaler (rotation), Humaniser la vélocité et Réinitialiser
+- **Géométrie revue** : barre d'outils séparée des 32 pas et réduction adaptative des vu-mètres de vélocité lorsque la fenêtre est petite
+- **Tests plus stricts** : le simulateur JUCE ne prend plus en charge l'accès erroné par pointeur ; nouveaux tests C++ pour motifs, MIDI, géométrie et encodage des accents
+- Les modifications de motifs utilisent les paramètres déjà sauvegardés dans le DAW ; aucune migration des banques n'est nécessaire
+
+**Aucun build GitHub Actions automatique :** le workflow est uniquement manuel. Afin d'éviter tout coût de runner macOS, compiler localement sur un Mac Apple Silicon avec Xcode et CMake, après clonage du dépôt :
+
+```bash
+git clone https://github.com/BSM1973/Liberty-Rompler.git ~/Liberty-Rompler
+bash ~/Liberty-Rompler/scripts/build_local_github_v09.command --install
+```
+
+Si le dépôt existe déjà, remplacer la première commande par `git -C ~/Liberty-Rompler pull --ff-only`. Le script vérifie chaque archive (SHA-256), lance les tests et compile les versions AU, VST3 et autonome en une seule fois. Il crée aussi un DMG et un ZIP sous `~/Liberty-Rompler/.local-build/dist/`.
+
+**État :** tests unitaires Linux verts, mais compilation native JUCE/macOS et essais audio dans le DAW **pas encore confirmés**. Les nouvelles actions de motifs affectent la séquence actuellement chargée et sont enregistrées avec le projet. Le bouton Humaniser fait varier la vélocité, pas le timing, afin de conserver la synchronisation au tempo.
+
+---
+
 # Liberty Rompler v0.8 — Arpégiateur professionnel
 
 Le nouvel onglet **ARPÉGIATEUR** est directement connecté au moteur MIDI de l'instrument à quatre couches. Il est **OFF par défaut**, afin que les presets historiques et les projets existants se comportent comme avant.
