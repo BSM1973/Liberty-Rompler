@@ -13,7 +13,7 @@ class IntegratedSamplesV015(unittest.TestCase):
         source = (ROOT / "Source" / "SampleZoneView.h").read_text(encoding="ascii")
         for fragment in (
             "nudgeLoopMarker(bool startMarker, int delta)",
-            "previewSelectedLoop()",
+            "previewSelectedLoop(",
             "processor.previewSampleZoneLoop(",
             "liberty::loop_v015::crossfadeBands(",
             "frameNudges[(size_t)i]",
@@ -34,7 +34,13 @@ class IntegratedSamplesV015(unittest.TestCase):
         self.assertIn("previewVoice.process(", callback)
         self.assertNotIn("formats.createReaderFor(", callback)
         self.assertNotIn("renderSeamPreview(", callback)
-        self.assertIn("renderSeamPreview(", precompute)
+        self.assertTrue("renderSeamPreview(" in precompute
+                        or "renderSeamFromWindows(" in precompute)
+        if "renderSeamFromWindows(" in precompute:
+            self.assertNotIn("juce::AudioBuffer<float> decoded(channels, total)", precompute)
+            self.assertIn("measureRawSeamDifference(tail, head)", precompute)
+            self.assertIn("endFrame - contextFrames", precompute)
+            self.assertIn("startFrame, true, true", precompute)
         self.assertIn("const juce::ScopedLock lock(previewLock)", precompute)
         self.assertIn("currentSampleRate / reader->sampleRate", precompute)
 
