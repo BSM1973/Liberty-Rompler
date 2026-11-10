@@ -1,0 +1,12 @@
+Liberty ROMpler v0.18 Linux preflight
+Reconstruction: success
+Integration: success
+Windowed preview patch: success
+Audition duration patch: success
+Stereo seam search: success
+Regression tests: success
+Linux dependencies: success
+JUCE 8 checkout: success
+Linux VST3 build: success
+Mac release build: NOT TRIGGERED
+GitHub run: 42883768736
