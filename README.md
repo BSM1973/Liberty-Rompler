@@ -1,3 +1,20 @@
+# Liberty Rompler v0.14 — Zoom forme d'onde et calage automatique des boucles
+
+L'onglet **SAMPLES > BOUCLES** permet de travailler plus précisément à l'intérieur d'un WAV, en conservant l'édition non destructive des versions précédentes.
+
+- **ZOOM de 1× à 64×** : curseur dédié, molette sur la forme d'onde, bouton TOUT et double-clic pour retrouver la vue globale
+- **POSITION** : déplacement horizontal dans la forme d'onde agrandie ; les marqueurs, la boucle et la zone de fondu suivent exactement le même repère en frames
+- **AUTO ZÉRO** : option qui recale le marqueur sur le passage par zéro le plus proche après son déplacement, sans imposer de recherche lors de chaque mouvement
+- **ZÉRO DÉBUT / ZÉRO FIN** : commandes de la v0.13 conservées, avec analyse réelle du WAV mono/stéréo dans un rayon de 512 frames
+- **Sécurité** : seuls les marqueurs proches du pointeur (18 pixels) peuvent être déplacés ; un marqueur hors de la zone visible ne saute pas au clic
+- **Compatibilité** : zoom purement visuel, aucun changement du moteur audio, des formats de banques, des neuf onglets, du clavier MIDI ou de la sauvegarde DAW
+
+**Vérifications avant envoi :** 67 tests automatisés, dont les conversions C++ entre pixels et frames, changements de zoom, défilement, calage zéro, audit UTF-8 et géométrie de l'interface à différentes tailles ; 2 banques et 10 presets valides. Le rendu et l'écoute sur macOS doivent encore être confirmés après compilation.
+
+Le workflow GitHub conserve un déclenchement de compilation par lot ; les modifications ordinaires du code ne génèrent pas de builds.
+
+---
+
 # Liberty Rompler v0.13 — Calage automatique des boucles sur zero
 
 Dans **SAMPLES > BOUCLES**, deux nouvelles commandes **ZÉRO DÉBUT** et **ZÉRO FIN** recherchent le passage par zéro le plus proche du marqueur (dans un rayon de 512 frames), en analysant réellement le WAV mono ou stéréo. Un bouton **ANNULER** permet de revenir aux derniers réglages appliqués sans effacer les éditions déjà sauvegardées dans le projet.

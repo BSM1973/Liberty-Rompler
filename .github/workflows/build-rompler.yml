@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build-macos:
-    name: macOS Apple Silicon - UI v0.13 / AU + VST3 + Standalone
+    name: macOS Apple Silicon - UI v0.14 / AU + VST3 + Standalone
     runs-on: macos-15
     timeout-minutes: 50
 
@@ -180,6 +180,19 @@ jobs:
           test -f tests/zero_cross_snap_test.cpp
           test -f docs/SAMPLES_EDITOR_V013.md
 
+      - name: Apply v0.14 waveform zoom, navigation and automatic marker zero snap
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v14/part-{1..4}.b64 | base64 -D > /tmp/liberty-ui-v14.patch.xz
+          echo '35cb670447a3214f4a8d12a4cec4f3cf0ad43e657a622ff9d445adf733dd834b  /tmp/liberty-ui-v14.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v14.patch.xz | patch --batch -p1
+          python3 -c 'from pathlib import Path; p=Path("Source/PluginEditor.cpp"); s=p.read_text(); old="Prototype 0.13  |"; assert s.count(old)==1; p.write_text(s.replace(old, "Prototype 0.14  |"))'
+          test -f Source/WaveformZoom.h
+          test -f tests/test_samples_v014.py
+          test -f tests/waveform_zoom_test.cpp
+          test -f docs/SAMPLES_EDITOR_V014.md
+
       - name: Configure Python for demo bank generator
         uses: actions/setup-python@v5
         with:
@@ -222,11 +235,11 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
-      - name: Package UI v0.13, installer and both demo banks
+      - name: Package UI v0.14, installer and both demo banks
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.13"
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.14"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -242,27 +255,27 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.13 Liberty-Rompler-macOS-arm64-UI-v0.13.zip)
-          hdiutil create -volname "Liberty Rompler UI v0.13" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.14 Liberty-Rompler-macOS-arm64-UI-v0.14.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.14" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.13.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.13.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.13.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.14.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.14.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.14.dmg
 
-      - name: Preserve editable v0.13 source in the same artifact
+      - name: Preserve editable v0.14 source in the same artifact
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf dist/Liberty-Rompler-source-v0.13.tar.gz Source tests tools docs CMakeLists.txt
-          test -s dist/Liberty-Rompler-source-v0.13.tar.gz
+          tar -czf dist/Liberty-Rompler-source-v0.14.tar.gz Source tests tools docs CMakeLists.txt
+          test -s dist/Liberty-Rompler-source-v0.14.tar.gz
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-UI-v0.13-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.14-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.13.zip
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.13.dmg
-            dist/Liberty-Rompler-source-v0.13.tar.gz
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.14.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.14.dmg
+            dist/Liberty-Rompler-source-v0.14.tar.gz
           if-no-files-found: error
           retention-days: 30
