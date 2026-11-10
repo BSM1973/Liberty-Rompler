@@ -137,8 +137,8 @@ public:
             addAndMakeVisible(button);
             button.setButtonText(i % 2 == 0 ? "-1" : "+1");
             button.setTooltip(i < 2
-                ? "D\u00e9but : clic 1f, Option 10f, Maj boucle 1f, Maj+Option boucle 10f"
-                : "Fin : clic 1f, Option 10f, Maj boucle 1f, Maj+Option boucle 10f");
+                ? "D\u00e9but : clic 1 frame, Option + clic = 10 frames; Maj = boucle 1f; Maj+Option = boucle 10f"
+                : "Fin : clic 1 frame, Option + clic = 10 frames; Maj = boucle 1f; Maj+Option = boucle 10f");
             button.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
             button.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
             button.onClick = [this, i] {
