@@ -54,7 +54,8 @@ public:
     juce::Result resetSampleZoneEdit(const juce::String& bank,
                                     const juce::String& preset, int zoneIndex);
     juce::Result previewSampleZoneLoop(const juce::File& wav, int startFrame,
-                                      int endFrame, int crossfadeFrames);
+                                      int endFrame, int crossfadeFrames,
+                                      float* rawSeamStepDb = nullptr);
 
 private:
     juce::AudioFormatManager formats;

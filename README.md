@@ -1,3 +1,15 @@
+# Liberty ROMpler v0.16 — Développement, non publié
+
+La version **v0.15** est toujours la dernière distribution macOS compilée (build GitHub #22, tentative 2, vert). La **v0.16** reste sur la branche `feature/v016-seam-preview-windowed`, sans nouveau build macOS.
+
+**Nouveautés sur cette branche :** préécoute WAV à mémoire limitée (deux courts extraits seulement), comparaison A/B au même bouton (`PRÉÉCOUTE` / `Maj + clic`) et affichage du saut d'amplitude brut du raccord en dB. Cette dernière mesure est informative, sans prétention d'évaluer la présence d'un clic audible.
+
+**Sécurité :** les sources WAV et banques ne sont pas modifiées ; AUTO ZÉRO reste désactivé par défaut pour les anciens projets. Aucune commande supplémentaire ne prend de place : zéro chevauchement recherché, accents français conformes à l'audit.
+
+Tests : `tests/test_v016_preview_windows.py`, `tests/loop_preview_windows_v016_test.cpp` ; validation JUCE Linux disponible dans `.github/workflows/preflight-v016-linux.yml`. La recette manuelle Mac est décrite dans `docs/GUIDE_TEST_BOUCLES_V016.md`. La compilation macOS reste en brouillon dans `docs/build-rompler-v016-release-DRAFT.yml`, sans exécution du workflow de livraison.
+
+---
+
 # Liberty ROMpler v0.15 — Préécoute et édition des boucles
 
 **État au 10 novembre 2026 : prévalidation Linux verte ; compilation macOS et recette sonore encore à confirmer.**
