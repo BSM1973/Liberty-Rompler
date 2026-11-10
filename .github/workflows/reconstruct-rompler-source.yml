@@ -1,0 +1,49 @@
+name: Liberty Rompler - Recover JUCE source v0.14 (no build)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/reconstruct-rompler-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  recover-source:
+    name: Reassemble editable sources on Linux without compiling
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Assemble verified v0.14 sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/reconstruct_source_v014.sh
+          test -f Source/PluginEditor.cpp
+          test -f Source/PluginProcessor.cpp
+
+      - name: Preserve complete JUCE sources on a review branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reconstructed-v014
+          cp -R Source reconstructed-v014/Source
+          cp -R docs reconstructed-v014/docs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c source/reconstructed-v014
+          git add -f reconstructed-v014/Source reconstructed-v014/docs
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: recover v0.14 JUCE editor and processor sources for v0.15 review"
+          git push origin HEAD:refs/heads/source/reconstructed-v014
+
+      - name: Summary
+        shell: bash
+        run: |
+          echo "v0.14 source recovery completed without macOS builds" >> "$GITHUB_STEP_SUMMARY"
+          echo "Review branch: source/reconstructed-v014" >> "$GITHUB_STEP_SUMMARY"
