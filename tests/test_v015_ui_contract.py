@@ -41,8 +41,8 @@ class LoopEditorUiContractV015(unittest.TestCase):
             "pending.markApplied()",
             "makeLoopToolbarLayout",
             "setInputRestrictions",
-            'fromUTF8 ("DÉBUT")',
-            'fromUTF8 ("PRÉÉCOUTE")',
+            r'fromUTF8 (u8"D\u00c9BUT")',
+            r'fromUTF8 (u8"PR\u00c9\u00c9COUTE")',
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, text)
