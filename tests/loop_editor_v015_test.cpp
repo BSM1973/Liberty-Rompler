@@ -1,4 +1,6 @@
 #include "../Source/LoopEditorV015.h"
+#include "../Source/LoopFrameInputV015.h"
+#include "../Source/LoopPreviewVoiceV015.h"
 
 #include <cassert>
 #include <cmath>
@@ -61,5 +63,76 @@ int main()
     assert (renderSeamPreview (src, Loop {-1, 8, 10}, 3, 0).channels.empty());
     assert (renderSeamPreview (src, Loop {2, 8, 10}, 0, 0).channels.empty());
     assert (renderSeamPreview (src, Loop {2, 8, 10}, 3, -1).channels.empty());
+    // Strict, locale-independent entry and reversible pending marker edits.
+    assert (parseFrame ("123").value() == 123);
+    assert (parseFrame ("0").value() == 0);
+    assert (! parseFrame ("").has_value());
+    assert (! parseFrame ("12.3").has_value());
+    assert (! parseFrame ("12ms").has_value());
+    assert (! parseFrame ("-1").has_value());
+    assert (! parseFrame ("999999999999999999999999999999").has_value());
+    PendingFrameEdit edit {Loop {100, 200, 500}};
+    assert (! edit.autoZero);
+    edit.step (Marker::begin, 1);
+    edit.step (Marker::end, -10);
+    assert (edit.value().begin == 101 && edit.value().end == 190);
+    assert (edit.changed());
+    edit.cancelPending();
+    assert (! edit.changed() && edit.value().begin == 100 && edit.value().end == 200);
+    assert (edit.setTyped (Marker::begin, "125"));
+    assert (edit.value().begin == 125 && edit.changed());
+    assert (! edit.setTyped (Marker::end, "20ms"));
+    assert (edit.value().end == 200);
+    edit.markApplied();
+    assert (! edit.changed());
+    edit.step (Marker::begin, -1000);
+    assert (edit.value().begin == 0);
+    edit.cancelPending();
+    assert (edit.value().begin == 125);
+    assert (edit.setTyped (Marker::end, "120"));
+    assert (edit.value().end == 126);
+
+    // Precomputed seam audio can be played through existing output buffers.
+    // Preparation never happens from an active audio callback.
+    SeamPreviewVoice voice;
+    assert (voice.prepare (&a, 2));
+    assert (! voice.isPlaying());
+    float left[8] = {0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f};
+    float right[8] = {};
+    float sidechain[8] = {};
+    float* out[] = {left, right, sidechain};
+    voice.start();
+    voice.process (out, 3, 8);
+    assert (! voice.isPlaying());
+    assert (voice.remainingFrames() == 0);
+    assert (std::abs (left[0] - 3.0f) < 1e-6f); // 5 * 0.5 ramp + 0.5
+    assert (std::abs (left[1] - 6.5f) < 1e-6f); // Full volume
+    assert (std::abs (left[5] - 2.5f) < 1e-6f); // 4 * 0.5 ramp + 0.5
+    assert (std::abs (left[6] - 0.5f) < 1e-6f); // No tail spill
+    assert (std::abs (right[0] + 2.5f) < 1e-6f);
+    for (float v : sidechain) assert (v == 0.0f);
+
+    // Inactive voice must never write to host buffers.
+    voice.process (out, 3, 8);
+    assert (left[0] == 3.0f);
+    voice.start();
+    voice.stop();
+    assert (! voice.isPlaying());
+    SeamPreview invalid;
+    invalid.channels = {{1, 2}, {1}};
+    assert (! voice.prepare (&invalid));
+    assert (! voice.isPlaying());
+
+    // Mono preview to stereo outputs; explicit one-shot playback.
+    std::vector<std::vector<float>> mono {{0, 1, 2, 3, 4, 5, 6, 7}};
+    const auto monoSeam = renderSeamPreview (mono, Loop {1, 7, 8}, 2, 0);
+    assert (voice.prepare (&monoSeam, 0));
+    voice.start();
+    float l2[4] = {}, r2[4] = {};
+    float* stereo[] = {l2, r2};
+    voice.process (stereo, 2, 4);
+    assert (l2[0] == r2[0] && l2[1] == r2[1]);
+    assert (! voice.isPlaying());
+
     std::cout << "Loop editor v0.15: C++ unit tests OK\n";
 }
