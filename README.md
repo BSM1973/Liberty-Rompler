@@ -1,3 +1,21 @@
+# Liberty Rompler v0.10 — Interface premium à neuf onglets
+
+L'interface conserve son thème sombre Liberty, son navigateur de presets large, ses modules audio et son clavier MIDI sur toute la largeur inférieure.
+
+**Navigation, dans l'ordre :** PRESETS · COUCHES · ROUTAGE · EFFETS · MODULATION · MODULATEURS · ARP / STEP · SAMPLES · RÉGLAGES.
+
+Le nouvel onglet **SAMPLES** donne accès aux zones WAV réelles du preset actif, y compris les références de presets multicouches : fichiers sources, note fondamentale, plages clavier/vélocité, boucles et visualisation de forme d'onde grâce à `juce::AudioThumbnail`. Cet inspecteur reste en **lecture seule** ; il ne réécrit ni les fichiers audio ni les manifests des banques.
+
+Les 4 couches, le routage graphique, les 6 effets, les modulateurs et l'arpégiateur 32 pas restent inchangés dans leur fonctionnement. Les paramètres et presets DAW antérieurs conservent leur format d'état.
+
+**Contrôles :** audit Unicode/accents en français, tests de géométrie à 9 onglets et 15 tailles de fenêtres, validation des banques et tests musicaux. Le rendu macOS réel et la stabilité du défilement restent à vérifier à l'ouverture dans un DAW.
+
+**Distribution :** le workflow GitHub Actions n'est déclenché automatiquement que si son propre fichier est modifié ; un seul build est prévu pour cette livraison. Les futures modifications de code restent sans compilation jusqu'à validation d'un nouveau lot. Les artefacts incluent le ZIP, le DMG et une archive des sources générées pour faciliter les correctifs ultérieurs.
+
+[Voir les compilations GitHub Actions](https://github.com/BSM1973/Liberty-Rompler/actions/workflows/build-rompler.yml).
+
+---
+
 # Liberty Rompler v0.9 — Correction de l'arpégiateur et nouveaux motifs
 
 Cette mise à jour regroupe dans **un seul build** :

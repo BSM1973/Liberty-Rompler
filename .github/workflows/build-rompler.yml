@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build-macos:
-    name: macOS Apple Silicon - UI v0.9 / AU + VST3 + Standalone
+    name: macOS Apple Silicon - UI v0.10 / AU + VST3 + Standalone
     runs-on: macos-15
     timeout-minutes: 50
 
@@ -130,6 +130,17 @@ jobs:
           test -f tests/test_arp_v09.py
           test -f tests/arp_pattern_test.cpp
 
+      - name: Apply v0.10 nine-tab navigation and multisample waveform viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v10/part-{1..3}.b64 | base64 -D > /tmp/liberty-ui-v10-overlay.tar.xz
+          echo '31e4586e7c3cef75a052a02220366b727476ab8aed806448c66d863aab3afbd1  /tmp/liberty-ui-v10-overlay.tar.xz' | shasum -a 256 --check
+          tar -xJf /tmp/liberty-ui-v10-overlay.tar.xz
+          python3 scripts/upgrade_ui_v10.py
+          test -f Source/SampleZoneView.h
+          test -f tests/test_ui_v10.py
+
       - name: Configure Python for demo bank generator
         uses: actions/setup-python@v5
         with:
@@ -172,11 +183,11 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
-      - name: Package UI v0.9, installer and both demo banks
+      - name: Package UI v0.10, installer and both demo banks
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.9"
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.10"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -192,19 +203,27 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.9 Liberty-Rompler-macOS-arm64-UI-v0.9.zip)
-          hdiutil create -volname "Liberty Rompler UI v0.9" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.10 Liberty-Rompler-macOS-arm64-UI-v0.10.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.10" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.9.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.9.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.9.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.10.dmg
+            dist/Liberty-Rompler-source-v0.10.tar.gz
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.10.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.10.dmg
+
+      - name: Preserve editable v0.10 source in the same artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf dist/Liberty-Rompler-source-v0.10.tar.gz Source tests tools CMakeLists.txt
+          test -s dist/Liberty-Rompler-source-v0.10.tar.gz
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-UI-v0.9-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.10-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.9.zip
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.9.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.10.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.10.dmg
           if-no-files-found: error
           retention-days: 30
