@@ -1,3 +1,18 @@
+# Liberty ROMpler v0.17 — Développement en validation
+
+La v0.17 ajoute deux commandes sans agrandir l'interface de l'onglet **SAMPLES > BOUCLES** :
+
+- Déplacement d'un marqueur : clic sur `-1/+1` = **1 frame** ; **Option + clic** = **10 frames**.
+- Bouton PRÉÉCOUTE : **60 ms** de contexte de chaque côté du raccord en temps normal ; **Option + clic** demande **250 ms**, avec plafonnement automatique à 32768 frames.
+- **Maj + clic** conserve le mode A (sans fondu) ; Maj + Option permet le mode A long. Le clic normal reste le mode B (avec fondu).
+- Le son de contrôle est ajouté après le gain principal, pour rester audible lorsque le volume de l'instrument est abaissé.
+
+Ces commandes sont non destructives, n'ajoutent aucun bouton et respectent nos deux règles : **aucun chevauchement**, et **aucun caractère français incorrect**. AUTO ZÉRO reste désactivé par défaut dans les anciens projets.
+
+Ce travail est développé dans `feature/v017-loop-audition-precision`, avec les tests `tests/test_v017_audition.py`, le patch `scripts/apply_v017_audition.sh` et le guide `docs/GUIDE_TEST_BOUCLES_V017.md`. **Ne pas annoncer une distribution v0.17 tant que les validations JUCE et macOS ne sont pas vertes.** La v0.16 reste la dernière version distribuée.
+
+---
+
 # Liberty ROMpler v0.16 — Développement, non publié
 
 La version **v0.15** est toujours la dernière distribution macOS compilée (build GitHub #22, tentative 2, vert). La **v0.16** reste sur la branche `feature/v016-seam-preview-windowed`, sans nouveau build macOS.
