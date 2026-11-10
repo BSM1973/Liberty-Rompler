@@ -124,7 +124,7 @@ public:
         }
         addAndMakeVisible(previewButton);
         previewButton.setButtonText(juce::String::fromUTF8(u8"PR\u00c9\u00c9COUTE"));
-        previewButton.setTooltip("Clic : avec fondu. Maj + clic : sans fondu (A/B).");
+        previewButton.setTooltip("Clic : fondu B ; Maj + clic : sans fondu A. Ecart brut en dB, pas un diagnostic automatique de clic audible.");
         previewButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
         previewButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
         previewButton.onClick = [this] {
@@ -546,12 +546,14 @@ private:
         const auto* row = currentRow();
         if (!showLoops || !row || !loopEnabled.getToggleState() ||
             sampleFrames < 12) return;
+        float rawSeamStepDb = -120.0f;
         const auto result = processor.previewSampleZoneLoop(
             row->zone.file, (int)sliders[4].getValue(), (int)sliders[5].getValue(),
-            withoutFade ? 0 : (int)sliders[6].getValue());
+            withoutFade ? 0 : (int)sliders[6].getValue(), &rawSeamStepDb);
+        // The number is the raw sample-amplitude step, not a click audibility score.
         status = result.wasOk()
-            ? (withoutFade ? juce::String::fromUTF8(u8"Pr\u00e9\u00e9coute sans fondu (A)")
-                           : juce::String::fromUTF8(u8"Pr\u00e9\u00e9coute avec fondu (B)"))
+            ? juce::String(withoutFade ? "A" : "B") + " | " +
+              juce::String(rawSeamStepDb, 1) + " dB"
             : result.getErrorMessage();
         updateFeedback();
     }
@@ -653,9 +655,12 @@ private:
         repaint();
     }
     void updateFeedback() {
-        feedback.setText(dirty ? juce::String::fromUTF8(u8"NON APPLIQU\u00c9") :
-                         (status.isEmpty() ? "Session DAW / banques intactes" : status),
-                         juce::dontSendNotification);
+        const auto pendingMessage = juce::String::fromUTF8(u8"NON APPLIQU\u00c9");
+        const auto message = status.isNotEmpty()
+            ? (dirty ? pendingMessage + " | " + status : status)
+            : (dirty ? pendingMessage : juce::String("Session DAW / banques intactes"));
+        feedback.setText(message, juce::dontSendNotification);
+        feedback.setTooltip(message);
     }
     void updateLayout() {
         const auto b = getLocalBounds().reduced(12, 10);
