@@ -156,9 +156,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c validation/v019-linux-paired-lock
+          git switch -c validation/v019-linux-paired-lock-r2
           git add -f v019-preflight/RESULT.txt
           if test -f v019-preflight/test-output.log; then git add -f v019-preflight/test-output.log; fi
           if test -f v019-preflight/build-output.log; then git add -f v019-preflight/build-output.log; fi
           git commit -m "ci: record v0.19 JUCE preflight results"
-          git push origin HEAD:refs/heads/validation/v019-linux-paired-lock
+          git push origin HEAD:refs/heads/validation/v019-linux-paired-lock-r2
