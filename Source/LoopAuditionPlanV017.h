@@ -1,5 +1,5 @@
 #pragma once
-// Liberty ROMpler v0.17 — sample-accurate audition context planner.
+// Liberty ROMpler v0.17 - sample-accurate audition context planner.
 // Pure, allocation-free helper. C++17. No JUCE dependency.
 
 #include <algorithm>
