@@ -18,6 +18,16 @@ En v0.15, le bouton PRÉÉCOUTE lit tout le WAV et en crée une copie en mémoir
 - Aucune modification des libellés français ou de la géométrie de l'interface.
 - Aucun changement du format d'état DAW et AUTO ZÉRO reste désactivé par défaut.
 
+## Comparaison A/B et diagnostic du raccord
+
+- **Clic sur PRÉÉCOUTE** : lecture B, avec la durée de fondu définie dans la zone.
+- **Maj + clic sur PRÉÉCOUTE** : lecture A, avec fondu temporairement mis à 0 pour écouter le raccord brut.
+- Une valeur d'**écart brut en dB** est calculée entre le dernier échantillon avant la fin exclusive et le premier au début inclusif de la boucle. Elle est affichée succinctement à côté de A ou B, sans créer de nouveau bouton ni modifier les limites de l'éditeur. Un écart nul est affiché à −120 dB (plancher).
+- Cette valeur n'est **pas** une mesure de qualité sonore ni un détecteur de clic audible. Le résultat dépend également de la forme d'onde, de la fréquence et du contexte d'écoute.
+- A/B est non destructif : le paramètre `loopCrossfadeFrames` enregistré dans le projet n'est jamais modifié par la préécoute A.
+
+L'implémentation se trouve dans `overlays/v015/SampleZoneView.h`, `overlays/v015/PluginProcessor.h`, `Source/LoopSeamDifferenceV016.h` et dans l'application de correctif `scripts/apply_v016_preview.sh`.
+
 ## Vérifications prévues
 
 Le test C++ `tests/loop_preview_windows_v016_test.cpp` compare l'algorithme optimisé à la sortie v0.15 pour plusieurs tailles de WAV, positions, longueurs de contexte, fondus et deux canaux. `tests/test_v016_preview_windows.py` l'intègre à la suite Python existante.
