@@ -59,7 +59,10 @@ int main()
     assert (b.channels[0].size() == 4);
     assert (b.channels[0][0] == 5);
     assert (b.channels[0][3] == 4);
-    assert (std::isfinite (b.channels[0][1]));
+    // The audition must use the same fade curve as v0.14 LoopCrossfade::at().
+    assert (b.channels[0][1] == 6.0f); // 100% tail on the first fade frame
+    assert (b.channels[0][2] == 5.0f); // half tail / half head
+    assert (b.channels[1][2] == -5.0f);
     assert (src == original);
     assert (renderSeamPreview (src, Loop {-1, 8, 10}, 3, 0).channels.empty());
     assert (renderSeamPreview (src, Loop {2, 8, 10}, 0, 0).channels.empty());
