@@ -6,6 +6,7 @@
 #include "WaveformZoom.h"
 #include "LoopEditorV015.h"
 #include "LoopSeamSearchV018.h"
+#include "LoopPairedSeamV019.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -69,17 +70,23 @@ public:
         positionSlider.setValue(0.0, juce::dontSendNotification);
         positionSlider.setColour(juce::Slider::trackColourId, juce::Colour(0xff63dccc));
         positionSlider.onValueChange = [this] { updatePosition(); };
-        snapStartButton.setTooltip("Clic : passage par z\u00e9ro. Option + clic : chercher le saut le plus faible dans 512 frames.");
-        snapEndButton.setTooltip("Clic : passage par z\u00e9ro. Option + clic : chercher le saut le plus faible dans 512 frames.");
+        snapStartButton.setTooltip("Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe).");
+        snapEndButton.setTooltip("Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe).");
         cancelButton.setTooltip("Annuler les modifications non appliquees de cette zone");
         snapStartButton.onClick = [this] {
-            if (juce::ModifierKeys::getCurrentModifiers().isAltDown())
+            const auto modifiers = juce::ModifierKeys::getCurrentModifiers();
+            if (modifiers.isAltDown() && modifiers.isShiftDown())
+                optimizeLoopPair();
+            else if (modifiers.isAltDown())
                 optimizeLoopMarker(true);
             else
                 snapLoopMarker(true);
         };
         snapEndButton.onClick = [this] {
-            if (juce::ModifierKeys::getCurrentModifiers().isAltDown())
+            const auto modifiers = juce::ModifierKeys::getCurrentModifiers();
+            if (modifiers.isAltDown() && modifiers.isShiftDown())
+                optimizeLoopPair();
+            else if (modifiers.isAltDown())
                 optimizeLoopMarker(false);
             else
                 snapLoopMarker(false);
@@ -578,6 +585,87 @@ private:
               " | BRUT " + juce::String(rawSeamStepDb, 1) + " dB"
             : result.getErrorMessage();
         updateFeedback();
+    }
+
+    // Shift+Option+click on either existing ZERO button searches a shift of
+    // BOTH loop markers. Length, crossfade and WAV remain unchanged. An editor
+    // mutation is pending until the user chooses the existing APPLIQUER action.
+    void optimizeLoopPair() {
+        const auto* row = currentRow();
+        if (!showLoops || !row || !loopEnabled.getToggleState()
+            || sampleFrames < 12) return;
+
+        const int start = (int)sliders[4].getValue();
+        const int end = (int)sliders[5].getValue();
+        if (start < 0 || end > sampleFrames || end - start < 11)
+            return;
+
+        constexpr int radius = 512;
+        const int startFirst = juce::jmax(0, start - radius - 2);
+        const int endFirst = juce::jmax(0, end - radius - 3);
+        const int startLast = (int)juce::jmin(
+            (juce::int64)sampleFrames, (juce::int64)start + radius + 3);
+        const int endLast = (int)juce::jmin(
+            (juce::int64)sampleFrames, (juce::int64)end + radius + 2);
+        const int startCount = startLast - startFirst;
+        const int endCount = endLast - endFirst;
+        if (startCount < 2 || endCount < 2)
+            return;
+
+        auto reader = std::unique_ptr<juce::AudioFormatReader>(
+            formats.createReaderFor(row->zone.file));
+        if (!reader || reader->numChannels < 1 || reader->sampleRate <= 0.0) {
+            status = "Source WAV indisponible";
+            updateFeedback();
+            return;
+        }
+        const int channels = juce::jlimit(1, 2, (int)reader->numChannels);
+        juce::AudioBuffer<float> starts(channels, startCount);
+        juce::AudioBuffer<float> ends(channels, endCount);
+        if (!reader->read(&starts, 0, startCount, startFirst, true, true)
+            || !reader->read(&ends, 0, endCount, endFirst, true, true)) {
+            status = "Lecture WAV impossible";
+            updateFeedback();
+            return;
+        }
+
+        std::vector<std::vector<float>> head((size_t)channels);
+        std::vector<std::vector<float>> tail((size_t)channels);
+        for (int ch = 0; ch < channels; ++ch) {
+            const auto* a = starts.getReadPointer(ch);
+            const auto* b = ends.getReadPointer(ch);
+            head[(size_t)ch].assign(a, a + startCount);
+            tail[(size_t)ch].assign(b, b + endCount);
+        }
+
+        const auto suggestion = liberty::loop_v019::findBestPairedShift(
+            head, startFirst, tail, endFirst, start, end, sampleFrames, radius);
+        if (!suggestion.valid) {
+            status = "Recherche PAIRE indisponible";
+            updateFeedback();
+            return;
+        }
+
+        if (suggestion.deltaFrames == 0) {
+            status = "PAIRE : aucun gain";
+        } else {
+            // Set both markers without intermediate slider callbacks.
+            // Reconcile exactly once so undo/cancel/dirty/fade stay in sync.
+            sliders[4].setValue(suggestion.startFrame, juce::dontSendNotification);
+            sliders[5].setValue(suggestion.endFrame, juce::dontSendNotification);
+            reconcile(4);
+            status = juce::String("PAIRE ")
+                   + juce::String(suggestion.deltaFrames > 0 ? "+" : "")
+                   + juce::String(suggestion.deltaFrames) + "f | "
+                   + juce::String(end - start) + "f";
+        }
+        updateFeedback();
+        feedback.setTooltip(
+            "PAIRE : longueur conservee. Saut brut avant "
+            + juce::String(suggestion.previousPeakStep, 4) + " / apres "
+            + juce::String(suggestion.bestPeakStep, 4)
+            + ". Comparer A/B, puis APPLIQUER ou ANNULER.");
+        repaint();
     }
 
     // Option+click on the existing ZERO buttons searches a small neighborhood
