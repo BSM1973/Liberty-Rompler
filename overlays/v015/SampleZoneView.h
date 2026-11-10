@@ -7,6 +7,7 @@
 #include "LoopEditorV015.h"
 #include "LoopSeamSearchV018.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <memory>
 #include <vector>
