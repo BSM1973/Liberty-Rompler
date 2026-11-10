@@ -552,7 +552,7 @@ private:
             withoutFade ? 0 : (int)sliders[6].getValue(), &rawSeamStepDb);
         // The number is the raw sample-amplitude step, not a click audibility score.
         status = result.wasOk()
-            ? juce::String(withoutFade ? "A" : "B") + " | " +
+            ? juce::String(withoutFade ? "A" : "B") + " | BRUT " +
               juce::String(rawSeamStepDb, 1) + " dB"
             : result.getErrorMessage();
         updateFeedback();
