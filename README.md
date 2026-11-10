@@ -1,3 +1,17 @@
+# Liberty ROMpler v0.20 — Glissement manuel de boucle verrouillée
+
+Dans **SAMPLES > BOUCLES**, le nouveau geste **Maj + clic sur ±1** déplace DÉBUT et FIN ensemble d'une frame ; **Maj + Option + clic** déplace l'ensemble jusqu'à 10 frames. La longueur de la boucle reste strictement inchangée même aux bornes du WAV. Le clic normal et Option + clic conservent les déplacements d'un seul marqueur de 1 ou 10 frames.
+
+La fonction reste non destructive, utilise exactement les mêmes boutons et ne change ni le moteur audio ni le fondu réglé. Le bouton ANNULER reste disponible avant APPLIQUER, et AUTO ZÉRO n'est pas exécuté pendant un glissement couplé.
+
+Les deux règles Liberty restent essentielles : **aucun chevauchement d'interface** et **aucun caractère de remplacement pour les accents français**.
+
+Sources : `Source/LoopPairedNudgeV020.h`, `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_paired_nudge_v020_test.cpp`, `tests/test_v020_paired_nudge.py`. Guide Mac : `docs/GUIDE_TEST_BOUCLES_V020.md`.
+
+**Statut : v0.20 en validation. La v0.19 reste la dernière distribution macOS confirmée jusqu'au build v0.20 vert.**
+
+---
+
 # Liberty ROMpler v0.19 — DÉBUT + FIN, durée de boucle préservée
 
 La v0.19 ajoute le mode **PAIRE** dans **SAMPLES > BOUCLES**. **Maj + Option + clic** sur ZÉRO DÉBUT ou ZÉRO FIN cherche un décalage commun dans ±512 frames réduisant le saut brut d'amplitude. DÉBUT et FIN bougent ensemble, avec **FIN − DÉBUT rigoureusement inchangé**.
