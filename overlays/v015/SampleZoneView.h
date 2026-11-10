@@ -116,15 +116,15 @@ public:
             auto& button = frameNudges[(size_t)i];
             addAndMakeVisible(button);
             button.setButtonText(i % 2 == 0 ? "-1" : "+1");
-            button.setTooltip(i < 2 ? "Déplacer le début de la boucle d'une frame"
-                                    : "Déplacer la fin de la boucle d'une frame");
+            button.setTooltip(i < 2 ? "D\u00e9placer le d\u00e9but de la boucle d'une frame"
+                                    : "D\u00e9placer la fin de la boucle d'une frame");
             button.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
             button.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
             button.onClick = [this, i] { nudgeLoopMarker(i < 2, i % 2 == 0 ? -1 : 1); };
         }
         addAndMakeVisible(previewButton);
-        previewButton.setButtonText(juce::String::fromUTF8(u8"PRÉÉCOUTE"));
-        previewButton.setTooltip("Écouter le raccord entre la fin et le début de la boucle");
+        previewButton.setButtonText(juce::String::fromUTF8(u8"PR\u00c9\u00c9COUTE"));
+        previewButton.setTooltip("\u00c9couter le raccord entre la fin et le d\u00e9but de la boucle");
         previewButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
         previewButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
         previewButton.onClick = [this] { previewSelectedLoop(); };
@@ -548,7 +548,7 @@ private:
             row->zone.file, (int)sliders[4].getValue(), (int)sliders[5].getValue(),
             (int)sliders[6].getValue());
         status = result.wasOk()
-            ? juce::String::fromUTF8(u8"Préécoute du raccord")
+            ? juce::String::fromUTF8(u8"Pr\u00e9\u00e9coute du raccord")
             : result.getErrorMessage();
         updateFeedback();
     }
