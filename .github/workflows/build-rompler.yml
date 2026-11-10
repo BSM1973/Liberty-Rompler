@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build-macos:
-    name: macOS Apple Silicon - UI v0.10 / AU + VST3 + Standalone
+    name: macOS Apple Silicon - UI v0.11 / AU + VST3 + Standalone
     runs-on: macos-15
     timeout-minutes: 50
 
@@ -141,6 +141,19 @@ jobs:
           test -f Source/SampleZoneView.h
           test -f tests/test_ui_v10.py
 
+      - name: Apply v0.11 editable key and velocity maps with non-destructive sample loops
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v11/part-{1..6}.b64 | base64 -D > /tmp/liberty-ui-v11.patch.xz
+          echo '3245e4b8b71fb8931eb91a245be0f0688a2bc6c7b3cea2a6d47f2b881c272fbc  /tmp/liberty-ui-v11.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v11.patch.xz | patch --batch -p1
+          python3 -c 'from pathlib import Path; p=Path("Source/PluginEditor.cpp"); s=p.read_text(); old="Prototype 0.10  |"; assert s.count(old)==1; p.write_text(s.replace(old, "Prototype 0.11  |"))'
+          test -f Source/SampleZoneMath.h
+          test -f tests/sample_zone_math_test.cpp
+          test -f tests/test_samples_v011.py
+          test -f docs/SAMPLES_EDITOR_V011.md
+
       - name: Configure Python for demo bank generator
         uses: actions/setup-python@v5
         with:
@@ -183,11 +196,11 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
-      - name: Package UI v0.10, installer and both demo banks
+      - name: Package UI v0.11, installer and both demo banks
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.10"
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.11"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -203,27 +216,27 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.10 Liberty-Rompler-macOS-arm64-UI-v0.10.zip)
-          hdiutil create -volname "Liberty Rompler UI v0.10" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.11 Liberty-Rompler-macOS-arm64-UI-v0.11.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.11" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.10.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.10.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.10.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.11.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.11.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.11.dmg
 
       - name: Preserve editable v0.10 source in the same artifact
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf dist/Liberty-Rompler-source-v0.10.tar.gz Source tests tools CMakeLists.txt
-          test -s dist/Liberty-Rompler-source-v0.10.tar.gz
+          tar -czf dist/Liberty-Rompler-source-v0.11.tar.gz Source tests tools docs CMakeLists.txt
+          test -s dist/Liberty-Rompler-source-v0.11.tar.gz
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-UI-v0.10-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.11-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.10.zip
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.10.dmg
-            dist/Liberty-Rompler-source-v0.10.tar.gz
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.11.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.11.dmg
+            dist/Liberty-Rompler-source-v0.11.tar.gz
           if-no-files-found: error
           retention-days: 30

@@ -1,3 +1,21 @@
+# Liberty Rompler v0.11 — Editeur SAMPLES avec mapping et boucles
+
+La mise à jour v0.11 ajoute deux vues dans l'onglet **SAMPLES** :
+
+- **MAPPING** : plages de notes graphiques pour les zones de chaque couche, repère de note fondamentale, visualisation des couches de vélocité, réglages de limites au curseur et glissement des bornes sur la carte
+- **BOUCLES** : forme d'onde réelle, activation/désactivation de la boucle, choix précis des frames de début et fin, marqueurs colorés sur l'audio
+- **APPLIQUER / RESTAURER** : les modifications reconstruisent les zones de lecture ; les valeurs initiales peuvent être restaurées
+- **Sauvegarde DAW** : les éditions sont enregistrées avec le projet, restaurées avant chargement des échantillons et restent compatibles avec les anciens projets
+- **Non destructif** : aucun WAV ou manifeste de banque n'est réécrit ; les modifications ne sont pas exportées comme nouvelle banque
+
+L'éditeur respecte la limite audio de 20 secondes par zone du moteur actuel. Appliquer une édition recharge les samples concernés et peut interrompre les notes en cours. Le schéma des notes conserve la note fondamentale du WAV, non éditable dans cette version.
+
+**Tests avant build :** 52 tests automatisés, vérification C++ réelle des limites de notes, de vélocité et de boucles, audit Unicode français, validations de zones 4 couches, de routage et de géométrie. Une compilation macOS verte ne remplace pas la vérification d'écoute et de rendu dans ton DAW.
+
+**Distribution** : ZIP, DMG et archive des sources compilées sont réunis dans le même artifact GitHub. Les changements de source ne lancent pas de build automatiquement ; le workflow se déclenche lors de la publication d'un lot validé.
+
+---
+
 # Liberty Rompler v0.10 — Interface premium à neuf onglets
 
 L'interface conserve son thème sombre Liberty, son navigateur de presets large, ses modules audio et son clavier MIDI sur toute la largeur inférieure.
