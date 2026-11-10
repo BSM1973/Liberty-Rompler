@@ -62,7 +62,8 @@ def verify() -> None:
 
     with tarfile.open(SOURCE, "r:gz") as archive:
         names = set(archive.getnames())
-        for name in ("Source/PluginProcessor.cpp", "Source/PluginEditor.cpp",
+        for name in ("Source/PluginProcessor.cpp", "Source/PluginProcessor.h",
+                     "Source/SampleZoneView.h", "Source/PluginEditor.cpp",
                      "docs/SAMPLES_EDITOR_V014.md", "docs/GUIDE_TEST_BOUCLES_V014.md",
                      "Source/LoopEditorV015.h", "Source/LoopPreviewVoiceV015.h",
                      "Source/LoopFrameInputV015.h", "Source/LoopToolbarLayoutV015.h",
