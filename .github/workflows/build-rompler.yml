@@ -1,6 +1,10 @@
 name: Liberty Rompler - Build macOS AU VST3 Standalone
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-rompler.yml'
   workflow_dispatch:
 
 permissions:
