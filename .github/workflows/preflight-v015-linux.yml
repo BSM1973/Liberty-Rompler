@@ -1,0 +1,102 @@
+name: Liberty ROMpler v0.15 - Linux preflight (no macOS build)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/preflight-v015-linux.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: Test integrated sources before a single macOS release build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Recover v0.14 full JUCE source
+        id: reconstruct
+        shell: bash
+        run: bash scripts/reconstruct_source_v014.sh
+
+      - name: Apply v0.15 real editor and DSP integration
+        id: integrate
+        shell: bash
+        run: bash scripts/apply_v015_overlays.sh
+
+      - name: Validate banks, Unicode, UI geometry and C++ helpers
+        id: unit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check numpy
+          python3 tools/make_demo_banks.py
+          python3 tools/validate_banks.py
+          python3 tools/audit_ui_text.py
+          python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: Install Linux JUCE build dependencies
+        id: deps
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config libasound2-dev libjack-jackd2-dev \
+            libcurl4-openssl-dev libfreetype6-dev libx11-dev libxext-dev \
+            libxinerama-dev libxcursor-dev libxrandr-dev libxrender-dev \
+            libxcomposite-dev libgl1-mesa-dev libglu1-mesa-dev \
+            libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Checkout JUCE 8.0.10
+        id: juce
+        uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: '8.0.10'
+          path: JUCE
+          fetch-depth: 1
+
+      - name: Configure and compile Linux VST3 with integrated v0.15
+        id: compile
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S . -B build-linux -G Ninja \
+            -DJUCE_DIR="$GITHUB_WORKSPACE/JUCE" \
+            -DJUCE_WEB_BROWSER=0 -DJUCE_USE_CURL=0
+          cmake --build build-linux --target LibertyRompler_VST3 --parallel 2
+
+      - name: Save a readable preflight result to GitHub
+        if: always()
+        shell: bash
+        env:
+          RECONSTRUCT: ${{ steps.reconstruct.outcome }}
+          INTEGRATE: ${{ steps.integrate.outcome }}
+          UNIT: ${{ steps.unit.outcome }}
+          DEPENDENCIES: ${{ steps.deps.outcome }}
+          JUCE: ${{ steps.juce.outcome }}
+          COMPILE: ${{ steps.compile.outcome }}
+        run: |
+          set -euo pipefail
+          mkdir -p v015-preflight
+          {
+            echo "Liberty ROMpler v0.15 Linux preflight"
+            echo "Reconstruction: $RECONSTRUCT"
+            echo "Integration: $INTEGRATE"
+            echo "Regression tests: $UNIT"
+            echo "Linux dependencies: $DEPENDENCIES"
+            echo "JUCE 8 checkout: $JUCE"
+            echo "Linux VST3 build: $COMPILE"
+            echo "Mac release build: NOT TRIGGERED"
+          } > v015-preflight/RESULT.txt
+          cat v015-preflight/RESULT.txt >> "$GITHUB_STEP_SUMMARY"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c validation/v015-linux-20261110
+          git add -f v015-preflight/RESULT.txt
+          git commit -m "ci: record v0.15 JUCE preflight results"
+          git push origin HEAD:refs/heads/validation/v015-linux-20261110
