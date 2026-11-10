@@ -1,0 +1,14 @@
+Liberty ROMpler v0.20 Linux preflight
+Reconstruction: success
+Integration: success
+Windowed preview patch: success
+Audition duration patch: success
+Stereo seam search: success
+Paired marker lock: success
+Manual paired nudge: success
+Regression tests: success
+Linux dependencies: success
+JUCE 8 checkout: success
+Linux VST3 build: success
+Mac release build: NOT TRIGGERED
+GitHub run: 42891514141
