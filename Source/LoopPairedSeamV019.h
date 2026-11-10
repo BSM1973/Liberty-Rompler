@@ -51,8 +51,10 @@ inline PairedSeamResult findBestPairedShift(
     const auto endSize = endWindow[0].size();
     if (startSize < 2 || endSize < 2
         || startSize > 16384 || endSize > 16384
-        || static_cast<std::int64_t>(startFirstFrame) + startSize > totalFrames
-        || static_cast<std::int64_t>(endFirstFrame) + endSize > totalFrames)
+        || static_cast<std::int64_t>(startFirstFrame)
+             + static_cast<std::int64_t>(startSize) > totalFrames
+        || static_cast<std::int64_t>(endFirstFrame)
+             + static_cast<std::int64_t>(endSize) > totalFrames)
         return result;
 
     for (std::size_t channel = 0; channel < startWindow.size(); ++channel)
