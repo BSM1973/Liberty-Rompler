@@ -1,0 +1,787 @@
+#pragma once
+#include <JuceHeader.h>
+#include "PluginProcessor.h"
+#include "LoopCrossfade.h"
+#include "ZeroCrossSnap.h"
+#include "WaveformZoom.h"
+#include "LoopEditorV015.h"
+#include <algorithm>
+#include <cmath>
+#include <memory>
+#include <vector>
+
+// Non-destructive editor: DAW session overlays are applied by the processor.
+// WAV files and bank manifests are never rewritten by this view.
+class LibertySampleZoneView final : public juce::Component,
+                                    private juce::ListBoxModel,
+                                    private juce::ChangeListener {
+public:
+    explicit LibertySampleZoneView(LibertyRomplerAudioProcessor& owner)
+        : processor(owner), thumbnail(256, formats, thumbnailCache) {
+        formats.registerBasicFormats();
+        thumbnail.addChangeListener(this);
+        list.setModel(this);
+        list.setRowHeight(52);
+        list.setColour(juce::ListBox::backgroundColourId, juce::Colour(0xff121c2b));
+        list.setColour(juce::ListBox::outlineColourId, juce::Colours::transparentBlack);
+        addAndMakeVisible(list);
+        for (auto* button : {&mappingMode, &loopMode, &apply, &reset,
+                             &snapStartButton, &snapEndButton, &cancelButton, &fitWaveButton}) {
+            addAndMakeVisible(*button);
+            button->setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
+            button->setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
+        }
+        mappingMode.setButtonText("MAPPING");
+        loopMode.setButtonText("BOUCLES");
+        apply.setButtonText("APPLIQUER");
+        reset.setButtonText("RESTAURER");
+        snapStartButton.setButtonText(juce::String::fromUTF8(u8"Z\u00c9RO D\u00c9BUT"));
+        snapEndButton.setButtonText(juce::String::fromUTF8(u8"Z\u00c9RO FIN"));
+        cancelButton.setButtonText("ANNULER");
+        fitWaveButton.setButtonText("TOUT");
+        fitWaveButton.setTooltip("Afficher la totalite de la forme d'onde");
+        fitWaveButton.onClick = [this] { zoomSlider.setValue(1.0); };
+        addAndMakeVisible(autoSnap);
+        autoSnap.setButtonText(juce::String::fromUTF8(u8"AUTO Z\u00c9RO"));
+        autoSnap.setColour(juce::ToggleButton::textColourId, juce::Colour(0xffd5e8e9));
+        autoSnap.setTooltip("Calage automatique au passage par zero apres un glissement de marqueur");
+        for (auto* label : {&zoomCaption, &positionCaption}) {
+            addAndMakeVisible(*label);
+            label->setColour(juce::Label::textColourId, juce::Colour(0xffc0d9e5));
+            label->setFont(juce::Font(juce::FontOptions(10.5f)));
+        }
+        zoomCaption.setText("ZOOM", juce::dontSendNotification);
+        positionCaption.setText("POSITION", juce::dontSendNotification);
+        addAndMakeVisible(zoomSlider);
+        zoomSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+        zoomSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 44, 20);
+        zoomSlider.setRange(1.0, liberty::wavezoom::maxZoom, 0.0);
+        zoomSlider.setTextValueSuffix("x");
+        zoomSlider.setValue(1.0, juce::dontSendNotification);
+        zoomSlider.setColour(juce::Slider::trackColourId, juce::Colour(0xff63dccc));
+        zoomSlider.onValueChange = [this] { updateZoom(); };
+        addAndMakeVisible(positionSlider);
+        positionSlider.setSliderStyle(juce::Slider::LinearHorizontal);
+        positionSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        positionSlider.setRange(0.0, 1.0, 0.0);
+        positionSlider.setValue(0.0, juce::dontSendNotification);
+        positionSlider.setColour(juce::Slider::trackColourId, juce::Colour(0xff63dccc));
+        positionSlider.onValueChange = [this] { updatePosition(); };
+        snapStartButton.setTooltip("Caler le debut de la boucle sur le passage par zero le plus proche (512 frames)");
+        snapEndButton.setTooltip("Caler la fin de la boucle sur le passage par zero le plus proche (512 frames)");
+        cancelButton.setTooltip("Annuler les modifications non appliquees de cette zone");
+        snapStartButton.onClick = [this] { snapLoopMarker(true); };
+        snapEndButton.onClick = [this] { snapLoopMarker(false); };
+        cancelButton.onClick = [this] {
+            if (selected < 0 || !dirty) return;
+            selectedRowsChanged(selected);
+            status = juce::String::fromUTF8(u8"Modifications annul\u00e9es");
+            updateFeedback();
+        };
+        mappingMode.onClick = [this] { showLoops = false; updateLayout(); repaint(); };
+        loopMode.onClick = [this] { showLoops = true; updateLayout(); repaint(); };
+        apply.onClick = [this] { applyEdits(); };
+        reset.onClick = [this] {
+            if (const auto* row = currentRow()) {
+                const auto result = processor.resetSampleZoneEdit(row->bankId, row->presetId, row->index);
+                refresh();
+                status = result.wasOk() ? "Zone restauree dans le projet." : result.getErrorMessage();
+                updateFeedback();
+            }
+        };
+        for (int i = 0; i < 7; ++i) {
+            auto& slider = sliders[(size_t)i];
+            auto& label = labels[(size_t)i];
+            slider.setSliderStyle(juce::Slider::LinearHorizontal);
+            slider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 64, 20);
+            slider.setColour(juce::Slider::trackColourId, juce::Colour(0xff59cdbb));
+            slider.setColour(juce::Slider::textBoxTextColourId, juce::Colour(0xffe4edf4));
+            slider.setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+            slider.setRange(i == 2 || i == 3 ? 1 : 0, 127, 1);
+            label.setColour(juce::Label::textColourId, juce::Colour(0xffbed0dc));
+            label.setFont(juce::Font(juce::FontOptions(11.0f)));
+            label.setText(i == 0 ? "NOTE DE" : i == 1 ? "NOTE A" :
+                          i == 2 ? "VEL DE" : i == 3 ? "VEL A" :
+                          i == 4 ? "DEBUT (FRAME)" : i == 5 ? "FIN (FRAME)" :
+                          "FONDU (FRAMES)", juce::dontSendNotification);
+            slider.onValueChange = [this, i] { reconcile(i); };
+            if (i == 4 || i == 5)
+                slider.onDragEnd = [this, i] {
+                    if (showLoops && autoSnap.getToggleState()) snapLoopMarker(i == 4);
+                };
+            addAndMakeVisible(slider);
+            addAndMakeVisible(label);
+        }
+        for (int i = 0; i < 4; ++i) {
+            auto& button = frameNudges[(size_t)i];
+            addAndMakeVisible(button);
+            button.setButtonText(i % 2 == 0 ? "-1" : "+1");
+            button.setTooltip(i < 2 ? "Déplacer le début de la boucle d'une frame"
+                                    : "Déplacer la fin de la boucle d'une frame");
+            button.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
+            button.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
+            button.onClick = [this, i] { nudgeLoopMarker(i < 2, i % 2 == 0 ? -1 : 1); };
+        }
+        addAndMakeVisible(previewButton);
+        previewButton.setButtonText(juce::String::fromUTF8(u8"PRÉÉCOUTE"));
+        previewButton.setTooltip("Écouter le raccord entre la fin et le début de la boucle");
+        previewButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
+        previewButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
+        previewButton.onClick = [this] { previewSelectedLoop(); };
+        addAndMakeVisible(feedback);
+        feedback.setColour(juce::Label::textColourId, juce::Colour(0xffa8dcca));
+        feedback.setFont(juce::Font(juce::FontOptions(10.0f)));
+        feedback.setJustificationType(juce::Justification::centredRight);
+        addAndMakeVisible(loopEnabled);
+        loopEnabled.setButtonText(juce::String::fromUTF8(u8"Boucle activ\u00e9e"));
+        loopEnabled.setColour(juce::ToggleButton::textColourId, juce::Colour(0xffd5e8e9));
+        loopEnabled.onClick = [this] {
+            if (loopEnabled.getToggleState() && !hasLoopValues()) {
+                loading = true;
+                sliders[4].setValue(0, juce::dontSendNotification);
+                sliders[5].setValue(juce::jmax(12, sampleFrames), juce::dontSendNotification);
+                sliders[6].setValue(0, juce::dontSendNotification);
+                loading = false;
+            }
+            dirty = true;
+            updateLayout();
+            updateFeedback();
+            repaint();
+        };
+        updateLayout();
+    }
+
+    ~LibertySampleZoneView() override {
+        thumbnail.removeChangeListener(this);
+        list.setModel(nullptr);
+    }
+
+    void refresh() {
+        const auto previous = currentRow();
+        const auto previousBank = previous ? previous->bankId : juce::String();
+        const auto previousPreset = previous ? previous->presetId : juce::String();
+        const auto previousIndex = previous ? previous->index : -1;
+        const auto& library = processor.getLibrary();
+        rows.clear();
+        // Follow actual active layer routing, including user-assigned instruments.
+        for (int layer = 0; layer < 4; ++layer) {
+            const auto source = processor.getLayerSource(layer);
+            const auto* preset = library.find(source.bankId, source.presetId);
+            if (!preset) continue;
+            for (int zoneIndex = 0; zoneIndex < (int)preset->zones.size(); ++zoneIndex) {
+                liberty::ZoneDescriptor zone;
+                if (processor.getSampleZone(source.bankId, source.presetId, zoneIndex, zone))
+                    rows.push_back({zone, source.bankId, source.presetId, zoneIndex,
+                                    "C" + juce::String(layer + 1) + "  /  " + preset->name});
+            }
+        }
+        list.updateContent();
+        int wanted = rows.empty() ? -1 : 0;
+        for (int i = 0; i < (int)rows.size(); ++i)
+            if (rows[(size_t)i].bankId == previousBank &&
+                rows[(size_t)i].presetId == previousPreset &&
+                rows[(size_t)i].index == previousIndex) { wanted = i; break; }
+        selected = -1;
+        list.deselectAllRows();
+        if (wanted >= 0) list.selectRow(wanted);
+        else { thumbnail.clear(); updateLayout(); repaint(); }
+    }
+
+    void resized() override { updateLayout(); }
+
+    void paint(juce::Graphics& g) override {
+        const auto b = getLocalBounds().reduced(5);
+        g.setColour(juce::Colour(0xff142131));
+        g.fillRoundedRectangle(b.toFloat(), 9.0f);
+        g.setColour(juce::Colour(0xff3a5668));
+        g.drawRoundedRectangle(b.toFloat(), 9.0f, 1.0f);
+        drawText(g, "SAMPLES  /  MAPPING & BOUCLES",
+                 {b.getX() + 15, b.getY() + 7, b.getWidth() - 30, 23}, 15, true);
+        drawText(g, juce::String::fromUTF8(u8"Sources WAV et zones de v\u00e9locit\u00e9"),
+                 {b.getX() + 18, b.getY() + 33, 320, 16}, 11, false);
+        const auto* row = currentRow();
+        auto panel = rightArea();
+        if (panel.isEmpty()) return;
+        g.setColour(juce::Colour(0xff0b1522));
+        g.fillRoundedRectangle(panel.toFloat(), 6.0f);
+        if (!row) {
+            drawText(g, juce::String::fromUTF8(u8"Choisissez une zone WAV \u00e0 gauche"),
+                     panel.reduced(15), 13, false);
+            return;
+        }
+        auto filename = panel.withTrimmedTop(31).withHeight(23).reduced(11, 0);
+        drawText(g, row->zone.file.getFileName() + "  |  ROOT " + juce::String(row->zone.rootNote),
+                 filename, 12, true);
+        if (!showLoops) {
+            drawNoteMap(g);
+            drawVelocityLayers(g);
+            drawText(g, juce::String::fromUTF8(u8"Glisser les bords de la zone pour modifier les notes"),
+                     mapArea.translated(0, mapArea.getHeight() + 2).withHeight(13), 10, false);
+        } else {
+            drawWaveform(g);
+            drawText(g, juce::String::fromUTF8(u8"Glisser les marqueurs ou r\u00e9gler le fondu"),
+                     waveArea.translated(0, waveArea.getHeight() + 2).withHeight(14), 10, false);
+        }
+    }
+
+    void mouseDown(const juce::MouseEvent& e) override {
+        if (showLoops) {
+            if (!currentRow() || !loopEnabled.getToggleState() ||
+                sampleFrames < 12 || !waveArea.contains(e.getPosition())) return;
+            const int loopStart = (int)sliders[4].getValue();
+            const int loopEnd = (int)sliders[5].getValue();
+            const int startX = waveArea.getX() + liberty::wavezoom::pixelAt(
+                loopStart, waveArea.getWidth(), viewStart, viewSpan);
+            const int endX = waveArea.getX() + liberty::wavezoom::pixelAt(
+                loopEnd, waveArea.getWidth(), viewStart, viewSpan);
+            const int distStart = std::abs(e.x - startX), distEnd = std::abs(e.x - endX);
+            // Do not jump offscreen markers when clicking an arbitrary waveform position.
+            if (juce::jmin(distStart, distEnd) > 18) return;
+            dragging = distStart <= distEnd ? 2 : 3;
+            mouseDrag(e);
+            return;
+        }
+        if (!mapArea.contains(e.getPosition()) || rows.empty()) return;
+        const int first = firstVisibleZone();
+        const int count = visibleZoneCount(first);
+        if (!count) return;
+        const int rowIndex = first + juce::jlimit(0, count - 1,
+            ((e.y - mapArea.getY()) * count) / juce::jmax(1, mapArea.getHeight()));
+        if (rowIndex != selected) { list.selectRow(rowIndex); return; }
+        const int note = liberty::samplezones::positionToNote(e.x - mapArea.getX(), mapArea.getWidth());
+        const int low = (int)sliders[0].getValue(), high = (int)sliders[1].getValue();
+        dragging = std::abs(note - low) <= std::abs(note - high) ? 0 : 1;
+        mouseDrag(e);
+    }
+    void mouseDrag(const juce::MouseEvent& e) override {
+        if (dragging < 0 || !currentRow()) return;
+        if (dragging >= 2) {
+            const int frame = liberty::wavezoom::frameAt(
+                e.x - waveArea.getX(), waveArea.getWidth(), viewStart, viewSpan, sampleFrames);
+            if (dragging == 2) sliders[4].setValue(juce::jmin(frame, (int)sliders[5].getValue() - 11));
+            else sliders[5].setValue(juce::jmax(frame, (int)sliders[4].getValue() + 11));
+            return;
+        }
+        const int note = liberty::samplezones::positionToNote(e.x - mapArea.getX(), mapArea.getWidth());
+        if (dragging == 0) sliders[0].setValue(juce::jmin(note, (int)sliders[1].getValue()));
+        else sliders[1].setValue(juce::jmax(note, (int)sliders[0].getValue()));
+    }
+    void mouseUp(const juce::MouseEvent&) override {
+        const int moved = dragging;
+        dragging = -1;
+        if (showLoops && (moved == 2 || moved == 3) && autoSnap.getToggleState())
+            snapLoopMarker(moved == 2);
+    }
+    void mouseDoubleClick(const juce::MouseEvent& event) override {
+        if (showLoops && waveArea.contains(event.getPosition())) zoomSlider.setValue(1.0);
+    }
+    void mouseWheelMove(const juce::MouseEvent& event,
+                        const juce::MouseWheelDetails& wheel) override {
+        if (showLoops && waveArea.contains(event.getPosition())) {
+            if (wheel.deltaY != 0.0f) {
+                const double current = zoomSlider.getValue();
+                const double next = current * std::pow(2.0, wheel.deltaY * 3.0);
+                zoomSlider.setValue(juce::jlimit(1.0, liberty::wavezoom::maxZoom, next));
+                return;
+            }
+            if (wheel.deltaX != 0.0f && viewSpan < sampleFrames) {
+                positionSlider.setValue(juce::jlimit(0.0, 1.0,
+                    positionSlider.getValue() - wheel.deltaX * 0.20));
+                return;
+            }
+        }
+        juce::Component::mouseWheelMove(event, wheel);
+    }
+
+private:
+    struct Row {
+        liberty::ZoneDescriptor zone;
+        juce::String bankId, presetId;
+        int index;
+        juce::String source;
+    };
+    LibertyRomplerAudioProcessor& processor;
+    juce::AudioFormatManager formats;
+    juce::AudioThumbnailCache thumbnailCache {8};
+    juce::AudioThumbnail thumbnail;
+    juce::ListBox list;
+    juce::TextButton mappingMode, loopMode, apply, reset;
+    juce::TextButton snapStartButton, snapEndButton, cancelButton, fitWaveButton;
+    // Frame-accurate controls integrated with the existing sample-zone sliders.
+    std::array<juce::TextButton, 4> frameNudges;
+    juce::TextButton previewButton;
+    juce::ToggleButton autoSnap;
+    juce::Slider zoomSlider, positionSlider;
+    juce::Label zoomCaption, positionCaption;
+    juce::Label feedback;
+    std::array<juce::Slider, 7> sliders;
+    std::array<juce::Label, 7> labels;
+    juce::ToggleButton loopEnabled;
+    std::vector<Row> rows;
+    juce::Rectangle<int> mapArea, velocityArea, waveArea;
+    juce::String status;
+    int selected = -1, sampleFrames = 0, dragging = -1;
+    int viewStart = 0, viewSpan = 0;
+    double loadedSeconds = 0.0;
+    bool showLoops = false, loading = false, dirty = false;
+
+    void syncPositionControl() {
+        positionSlider.setValue(liberty::wavezoom::toScroll(viewStart, sampleFrames, viewSpan),
+                                juce::dontSendNotification);
+        positionSlider.setEnabled(showLoops && viewSpan > 0 && viewSpan < sampleFrames);
+        fitWaveButton.setEnabled(showLoops && zoomSlider.getValue() > 1.0);
+    }
+    void updateZoom() {
+        const int center = viewSpan > 0 ? viewStart + viewSpan / 2 : sampleFrames / 2;
+        viewSpan = liberty::wavezoom::span(sampleFrames, zoomSlider.getValue());
+        viewStart = liberty::wavezoom::centeredStart(center, sampleFrames, viewSpan);
+        syncPositionControl();
+        repaint();
+    }
+    void updatePosition() {
+        viewStart = liberty::wavezoom::fromScroll(positionSlider.getValue(), sampleFrames, viewSpan);
+        repaint();
+    }
+    const Row* currentRow() const {
+        return selected >= 0 && selected < (int)rows.size() ? &rows[(size_t)selected] : nullptr;
+    }
+    bool hasLoopValues() const { return sliders[5].getValue() >= sliders[4].getValue() + 11; }
+    int getNumRows() override { return (int)rows.size(); }
+    void selectedRowsChanged(int index) override {
+        selected = index >= 0 && index < (int)rows.size() ? index : -1;
+        thumbnail.clear();
+        sampleFrames = 0;
+        loadedSeconds = 0.0;
+        viewStart = viewSpan = 0;
+        zoomSlider.setValue(1.0, juce::dontSendNotification);
+        positionSlider.setValue(0.0, juce::dontSendNotification);
+        if (const auto* row = currentRow()) {
+            const auto& f = row->zone.file;
+            if (f.existsAsFile()) {
+                if (auto reader = std::unique_ptr<juce::AudioFormatReader>(formats.createReaderFor(f))) {
+                    sampleFrames = liberty::samplezones::loadedFrames(reader->lengthInSamples, reader->sampleRate);
+                    if (reader->sampleRate > 0) loadedSeconds = (double)sampleFrames / reader->sampleRate;
+                }
+                thumbnail.setSource(new juce::FileInputSource(f));
+            }
+            loading = true;
+            sliders[0].setValue(row->zone.lowNote, juce::dontSendNotification);
+            sliders[1].setValue(row->zone.highNote, juce::dontSendNotification);
+            sliders[2].setValue(row->zone.lowVelocity, juce::dontSendNotification);
+            sliders[3].setValue(row->zone.highVelocity, juce::dontSendNotification);
+            const int maxFrames = juce::jmax(12, sampleFrames);
+            sliders[4].setRange(0, maxFrames - 12, 1);
+            sliders[5].setRange(11, maxFrames, 1);
+            sliders[4].setValue(row->zone.loopStart >= 0 ? row->zone.loopStart : 0, juce::dontSendNotification);
+            sliders[5].setValue(row->zone.loopEnd >= 12 ? row->zone.loopEnd : maxFrames, juce::dontSendNotification);
+            const int maxFade = liberty::loopfade::maximum((int)sliders[4].getValue(),
+                                                             (int)sliders[5].getValue());
+            sliders[6].setRange(0, maxFade, 1);
+            sliders[6].setValue(juce::jlimit(0, maxFade, row->zone.loopCrossfadeFrames),
+                                juce::dontSendNotification);
+            loopEnabled.setToggleState(row->zone.loopStart >= 0 && row->zone.loopEnd > row->zone.loopStart,
+                                       juce::dontSendNotification);
+            loading = false;
+        }
+        viewSpan = liberty::wavezoom::span(sampleFrames, 1.0);
+        syncPositionControl();
+        dirty = false;
+        status.clear();
+        updateFeedback();
+        updateLayout();
+        repaint();
+    }
+    void changeListenerCallback(juce::ChangeBroadcaster*) override { repaint(); }
+    void paintListBoxItem(int index, juce::Graphics& g, int w, int h, bool highlighted) override {
+        if (index < 0 || index >= (int)rows.size()) return;
+        g.setColour(highlighted ? juce::Colour(0xff345464) : juce::Colour(0xff1a2938));
+        g.fillRoundedRectangle(juce::Rectangle<int>(2, 2, w - 5, h - 4).toFloat(), 5.0f);
+        g.setColour(juce::Colour(0xffe3edf2));
+        g.setFont(juce::Font(juce::FontOptions(11.5f, juce::Font::bold)));
+        g.drawFittedText(rows[(size_t)index].source,
+                         {9, 4, w - 18, 18}, juce::Justification::centredLeft, 1, 0.75f);
+        g.setColour(juce::Colour(0xffa8c7d4));
+        g.setFont(juce::Font(juce::FontOptions(10.5f)));
+        const auto& z = rows[(size_t)index].zone;
+        const auto desc = z.file.getFileNameWithoutExtension() + " | N " +
+            juce::String(z.lowNote) + "-" + juce::String(z.highNote) + "  V " +
+            juce::String(z.lowVelocity) + "-" + juce::String(z.highVelocity);
+        g.drawFittedText(desc, {9, 25, w - 18, 17}, juce::Justification::centredLeft, 1, 0.75f);
+    }
+    void drawText(juce::Graphics& g, const juce::String& text,
+                  juce::Rectangle<int> bounds, float size, bool bold) const {
+        if (bounds.isEmpty()) return;
+        g.setColour(bold ? juce::Colour(0xff6fe1d2) : juce::Colour(0xffbdd1db));
+        g.setFont(juce::Font(juce::FontOptions(size,
+            bold ? juce::Font::bold : juce::Font::plain)));
+        g.drawFittedText(text, bounds, juce::Justification::centredLeft, 1, 0.75f);
+    }
+    int firstVisibleZone() const { return juce::jmax(0, selected - 3); }
+    int visibleZoneCount(int first) const { return juce::jmin(8, (int)rows.size() - first); }
+
+    void drawNoteMap(juce::Graphics& g) {
+        if (mapArea.isEmpty()) return;
+        g.setColour(juce::Colour(0xff1d3142));
+        g.fillRoundedRectangle(mapArea.toFloat(), 4.0f);
+        const int first = firstVisibleZone();
+        const int count = visibleZoneCount(first);
+        if (!count) return;
+        const float rowHeight = (float)mapArea.getHeight() / (float)count;
+        for (int i = 0; i < count; ++i) {
+            const int index = i + first;
+            const auto& zone = rows[(size_t)index].zone;
+            const int low = index == selected ? (int)sliders[0].getValue() : zone.lowNote;
+            const int high = index == selected ? (int)sliders[1].getValue() : zone.highNote;
+            const int x1 = mapArea.getX() + mapArea.getWidth() * low / 128;
+            const int x2 = mapArea.getX() + mapArea.getWidth() * (high + 1) / 128;
+            const float y = (float)mapArea.getY() + rowHeight * (float)i + 1.0f;
+            g.setColour(index == selected ? juce::Colour(0xff6ce7d2) : juce::Colour(0xff447eae));
+            g.fillRoundedRectangle((float)x1, y, (float)juce::jmax(2, x2 - x1),
+                                   juce::jmax(2.0f, rowHeight - 2.0f), 3.0f);
+        }
+        if (const auto* row = currentRow()) {
+            const int marker = mapArea.getX() + mapArea.getWidth() * row->zone.rootNote / 128;
+            g.setColour(juce::Colour(0xffffce75));
+            g.drawVerticalLine(marker, (float)mapArea.getY(), (float)mapArea.getBottom());
+        }
+        g.setColour(juce::Colour(0x708babba));
+        for (int note = 12; note < 128; note += 12) {
+            const float x = (float)mapArea.getX() + (float)mapArea.getWidth() * (float)note / 128.0f;
+            g.drawVerticalLine((int)x, (float)mapArea.getY(), (float)mapArea.getBottom());
+        }
+    }
+    void drawVelocityLayers(juce::Graphics& g) {
+        if (velocityArea.isEmpty()) return;
+        g.setColour(juce::Colour(0xff1d3142));
+        g.fillRoundedRectangle(velocityArea.toFloat(), 4.0f);
+        const int first = firstVisibleZone(), count = visibleZoneCount(first);
+        if (!count) return;
+        for (int i = 0; i < count; ++i) {
+            const int index = i + first;
+            const auto& zone = rows[(size_t)index].zone;
+            const int v1 = index == selected ? (int)sliders[2].getValue() : zone.lowVelocity;
+            const int v2 = index == selected ? (int)sliders[3].getValue() : zone.highVelocity;
+            const int x = velocityArea.getX() + i * velocityArea.getWidth() / count;
+            const int width = juce::jmax(2, velocityArea.getWidth() / count - 2);
+            const int top = velocityArea.getBottom() - v2 * velocityArea.getHeight() / 127;
+            const int bottom = velocityArea.getBottom() - (v1 - 1) * velocityArea.getHeight() / 127;
+            g.setColour(index == selected ? juce::Colour(0xff69e2ce) : juce::Colour(0xff537ab2));
+            g.fillRect(x, top, width, juce::jmax(1, bottom - top));
+        }
+    }
+    void drawWaveform(juce::Graphics& g) {
+        if (waveArea.isEmpty()) return;
+        g.setColour(juce::Colour(0xff183140));
+        g.fillRoundedRectangle(waveArea.toFloat(), 4.0f);
+        if (thumbnail.getNumChannels() > 0 && thumbnail.getTotalLength() > 0 &&
+            sampleFrames > 0 && viewSpan > 0) {
+            const juce::Graphics::ScopedSaveState save(g);
+            g.reduceClipRegion(waveArea);
+            const int last = juce::jmin(sampleFrames, viewStart + viewSpan);
+            const double firstSecond = loadedSeconds * viewStart / sampleFrames;
+            const double lastSecond = loadedSeconds * last / sampleFrames;
+            g.setColour(juce::Colour(0xff70e4d1));
+            thumbnail.drawChannels(g, waveArea.reduced(4, 5), firstSecond,
+                                   juce::jmin(lastSecond, thumbnail.getTotalLength()), 0.80f);
+            if (loopEnabled.getToggleState()) {
+                const int loopStart = (int)sliders[4].getValue();
+                const int loopEnd = (int)sliders[5].getValue();
+                const int x1 = waveArea.getX() + liberty::wavezoom::pixelAt(
+                    loopStart, waveArea.getWidth(), viewStart, viewSpan);
+                const int x2 = waveArea.getX() + liberty::wavezoom::pixelAt(
+                    loopEnd, waveArea.getWidth(), viewStart, viewSpan);
+                const int left = juce::jlimit(waveArea.getX(), waveArea.getRight(), x1);
+                const int right = juce::jlimit(waveArea.getX(), waveArea.getRight(), x2);
+                if (right > left) {
+                    g.setColour(juce::Colour(0x4469e5c5));
+                    g.fillRect(left, waveArea.getY(), right - left, waveArea.getHeight());
+                }
+                const int fade = (int)sliders[6].getValue();
+                if (fade > 0 && viewSpan > 0) {
+                    const auto bands = liberty::loop_v015::crossfadeBands(
+                        {loopStart, loopEnd, sampleFrames}, fade,
+                        {viewStart, viewSpan, (double)waveArea.getX(),
+                         (double)waveArea.getWidth()});
+                    const auto paintBand = [&g, this](liberty::loop_v015::VisibleBand b,
+                                                      juce::Colour tint) {
+                        if (!b.visible) return;
+                        g.setColour(tint);
+                        g.fillRect((float)b.x, (float)waveArea.getY(), (float)b.width,
+                                   (float)waveArea.getHeight());
+                    };
+                    paintBand(bands.tail, juce::Colour(0x6676b1e8));
+                    paintBand(bands.head, juce::Colour(0x665dd6be));
+                }
+                g.setColour(juce::Colour(0xffe8d389));
+                if (x1 >= waveArea.getX() && x1 <= waveArea.getRight())
+                    g.drawVerticalLine(x1, (float)waveArea.getY(), (float)waveArea.getBottom());
+                if (x2 >= waveArea.getX() && x2 <= waveArea.getRight())
+                    g.drawVerticalLine(x2, (float)waveArea.getY(), (float)waveArea.getBottom());
+            }
+        } else {
+            drawText(g, "Forme d'onde indisponible", waveArea.reduced(12), 11, false);
+        }
+    }
+
+    void nudgeLoopMarker(bool startMarker, int delta) {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState() ||
+            sampleFrames < 12) return;
+        const auto start = (int)sliders[4].getValue();
+        const auto end = (int)sliders[5].getValue();
+        const liberty::loop_v015::Loop loop {start, end, sampleFrames};
+        if (!liberty::loop_v015::isValid(loop, 11)) return;
+        const auto adjusted = liberty::loop_v015::nudge(
+            loop, startMarker ? liberty::loop_v015::Marker::begin
+                              : liberty::loop_v015::Marker::end,
+            delta, 11);
+        sliders[(size_t)(startMarker ? 4 : 5)].setValue(
+            startMarker ? adjusted.begin : adjusted.end);
+        if (autoSnap.getToggleState())
+            snapLoopMarker(startMarker);
+    }
+
+    void previewSelectedLoop() {
+        const auto* row = currentRow();
+        if (!showLoops || !row || !loopEnabled.getToggleState() ||
+            sampleFrames < 12) return;
+        const auto result = processor.previewSampleZoneLoop(
+            row->zone.file, (int)sliders[4].getValue(), (int)sliders[5].getValue(),
+            (int)sliders[6].getValue());
+        status = result.wasOk()
+            ? juce::String::fromUTF8(u8"Préécoute du raccord")
+            : result.getErrorMessage();
+        updateFeedback();
+    }
+
+    void snapLoopMarker(bool startMarker) {
+        const auto* row = currentRow();
+        if (!row || !loopEnabled.getToggleState() || sampleFrames < 12) return;
+        const auto& file = row->zone.file;
+        auto reader = std::unique_ptr<juce::AudioFormatReader>(formats.createReaderFor(file));
+        if (!reader || reader->numChannels < 1) {
+            status = "Source WAV indisponible";
+            updateFeedback();
+            return;
+        }
+        constexpr int radius = 512;
+        const int current = (int)sliders[(size_t)(startMarker ? 4 : 5)].getValue();
+        // Exclusive loop end may equal sampleFrames; reading stays within the file.
+        const int first = juce::jmax(0, current - radius - 2);
+        const int lastExclusive = juce::jmin(sampleFrames, current + radius + 3);
+        const int count = lastExclusive - first;
+        if (count < 3) return;
+        const int channels = juce::jlimit(1, 2, (int)reader->numChannels);
+        juce::AudioBuffer<float> preview(channels, count);
+        preview.clear();
+        if (!reader->read(&preview, 0, count, first, true, true)) {
+            status = "Lecture WAV impossible";
+            updateFeedback();
+            return;
+        }
+        const int minValid = startMarker ? 0 : ((int)sliders[4].getValue() + 11);
+        const int maxValid = startMarker ? ((int)sliders[5].getValue() - 11) : sampleFrames;
+        const int local = liberty::zerosnap::closest(
+            preview.getReadPointer(0), channels > 1 ? preview.getReadPointer(1) : nullptr,
+            count, current - first, radius, minValid - first, maxValid - first);
+        if (local < 0) {
+            status = juce::String::fromUTF8(u8"Aucun passage par z\u00e9ro dans 512 frames");
+            updateFeedback();
+            return;
+        }
+        const int snapped = first + local;
+        sliders[(size_t)(startMarker ? 4 : 5)].setValue(snapped);
+        status = (startMarker ? "Debut : " : "Fin : ") + juce::String(snapped) + " frames";
+        updateFeedback();
+        repaint();
+    }
+
+    void applyEdits() {
+        const auto* row = currentRow();
+        if (!row) return;
+        LibertyRomplerAudioProcessor::SampleZoneEdit edit;
+        edit.bankId = row->bankId;
+        edit.presetId = row->presetId;
+        edit.zoneIndex = row->index;
+        edit.lowNote = (int)sliders[0].getValue();
+        edit.highNote = (int)sliders[1].getValue();
+        edit.lowVelocity = (int)sliders[2].getValue();
+        edit.highVelocity = (int)sliders[3].getValue();
+        if (loopEnabled.getToggleState()) {
+            edit.loopStart = (int)sliders[4].getValue();
+            edit.loopEnd = (int)sliders[5].getValue();
+            edit.loopCrossfadeFrames = (int)sliders[6].getValue();
+        }
+        const auto result = processor.setSampleZoneEdit(edit);
+        if (result.wasOk()) refresh();
+        status = result.wasOk() ? juce::String::fromUTF8(u8"Modifications appliqu\u00e9es au projet") : result.getErrorMessage();
+        updateFeedback();
+        repaint();
+    }
+
+    void reconcile(int changed) {
+        if (loading) return;
+        loading = true;
+        auto clampPair = [this, changed](int lo, int hi) {
+            if (sliders[(size_t)lo].getValue() > sliders[(size_t)hi].getValue()) {
+                if (changed == lo) sliders[(size_t)hi].setValue(sliders[(size_t)lo].getValue(),
+                                                                juce::dontSendNotification);
+                else sliders[(size_t)lo].setValue(sliders[(size_t)hi].getValue(),
+                                                 juce::dontSendNotification);
+            }
+        };
+        if (changed < 2) clampPair(0, 1);
+        else if (changed < 4) clampPair(2, 3);
+        else if (sampleFrames >= 12 && sliders[4].getValue() + 11 >= sliders[5].getValue()) {
+            if (changed == 4) sliders[5].setValue(sliders[4].getValue() + 11,
+                                                   juce::dontSendNotification);
+            else sliders[4].setValue(sliders[5].getValue() - 11,
+                                     juce::dontSendNotification);
+        }
+        // Recompute the legal fade range whenever a loop handle moves.
+        const int maxFade = liberty::loopfade::maximum((int)sliders[4].getValue(),
+                                                       (int)sliders[5].getValue());
+        sliders[6].setRange(0, maxFade, 1);
+        if (sliders[6].getValue() > maxFade)
+            sliders[6].setValue(maxFade, juce::dontSendNotification);
+        loading = false;
+        dirty = true;
+        cancelButton.setEnabled(showLoops && currentRow() != nullptr);
+        updateFeedback();
+        repaint();
+    }
+    void updateFeedback() {
+        feedback.setText(dirty ? juce::String::fromUTF8(u8"NON APPLIQU\u00c9") :
+                         (status.isEmpty() ? "Session DAW / banques intactes" : status),
+                         juce::dontSendNotification);
+    }
+    void updateLayout() {
+        const auto b = getLocalBounds().reduced(12, 10);
+        const int leftWidth = juce::jlimit(235, 410, (int)(b.getWidth() * 0.40f));
+        feedback.setBounds(b.getRight() - juce::jmin(360, b.getWidth() / 2), b.getY() + 8,
+                           juce::jmax(0, juce::jmin(350, b.getWidth() / 2 - 12)), 23);
+        list.setBounds(b.getX() + 4, b.getY() + 47,
+                       juce::jmin(leftWidth, juce::jmax(0, b.getWidth() - 22)),
+                       juce::jmax(0, b.getHeight() - 58));
+        const auto lb = list.getBounds();
+        auto panel = rightArea();
+        const int rx = panel.getX(), ry = panel.getY();
+        const int rw = panel.getWidth(), rh = panel.getHeight();
+        const int half = juce::jmax(0, (rw - 32) / 2);
+        mappingMode.setBounds(rx + 10, ry + 4, half, 25);
+        loopMode.setBounds(rx + 22 + half, ry + 4, half, 25);
+        mapArea = {rx + 13, ry + 58, juce::jmax(0, rw - 26), 74};
+        velocityArea = {rx + 13, ry + 152, juce::jmax(0, rw - 26), 48};
+        waveArea = {rx + 13, ry + 59, juce::jmax(0, rw - 26), juce::jmax(35, rh - 310)};
+        // Dedicated zoom/navigation row between waveform caption and marker tools.
+        const int zy = ry + rh - 226;
+        const int zx = rx + 12;
+        const int zoomWidth = juce::jlimit(70, 116, (rw - 24) / 4);
+        const int navigationWidth = juce::jmax(45, rw - 24 - 42 - zoomWidth - 55 - 54 - 20);
+        zoomCaption.setBounds(zx, zy, 42, 25);
+        zoomSlider.setBounds(zx + 47, zy, zoomWidth, 25);
+        positionCaption.setBounds(zx + 52 + zoomWidth, zy, 55, 25);
+        positionSlider.setBounds(zx + 112 + zoomWidth, zy, navigationWidth, 25);
+        fitWaveButton.setBounds(zx + 117 + zoomWidth + navigationWidth, zy, 54, 25);
+        for (auto* component : {static_cast<juce::Component*>(&zoomCaption),
+                                static_cast<juce::Component*>(&zoomSlider),
+                                static_cast<juce::Component*>(&positionCaption),
+                                static_cast<juce::Component*>(&positionSlider),
+                                static_cast<juce::Component*>(&fitWaveButton)})
+            component->setVisible(showLoops);
+        zoomSlider.setEnabled(showLoops && sampleFrames > 0);
+        syncPositionControl();
+        const int controlWidth = juce::jmax(65, (rw - 57) / 4);
+        for (int i = 0; i < 4; ++i) {
+            juce::Component* button = i == 0 ? static_cast<juce::Component*>(&snapStartButton) :
+                                      i == 1 ? static_cast<juce::Component*>(&snapEndButton) :
+                                      i == 2 ? static_cast<juce::Component*>(&cancelButton) :
+                                               static_cast<juce::Component*>(&autoSnap);
+            button->setVisible(showLoops);
+            button->setBounds(rx + 12 + i * (controlWidth + 5), ry + rh - 187,
+                              controlWidth, 25);
+            button->setEnabled(currentRow() != nullptr && sampleFrames >= 12 &&
+                               (i == 2 ? dirty : loopEnabled.getToggleState()));
+        }
+        const int cellWidth = (rw - 34) / 2;
+        for (int i = 0; i < 6; ++i) {
+            const bool visible = showLoops ? i >= 4 : i < 4;
+            sliders[(size_t)i].setVisible(visible);
+            labels[(size_t)i].setVisible(visible);
+            if (!visible) continue;
+            const int col = i % 2, row = showLoops ? 0 : i / 2;
+            const int cy = showLoops ? (ry + rh - 112) : (ry + 210 + row * 47);
+            const int cx = rx + 12 + col * (cellWidth + 10);
+            labels[(size_t)i].setBounds(cx, cy, cellWidth, 15);
+            sliders[(size_t)i].setBounds(cx, cy + 15, cellWidth, 27);
+        }
+        loopEnabled.setVisible(showLoops);
+        loopEnabled.setEnabled(sampleFrames >= 12 && currentRow() != nullptr);
+        loopEnabled.setBounds(rx + 12, ry + rh - 145, half, 25);
+        labels[6].setVisible(showLoops);
+        sliders[6].setVisible(showLoops);
+        labels[6].setBounds(rx + 22 + half, ry + rh - 155, half, 15);
+        sliders[6].setBounds(rx + 22 + half, ry + rh - 138, half, 25);
+        // Frame nudge buttons fit in the 27px gap between existing frame
+        // sliders and the bottom action row; no overlapping controls.
+        const bool loopControlsFit = showLoops && rw >= 355 && rh >= 340;
+        const int nudgeWidth = juce::jmax(24, (cellWidth - 4) / 2);
+        for (int i = 0; i < 4; ++i) {
+            auto& button = frameNudges[(size_t)i];
+            const int col = i / 2, side = i % 2;
+            const int nx = rx + 12 + col * (cellWidth + 10)
+                              + side * (nudgeWidth + 4);
+            button.setBounds(nx, ry + rh - 69, nudgeWidth, 24);
+            button.setVisible(loopControlsFit);
+            button.setEnabled(currentRow() != nullptr &&
+                              loopEnabled.getToggleState() && sampleFrames >= 12);
+        }
+        previewButton.setVisible(loopControlsFit);
+        previewButton.setEnabled(currentRow() != nullptr &&
+                                 loopEnabled.getToggleState() && sampleFrames >= 12);
+        if (loopControlsFit) {
+            const int gap = 6;
+            const int actionWidth = juce::jmax(0, (rw - 24 - 2 * gap) / 3);
+            previewButton.setBounds(rx + 12, ry + rh - 38, actionWidth, 29);
+            apply.setBounds(rx + 12 + actionWidth + gap, ry + rh - 38, actionWidth, 29);
+            reset.setBounds(rx + 12 + (actionWidth + gap) * 2, ry + rh - 38,
+                            actionWidth, 29);
+        } else {
+            apply.setBounds(rx + 12, ry + rh - 38, juce::jmax(72, half), 29);
+            reset.setBounds(rx + 22 + half, ry + rh - 38, juce::jmax(72, half), 29);
+        }
+        // At small sizes, hide controls rather than allow an overlap. Mapping
+        // remains accessible after enlarging the panel.
+        const bool enoughHeight = rh >= 340;
+        for (int i = 0; i < 7; ++i) {
+            const bool visible = enoughHeight && (showLoops ? i >= 4 : i < 4);
+            if (!visible) { sliders[(size_t)i].setVisible(false);
+                            labels[(size_t)i].setVisible(false); }
+            sliders[(size_t)i].setEnabled(visible && currentRow() != nullptr &&
+                                        (i < 4 || sampleFrames >= 12));
+        }
+        if (!loopControlsFit) {
+            for (auto* component : {static_cast<juce::Component*>(&zoomCaption),
+                                    static_cast<juce::Component*>(&zoomSlider),
+                                    static_cast<juce::Component*>(&positionCaption),
+                                    static_cast<juce::Component*>(&positionSlider),
+                                    static_cast<juce::Component*>(&fitWaveButton),
+                                    static_cast<juce::Component*>(&snapStartButton),
+                                    static_cast<juce::Component*>(&snapEndButton),
+                                    static_cast<juce::Component*>(&cancelButton),
+                                    static_cast<juce::Component*>(&autoSnap),
+                                    static_cast<juce::Component*>(&loopEnabled)})
+                component->setVisible(false);
+        }
+        apply.setVisible(rw >= 185 && rh >= 82);
+        reset.setVisible(rw >= 185 && rh >= 82);
+        apply.setEnabled(currentRow() != nullptr);
+        reset.setEnabled(currentRow() != nullptr);
+    }
+    juce::Rectangle<int> rightArea() const {
+        const auto box = getLocalBounds().reduced(12, 10);
+        const auto left = list.getBounds();
+        return {left.getRight() + 14, left.getY(),
+                juce::jmax(0, box.getRight() - left.getRight() - 18),
+                juce::jmax(0, left.getHeight())};
+    }
+};
