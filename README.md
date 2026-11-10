@@ -1,3 +1,17 @@
+# Liberty ROMpler v0.19 — DÉBUT + FIN, durée de boucle préservée
+
+La v0.19 ajoute le mode **PAIRE** dans **SAMPLES > BOUCLES**. **Maj + Option + clic** sur ZÉRO DÉBUT ou ZÉRO FIN cherche un décalage commun dans ±512 frames réduisant le saut brut d'amplitude. DÉBUT et FIN bougent ensemble, avec **FIN − DÉBUT rigoureusement inchangé**.
+
+Les commandes précédentes restent accessibles : clic simple = passage par zéro ; Option + clic = optimisation SAUT MIN d'un seul marqueur ; préécoute A/B avec les durées courtes/longues des v0.16/v0.17.
+
+La recherche n'écrit **aucun WAV**, ne modifie pas les banques et reste **non appliquée** jusqu'au clic sur APPLIQUER ; ANNULER restaure les dernières positions enregistrées. Les deux règles Liberty demeurent incontournables : **aucun chevauchement** et **accents français corrects**. Une réduction du saut brut ne garantit pas la disparition d'un clic audible.
+
+Sources : `Source/LoopPairedSeamV019.h`, `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_paired_seam_v019_test.cpp` et `tests/test_v019_paired_loop.py`. Guides : `docs/PAIRED_LOOP_V019.md` et `docs/GUIDE_TEST_BOUCLES_V019.md`.
+
+**Statut : code en validation sur `feature/v019-paired-loop-length-lock`. La v0.18 reste la dernière compilation macOS confirmée jusqu'à validation de la v0.19.**
+
+---
+
 # Liberty ROMpler v0.18 — Recherche assistée du meilleur raccord brut
 
 **Développement sur `feature/v018-smart-loop-seam`.** La v0.17 reste la version macOS distribuée tant que le build v0.18 n'a pas réussi.
