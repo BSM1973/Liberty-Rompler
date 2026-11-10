@@ -1,3 +1,15 @@
+# Liberty Rompler v0.13 — Calage automatique des boucles sur zero
+
+Dans **SAMPLES > BOUCLES**, deux nouvelles commandes **ZÉRO DÉBUT** et **ZÉRO FIN** recherchent le passage par zéro le plus proche du marqueur (dans un rayon de 512 frames), en analysant réellement le WAV mono ou stéréo. Un bouton **ANNULER** permet de revenir aux derniers réglages appliqués sans effacer les éditions déjà sauvegardées dans le projet.
+
+La recherche respecte strictement les limites des samples et la durée minimale de la boucle. Si aucun passage par zéro valide n'existe à proximité, le marqueur ne bouge pas. Le fondu anti-clic de v0.12 reste disponible pour peaufiner les raccords, et les opérations de lecture/analyse du fichier s'effectuent seulement lors du clic, jamais dans le thread audio.
+
+**Compatibilité :** aucune réécriture de WAV ni de manifest, aucun changement au format d'état DAW. Les neuf onglets, le clavier large, les quatre couches, les effets, le routage et l'arpégiateur sont conservés. **Tests :** 61 tests locaux, audit des caractères français sur 26 fichiers et vérifications de la géométrie sur cinq hauteurs d'interface. La compilation native macOS et le comportement en DAW doivent être contrôlés séparément.
+
+**Distribution :** un lot GitHub Actions avec ZIP, DMG et archive exacte des sources compilées. Aucun build automatique n'est lancé sur les simples modifications de code : seul le workflow déclenche le lot.
+
+---
+
 # Liberty Rompler v0.12 — Boucles avec fondu anti-clic
 
 Le nouvel éditeur **SAMPLES** conserve toutes les fonctions de la v0.11 et ajoute deux améliorations demandées par les essais audio :
