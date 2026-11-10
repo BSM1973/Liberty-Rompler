@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build-macos:
-    name: macOS Apple Silicon - UI v0.11 / AU + VST3 + Standalone
+    name: macOS Apple Silicon - UI v0.12 / AU + VST3 + Standalone
     runs-on: macos-15
     timeout-minutes: 50
 
@@ -154,6 +154,19 @@ jobs:
           test -f tests/test_samples_v011.py
           test -f docs/SAMPLES_EDITOR_V011.md
 
+      - name: Apply v0.12 real-time loop crossfade and draggable waveform markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v12/part-{1..4}.b64 | base64 -D > /tmp/liberty-ui-v12.patch.xz
+          echo '66352c5b1fc793343194754f772af3a8b74bc8350955e001c4bbcfb216939369  /tmp/liberty-ui-v12.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v12.patch.xz | patch --batch -p1
+          python3 -c 'from pathlib import Path; p=Path("Source/PluginEditor.cpp"); s=p.read_text(); old="Prototype 0.11  |"; assert s.count(old)==1; p.write_text(s.replace(old, "Prototype 0.12  |"))'
+          test -f Source/LoopCrossfade.h
+          test -f tests/loop_crossfade_test.cpp
+          test -f tests/test_samples_v012.py
+          test -f docs/SAMPLES_EDITOR_V012.md
+
       - name: Configure Python for demo bank generator
         uses: actions/setup-python@v5
         with:
@@ -196,11 +209,11 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
-      - name: Package UI v0.11, installer and both demo banks
+      - name: Package UI v0.12, installer and both demo banks
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.11"
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.12"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -216,27 +229,27 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.11 Liberty-Rompler-macOS-arm64-UI-v0.11.zip)
-          hdiutil create -volname "Liberty Rompler UI v0.11" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.12 Liberty-Rompler-macOS-arm64-UI-v0.12.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.12" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.11.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.11.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.11.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.12.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.12.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.12.dmg
 
-      - name: Preserve editable v0.10 source in the same artifact
+      - name: Preserve editable v0.12 source in the same artifact
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf dist/Liberty-Rompler-source-v0.11.tar.gz Source tests tools docs CMakeLists.txt
-          test -s dist/Liberty-Rompler-source-v0.11.tar.gz
+          tar -czf dist/Liberty-Rompler-source-v0.12.tar.gz Source tests tools docs CMakeLists.txt
+          test -s dist/Liberty-Rompler-source-v0.12.tar.gz
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-UI-v0.11-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.12-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.11.zip
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.11.dmg
-            dist/Liberty-Rompler-source-v0.11.tar.gz
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.12.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.12.dmg
+            dist/Liberty-Rompler-source-v0.12.tar.gz
           if-no-files-found: error
           retention-days: 30

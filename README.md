@@ -1,3 +1,20 @@
+# Liberty Rompler v0.12 — Boucles avec fondu anti-clic
+
+Le nouvel éditeur **SAMPLES** conserve toutes les fonctions de la v0.11 et ajoute deux améliorations demandées par les essais audio :
+
+- **Fondu de boucle réglable de 0 à 8192 frames** : mélange linéaire entre la fin et le début de la boucle, indépendamment sur les canaux stéréo, sans allocations audio et sans modifier le WAV
+- **Marqueurs de boucle déplaçables directement sur la forme d'onde** : début/fin mis à jour visuellement avec limites sûres ; la zone du fondu est matérialisée en violet
+- **Sauvegarde des réglages par zone dans le projet DAW** : nouvelle propriété facultative `loopCrossfadeFrames`, valeur neutre 0 dans tous les anciens projets
+- **APPLIQUER / RESTAURER** et les 9 onglets existants sont conservés, sans altération des banques
+
+Les modifications de boucles sont appliquées à l'arrêt : la reconstruction des samples peut interrompre les notes en cours. Le fondu réduit les clics de raccord, sans garantir une transition parfaite sur tous les sons.
+
+**Contrôles :** 57 tests automatisés réussis localement sur la reconstruction exacte des sources du build #16, dont tests C++ du fondu et du calcul des frames, validation des 10 presets, audit Unicode français et contrôle de la géométrie sur 5 hauteurs. Les tests d'écoute et d'affichage en hôte macOS restent nécessaires après compilation.
+
+Distribution prévue : AU, VST3, Standalone, ZIP, DMG et sources exactes, dans un seul artifact GitHub.
+
+---
+
 # Liberty Rompler v0.11 — Editeur SAMPLES avec mapping et boucles
 
 La mise à jour v0.11 ajoute deux vues dans l'onglet **SAMPLES** :
