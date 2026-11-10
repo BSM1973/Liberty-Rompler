@@ -7,6 +7,7 @@
 #include "LoopEditorV015.h"
 #include "LoopSeamSearchV018.h"
 #include "LoopPairedSeamV019.h"
+#include "LoopPairedNudgeV020.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -136,14 +137,18 @@ public:
             addAndMakeVisible(button);
             button.setButtonText(i % 2 == 0 ? "-1" : "+1");
             button.setTooltip(i < 2
-                ? "D\u00e9but : clic = 1 frame, Option + clic = 10 frames"
-                : "Fin : clic = 1 frame, Option + clic = 10 frames");
+                ? "D\u00e9but : clic 1f, Option 10f, Maj boucle 1f, Maj+Option boucle 10f"
+                : "Fin : clic 1f, Option 10f, Maj boucle 1f, Maj+Option boucle 10f");
             button.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
             button.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
             button.onClick = [this, i] {
-                const auto distance = juce::ModifierKeys::getCurrentModifiers().isAltDown()
-                                      ? 10 : 1;
-                nudgeLoopMarker(i < 2, (i % 2 == 0 ? -1 : 1) * distance);
+                const auto modifiers = juce::ModifierKeys::getCurrentModifiers();
+                const int distance = modifiers.isAltDown() ? 10 : 1;
+                const int delta = (i % 2 == 0 ? -1 : 1) * distance;
+                if (modifiers.isShiftDown())
+                    nudgeLoopPair(delta);
+                else
+                    nudgeLoopMarker(i < 2, delta);
             };
         }
         addAndMakeVisible(previewButton);
@@ -550,6 +555,34 @@ private:
         } else {
             drawText(g, "Forme d'onde indisponible", waveArea.reduced(12), 11, false);
         }
+    }
+
+    // Shift-click on any existing +/- frame button moves the entire loop.
+    // Keep start/end together and never let automatic zero snap break
+    // the exact loop length. This change remains pending until APPLIQUER.
+    void nudgeLoopPair(int delta) {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState()
+            || sampleFrames < 12) return;
+        const auto start = (int)sliders[4].getValue();
+        const auto end = (int)sliders[5].getValue();
+        const auto result = liberty::loop_v020::nudgePair(
+            {start, end, sampleFrames}, delta);
+        if (!result.valid) return;
+        if (result.appliedFrames == 0) {
+            status = "GLISSE : limite atteinte";
+        } else {
+            sliders[4].setValue((double)result.loop.begin,
+                                juce::dontSendNotification);
+            sliders[5].setValue((double)result.loop.end,
+                                juce::dontSendNotification);
+            // One reconciliation keeps the fade/undo flags synchronized.
+            reconcile(4);
+            status = juce::String("GLISSE ")
+                     + (result.appliedFrames > 0 ? "+" : "")
+                     + juce::String((int)result.appliedFrames) + " f";
+        }
+        updateFeedback();
+        repaint();
     }
 
     void nudgeLoopMarker(bool startMarker, int delta) {
