@@ -27,7 +27,7 @@ int main()
         head[static_cast<std::size_t>(ch)].assign(wav[ch].begin() + 3, wav[ch].begin() + 15);
         tail[static_cast<std::size_t>(ch)].assign(wav[ch].begin() + 17, wav[ch].begin() + 31);
     }
-    const auto paired = findBestPairedShift(head, 3, tail, 17, 8, 24, 40, 4);
+    const auto paired = findBestPairedShift(head, 3, tail, 17, 8, 24, 40, 3);
     assert(paired.valid);
     assert(paired.deltaFrames == 2);
     assert(paired.startFrame == 10 && paired.endFrame == 26);
