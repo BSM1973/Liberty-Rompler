@@ -167,9 +167,10 @@ inline SeamPreview renderSeamPreview (const std::vector<std::vector<float>>& sou
         {
             const float a = src[static_cast<std::size_t> (r.end - overlap + i)];
             const float b = src[static_cast<std::size_t> (r.begin + i)];
-            const float t = overlap == 1 ? 0.5f
-                                         : static_cast<float> (i + 1)
-                                               / static_cast<float> (overlap + 1);
+            // Match the shipped v0.14 LoopCrossfade::at() exactly:
+            // first overlap frame is 100% tail, then linearly approach head.
+            const float t = static_cast<float> (i)
+                            / static_cast<float> (overlap);
             dst.push_back (a * (1.0f - t) + b * t);
         }
 
