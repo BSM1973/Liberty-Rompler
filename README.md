@@ -1,3 +1,19 @@
+# Liberty ROMpler v0.15 — Édition des boucles (développement en cours)
+
+Le premier lot de la v0.15 est maintenant dans le dépôt, **sans déclencher de build** et **sans annoncer de version utilisable** :
+
+- \`Source/LoopEditorV015.h\` : déplacement exact des marqueurs par frame, avec limites et durée minimale de boucle.
+- \`renderSeamPreview()\` : génération hors thread audio d'un extrait stéréo autour du raccord, avec ou sans fondu. Le lecteur de préécoute n'est **pas encore raccordé** au plugin.
+- \`crossfadeBands()\` : calcul de deux zones de fondu alignées sur le zoom et le défilement, chacune limitée à la partie visible de la forme d'onde.
+- \`tests/test_v015_loop_helpers.py\` : compilation des tests C++ dans la suite Python existante, sans modifier le déclenchement GitHub Actions.
+- \`docs/LOOP_EDITOR_V015.md\` : spécification et critères de validation.
+
+**Restant à intégrer :** les contrôles de précision à la frame dans \`SAMPLES > BOUCLES\`, le lecteur sonore de préécoute et le dessin des bandes de fondu. Le projet assemble encore le code JUCE à partir de correctifs et d'archives ; une intégration non vérifiée risquerait de gâcher les crédits GitHub. Ces fonctions ne seront annoncées qu'après raccordement, compilation et essais macOS.
+
+**Règles absolues :** aucun chevauchement graphique, aucune substitution de caractères français. **AUTO ZÉRO reste désactivé par défaut** pour la compatibilité.
+
+---
+
 # Liberty Rompler v0.14.1 — Installation fiable et vérification de la distribution
 
 Cette livraison de maintenance **conserve le moteur audio, les neuf onglets et l'édition des boucles de la v0.14**. Il ne s'agit pas encore d'une nouvelle fonction de synthèse ni d'un changement de l'algorithme AUTO ZÉRO.
