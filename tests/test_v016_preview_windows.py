@@ -29,6 +29,30 @@ class WindowedPreviewV016(unittest.TestCase):
                                  capture_output=True, text=True, timeout=20)
             self.assertIn("bounded-window equivalence tests OK", run.stdout)
 
+    def test_juce_ab_preview_and_metric_contract(self):
+        view = (ROOT / "overlays/v015/SampleZoneView.h").read_text(encoding="ascii")
+        processor = (ROOT / "overlays/v015/PluginProcessor.h").read_text(encoding="ascii")
+        patch = (ROOT / "scripts/apply_v016_preview.sh").read_text(encoding="utf-8")
+        for expected in (
+            "previewSelectedLoop(bool withoutFade)",
+            "getCurrentModifiers().isShiftDown()",
+            "withoutFade ? 0 : (int)sliders[6].getValue(), &rawSeamStepDb",
+            "juce::String(rawSeamStepDb, 1)",
+            'feedback.setTooltip(message)',
+        ):
+            self.assertIn(expected, view)
+        self.assertIn("float* rawSeamStepDb = nullptr", processor)
+        for expected in (
+            'LoopSeamDifferenceV016.h',
+            "measureRawSeamDifference(tail, head)",
+            "if (rawSeamStepDb != nullptr)",
+            "rawSeamStepDb = seamDifference.dbAmplitude",
+            "juce::AudioBuffer<float> tailBuffer(channels, contextFrames)",
+            "juce::AudioBuffer<float> headBuffer(channels, contextFrames)",
+        ):
+            self.assertIn(expected, patch)
+        self.assertFalse(any(ord(char) > 127 for char in view))
+
     def test_only_two_wav_windows_remain_in_patch(self):
         patch = (ROOT / "scripts/apply_v016_preview.sh").read_text(encoding="utf-8")
         self.assertIn("tailBuffer(channels, contextFrames)", patch)
