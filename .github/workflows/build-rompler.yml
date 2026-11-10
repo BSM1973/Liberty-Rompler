@@ -207,7 +207,6 @@ jobs:
           hdiutil create -volname "Liberty Rompler UI v0.10" \
             -srcfolder "$target" -ov -format UDZO \
             dist/Liberty-Rompler-macOS-arm64-UI-v0.10.dmg
-            dist/Liberty-Rompler-source-v0.10.tar.gz
           test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.10.zip
           test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.10.dmg
 
@@ -225,5 +224,6 @@ jobs:
           path: |
             dist/Liberty-Rompler-macOS-arm64-UI-v0.10.zip
             dist/Liberty-Rompler-macOS-arm64-UI-v0.10.dmg
+            dist/Liberty-Rompler-source-v0.10.tar.gz
           if-no-files-found: error
           retention-days: 30
