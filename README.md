@@ -1,3 +1,21 @@
+# Liberty ROMpler v0.18 — Recherche assistée du meilleur raccord brut
+
+**Développement sur `feature/v018-smart-loop-seam`.** La v0.17 reste la version macOS distribuée tant que le build v0.18 n'a pas réussi.
+
+La v0.18 complète l'éditeur **SAMPLES > BOUCLES** sans ajouter de boutons :
+
+- **ZÉRO DÉBUT / ZÉRO FIN — clic normal** : calage sur un passage par zéro, inchangé.
+- **Option + clic** : recherche dans ±512 frames du point qui réduit le saut d'amplitude brut entre début et fin de la boucle (les deux canaux d'un WAV stéréo sont pris en compte).
+- **SAUT MIN** : résultat court en frames ; l'infobulle présente le saut avant/après et rappelle qu'une écoute A/B reste nécessaire.
+- Le point proposé reste **en attente** jusqu'à APPLIQUER, et **ANNULER** peut restaurer la dernière position enregistrée.
+- Les WAV, banques et presets ne sont pas modifiés par la recherche. AUTO ZÉRO reste désactivé par défaut pour les anciennes sessions.
+
+Cette optimisation mathématique ne garantit pas l'absence de clic audible. Les deux règles Liberty restent absolues : **zéro chevauchement** et **accents français corrects**.
+
+Tests : `tests/loop_seam_search_v018_test.cpp` et `tests/test_v018_seam_search.py`. Guide : `docs/GUIDE_TEST_BOUCLES_V018.md`. Le workflow Mac est gardé en brouillon `docs/build-rompler-v018-release-DRAFT.yml` jusqu'à la validation Linux.
+
+---
+
 # Liberty ROMpler v0.17 — Développement en validation
 
 La v0.17 ajoute deux commandes sans agrandir l'interface de l'onglet **SAMPLES > BOUCLES** :

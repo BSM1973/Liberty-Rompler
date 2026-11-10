@@ -5,7 +5,9 @@
 #include "ZeroCrossSnap.h"
 #include "WaveformZoom.h"
 #include "LoopEditorV015.h"
+#include "LoopSeamSearchV018.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <memory>
 #include <vector>
@@ -67,11 +69,21 @@ public:
         positionSlider.setValue(0.0, juce::dontSendNotification);
         positionSlider.setColour(juce::Slider::trackColourId, juce::Colour(0xff63dccc));
         positionSlider.onValueChange = [this] { updatePosition(); };
-        snapStartButton.setTooltip("Caler le debut de la boucle sur le passage par zero le plus proche (512 frames)");
-        snapEndButton.setTooltip("Caler la fin de la boucle sur le passage par zero le plus proche (512 frames)");
+        snapStartButton.setTooltip("Clic : passage par z\u00e9ro. Option + clic : chercher le saut le plus faible dans 512 frames.");
+        snapEndButton.setTooltip("Clic : passage par z\u00e9ro. Option + clic : chercher le saut le plus faible dans 512 frames.");
         cancelButton.setTooltip("Annuler les modifications non appliquees de cette zone");
-        snapStartButton.onClick = [this] { snapLoopMarker(true); };
-        snapEndButton.onClick = [this] { snapLoopMarker(false); };
+        snapStartButton.onClick = [this] {
+            if (juce::ModifierKeys::getCurrentModifiers().isAltDown())
+                optimizeLoopMarker(true);
+            else
+                snapLoopMarker(true);
+        };
+        snapEndButton.onClick = [this] {
+            if (juce::ModifierKeys::getCurrentModifiers().isAltDown())
+                optimizeLoopMarker(false);
+            else
+                snapLoopMarker(false);
+        };
         cancelButton.onClick = [this] {
             if (selected < 0 || !dirty) return;
             selectedRowsChanged(selected);
@@ -566,6 +578,81 @@ private:
               " | BRUT " + juce::String(rawSeamStepDb, 1) + " dB"
             : result.getErrorMessage();
         updateFeedback();
+    }
+
+    // Option+click on the existing ZERO buttons searches a small neighborhood
+    // for the least *raw* stereo amplitude step. No sample, manifest, or DAW
+    // state is modified until the existing APPLIQUER action is clicked.
+    void optimizeLoopMarker(bool startMarker) {
+        const auto* row = currentRow();
+        if (!showLoops || !row || !loopEnabled.getToggleState()
+            || sampleFrames < 12) return;
+        const auto start = (int)sliders[4].getValue();
+        const auto end = (int)sliders[5].getValue();
+        if (start < 0 || end > sampleFrames || end - start < 11) return;
+        const auto current = startMarker ? start : end;
+        constexpr int radius = 512;
+        const auto low = startMarker ? 0 : start + 11;
+        const auto high = startMarker ? end - 11 : sampleFrames;
+        const auto first = juce::jmax(0, current - radius - 2);
+        const auto lastExclusive = juce::jmin(sampleFrames, current + radius + 3);
+        const auto count = lastExclusive - first;
+        if (count < 2) return;
+
+        auto reader = std::unique_ptr<juce::AudioFormatReader>(
+            formats.createReaderFor(row->zone.file));
+        if (!reader || reader->numChannels < 1 || reader->sampleRate <= 0.0) {
+            status = "Source WAV indisponible";
+            updateFeedback();
+            return;
+        }
+        const auto referenceFirst = startMarker ? end - 2 : start;
+        if (referenceFirst < 0 || referenceFirst + 1 >= sampleFrames) return;
+        const auto channels = juce::jlimit(1, 2, (int)reader->numChannels);
+        juce::AudioBuffer<float> movingBuffer(channels, count);
+        juce::AudioBuffer<float> referenceBuffer(channels, 2);
+        if (!reader->read(&movingBuffer, 0, count, first, true, true)
+            || !reader->read(&referenceBuffer, 0, 2,
+                             referenceFirst, true, true)) {
+            status = "Lecture WAV impossible";
+            updateFeedback();
+            return;
+        }
+
+        std::vector<std::vector<float>> neighborhood((size_t)channels);
+        std::vector<std::array<float, 2>> fixed((size_t)channels);
+        for (int ch = 0; ch < channels; ++ch) {
+            const auto* moving = movingBuffer.getReadPointer(ch);
+            const auto* edge = referenceBuffer.getReadPointer(ch);
+            neighborhood[(size_t)ch].assign(moving, moving + count);
+            fixed[(size_t)ch] = {edge[0], edge[1]};
+        }
+
+        const auto best = liberty::loop_v018::findLowestRawStep(
+            neighborhood, first, fixed, startMarker, current, low, high, radius);
+        if (!best.valid) {
+            status = "Raccord non analysable";
+            updateFeedback();
+            return;
+        }
+
+        if (best.marker == current) {
+            status = "SAUT MIN : aucun meilleur point";
+        } else {
+            sliders[(size_t)(startMarker ? 4 : 5)].setValue(best.marker);
+            // Keep the change pending and reversible: do NOT call APPLIQUER
+            // or AUTO ZERO here, which would move the chosen point again.
+            status = juce::String("SAUT MIN ") + (startMarker ? "D " : "F ")
+                     + juce::String(best.marker) + " ("
+                     + juce::String(best.marker - current) + ")";
+        }
+        updateFeedback();
+        feedback.setTooltip(
+            "Recherche non destructive dans 512 frames : saut brut "
+            + juce::String(best.previousStep, 4) + " -> "
+            + juce::String(best.bestStep, 4)
+            + ". Comparer A/B avant d'appliquer.");
+        repaint();
     }
 
     void snapLoopMarker(bool startMarker) {
