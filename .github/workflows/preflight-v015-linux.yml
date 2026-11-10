@@ -71,7 +71,9 @@ jobs:
           cmake -S . -B build-linux -G Ninja \
             -DJUCE_DIR="$GITHUB_WORKSPACE/JUCE" \
             -DJUCE_WEB_BROWSER=0 -DJUCE_USE_CURL=0
-          cmake --build build-linux --target LibertyRompler_VST3 --parallel 2
+          mkdir -p v015-preflight
+          cmake --build build-linux --target LibertyRompler_VST3 --parallel 2 \
+            2>&1 | tee v015-preflight/build-output.log
 
       - name: Save a readable preflight result to GitHub
         if: always()
@@ -103,7 +105,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c validation/v015-linux-20261110-r2
-          git add -f v015-preflight/RESULT.txt v015-preflight/test-output.log
+          git switch -c validation/v015-linux-20261110-r3
+          git add -f v015-preflight/RESULT.txt
+          if test -f v015-preflight/test-output.log; then git add -f v015-preflight/test-output.log; fi
+          if test -f v015-preflight/build-output.log; then git add -f v015-preflight/build-output.log; fi
           git commit -m "ci: record v0.15 JUCE preflight results"
-          git push origin HEAD:refs/heads/validation/v015-linux-20261110-r2
+          git push origin HEAD:refs/heads/validation/v015-linux-20261110-r3
