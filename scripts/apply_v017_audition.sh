@@ -19,7 +19,7 @@ s = s.replace(old_signature, new_signature, 1)
 old_context = '''    const int contextFrames = juce::jmin(
         length, juce::jmax(256, juce::jmax(crossfadeFrames + 128,
                             (int)std::round(reader->sampleRate * 0.06))));'''
-new_context = '''    const auto plan = liberty::loop_v017::planAudition(
+new_context = r'''    const auto plan = liberty::loop_v017::planAudition(
         reader->sampleRate, length, crossfadeFrames, contextMilliseconds);
     if (!plan.valid)
         return juce::Result::fail("Dur\u00e9e de pr\u00e9\u00e9coute incorrecte.");
