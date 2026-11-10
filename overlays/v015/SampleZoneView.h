@@ -116,19 +116,27 @@ public:
             auto& button = frameNudges[(size_t)i];
             addAndMakeVisible(button);
             button.setButtonText(i % 2 == 0 ? "-1" : "+1");
-            button.setTooltip(i < 2 ? "D\u00e9placer le d\u00e9but de la boucle d'une frame"
-                                    : "D\u00e9placer la fin de la boucle d'une frame");
+            button.setTooltip(i < 2
+                ? "D\u00e9but : clic = 1 frame, Option + clic = 10 frames"
+                : "Fin : clic = 1 frame, Option + clic = 10 frames");
             button.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
             button.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
-            button.onClick = [this, i] { nudgeLoopMarker(i < 2, i % 2 == 0 ? -1 : 1); };
+            button.onClick = [this, i] {
+                const auto distance = juce::ModifierKeys::getCurrentModifiers().isAltDown()
+                                      ? 10 : 1;
+                nudgeLoopMarker(i < 2, (i % 2 == 0 ? -1 : 1) * distance);
+            };
         }
         addAndMakeVisible(previewButton);
         previewButton.setButtonText(juce::String::fromUTF8(u8"PR\u00c9\u00c9COUTE"));
-        previewButton.setTooltip("Clic : fondu B ; Maj + clic : sans fondu A. Ecart brut en dB, pas un diagnostic automatique de clic audible.");
+        previewButton.setTooltip(
+            "Clic : B avec fondu. Maj : A sans fondu. Option : longue (250 ms)."
+            " Mesure BRUT : saut d'amplitude, pas une analyse des clics.");
         previewButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
         previewButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
         previewButton.onClick = [this] {
-            previewSelectedLoop(juce::ModifierKeys::getCurrentModifiers().isShiftDown());
+            const auto keys = juce::ModifierKeys::getCurrentModifiers();
+            previewSelectedLoop(keys.isShiftDown(), keys.isAltDown());
         };
         addAndMakeVisible(feedback);
         feedback.setColour(juce::Label::textColourId, juce::Colour(0xffa8dcca));
@@ -542,18 +550,20 @@ private:
             snapLoopMarker(startMarker);
     }
 
-    void previewSelectedLoop(bool withoutFade) {
+    void previewSelectedLoop(bool withoutFade, bool extendedContext) {
         const auto* row = currentRow();
         if (!showLoops || !row || !loopEnabled.getToggleState() ||
             sampleFrames < 12) return;
         float rawSeamStepDb = -120.0f;
         const auto result = processor.previewSampleZoneLoop(
             row->zone.file, (int)sliders[4].getValue(), (int)sliders[5].getValue(),
-            withoutFade ? 0 : (int)sliders[6].getValue(), &rawSeamStepDb);
+            withoutFade ? 0 : (int)sliders[6].getValue(), &rawSeamStepDb,
+            extendedContext ? 250 : 60);
         // The number is the raw sample-amplitude step, not a click audibility score.
         status = result.wasOk()
-            ? juce::String(withoutFade ? "A" : "B") + " | BRUT " +
-              juce::String(rawSeamStepDb, 1) + " dB"
+            ? juce::String(withoutFade ? "A" : "B") +
+              (extendedContext ? " 250 ms" : " 60 ms") +
+              " | BRUT " + juce::String(rawSeamStepDb, 1) + " dB"
             : result.getErrorMessage();
         updateFeedback();
     }
