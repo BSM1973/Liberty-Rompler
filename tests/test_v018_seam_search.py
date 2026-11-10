@@ -30,7 +30,7 @@ class SmartSeamV018(unittest.TestCase):
         for required in (
             '#include "LoopSeamSearchV018.h"',
             "void optimizeLoopMarker(bool startMarker)",
-            "juce::ModifierKeys::getCurrentModifiers().isAltDown()",
+            "modifiers.isAltDown()",
             "optimizeLoopMarker(true);",
             "optimizeLoopMarker(false);",
             "liberty::loop_v018::findLowestRawStep(",
