@@ -193,6 +193,18 @@ jobs:
           test -f tests/waveform_zoom_test.cpp
           test -f docs/SAMPLES_EDITOR_V014.md
 
+      - name: Restore tracked installer, diagnostic, loop guide and release checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show HEAD:scripts/install_mac.command > scripts/install_mac.command
+          git show HEAD:scripts/DIAGNOSTIC_MAC.command > scripts/DIAGNOSTIC_MAC.command
+          git show HEAD:scripts/verify_release_v0141.py > scripts/verify_release_v0141.py
+          git show HEAD:docs/GUIDE_TEST_BOUCLES_V014.md > docs/GUIDE_TEST_BOUCLES_V014.md
+          bash -n scripts/install_mac.command
+          bash -n scripts/DIAGNOSTIC_MAC.command
+          python3 -m py_compile scripts/verify_release_v0141.py
+
       - name: Configure Python for demo bank generator
         uses: actions/setup-python@v5
         with:
@@ -235,11 +247,11 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
-      - name: Package UI v0.14, installer and both demo banks
+      - name: Package UI v0.14.1, installer, diagnostic and both demo banks
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.14"
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.14.1"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -250,32 +262,40 @@ jobs:
           ditto "$au" "$target/Liberty Rompler.component"
           ditto Banks "$target/Banks"
           cp scripts/install_mac.command "$target/INSTALLER_MAC.command"
-          chmod +x "$target/INSTALLER_MAC.command"
+          cp scripts/DIAGNOSTIC_MAC.command "$target/DIAGNOSTIC_MAC.command"
+          cp docs/GUIDE_TEST_BOUCLES_V014.md "$target/GUIDE_TEST_BOUCLES_V014.md"
+          chmod +x "$target/INSTALLER_MAC.command" "$target/DIAGNOSTIC_MAC.command"
           for bundle in "$target/Liberty Rompler.app" "$target/Liberty Rompler.vst3" "$target/Liberty Rompler.component"; do
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.14 Liberty-Rompler-macOS-arm64-UI-v0.14.zip)
-          hdiutil create -volname "Liberty Rompler UI v0.14" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.14.1 Liberty-Rompler-macOS-arm64-UI-v0.14.1.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.14.1" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.14.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.14.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.14.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.14.1.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.14.1.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.14.1.dmg
 
       - name: Preserve editable v0.14 source in the same artifact
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf dist/Liberty-Rompler-source-v0.14.tar.gz Source tests tools docs CMakeLists.txt
-          test -s dist/Liberty-Rompler-source-v0.14.tar.gz
+          tar -czf dist/Liberty-Rompler-source-v0.14.1.tar.gz Source tests tools docs scripts CMakeLists.txt
+          test -s dist/Liberty-Rompler-source-v0.14.1.tar.gz
+
+      - name: Verify AU VST3 Standalone and full release archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_release_v0141.py
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-UI-v0.14-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.14.1-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.14.zip
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.14.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.14.1.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.14.1.dmg
             dist/Liberty-Rompler-source-v0.14.tar.gz
           if-no-files-found: error
           retention-days: 30
