@@ -1,0 +1,11 @@
+Liberty ROMpler v0.17 Linux preflight
+Reconstruction: success
+Integration: success
+Windowed preview patch: success
+Audition duration patch: failure
+Regression tests: skipped
+Linux dependencies: skipped
+JUCE 8 checkout: skipped
+Linux VST3 build: skipped
+Mac release build: NOT TRIGGERED
+GitHub run: 42858697329
