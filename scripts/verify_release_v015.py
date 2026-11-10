@@ -28,6 +28,7 @@ def verify() -> None:
         "INSTALLER_MAC.command",
         "DIAGNOSTIC_MAC.command",
         "GUIDE_TEST_BOUCLES_V014.md",
+        "GUIDE_TEST_BOUCLES_V015.md",
         "Banks/Factory-Starter/manifest.json",
         "Banks/Expansion-Demo/manifest.json",
     ]
@@ -67,7 +68,7 @@ def verify() -> None:
                      "docs/SAMPLES_EDITOR_V014.md", "docs/GUIDE_TEST_BOUCLES_V014.md",
                      "Source/LoopEditorV015.h", "Source/LoopPreviewVoiceV015.h",
                      "Source/LoopFrameInputV015.h", "Source/LoopToolbarLayoutV015.h",
-                     "docs/LOOP_EDITOR_V015.md",
+                     "docs/LOOP_EDITOR_V015.md", "docs/GUIDE_TEST_BOUCLES_V015.md",
                      "scripts/install_mac.command", "scripts/DIAGNOSTIC_MAC.command"):
             require(name in names, "sources " + name)
     subprocess.run(["hdiutil", "verify", str(DMG)], check=True)
