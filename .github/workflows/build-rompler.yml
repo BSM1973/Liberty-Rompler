@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build-macos:
-    name: macOS Apple Silicon - UI v0.15 / AU + VST3 + Standalone
+    name: macOS Apple Silicon - UI v0.16 / AU + VST3 + Standalone
     runs-on: macos-15
     timeout-minutes: 50
 
@@ -199,13 +199,13 @@ jobs:
           set -euo pipefail
           git show HEAD:scripts/install_mac.command > scripts/install_mac.command
           git show HEAD:scripts/DIAGNOSTIC_MAC.command > scripts/DIAGNOSTIC_MAC.command
-          git show HEAD:scripts/verify_release_v015.py > scripts/verify_release_v015.py
+          git show HEAD:scripts/verify_release_v016.py > scripts/verify_release_v016.py
           git show HEAD:docs/GUIDE_TEST_BOUCLES_V014.md > docs/GUIDE_TEST_BOUCLES_V014.md
           bash -n scripts/install_mac.command
           bash -n scripts/DIAGNOSTIC_MAC.command
-          python3 -m py_compile scripts/verify_release_v015.py
+          python3 -m py_compile scripts/verify_release_v016.py
 
-      - name: Apply reviewed v0.15 SAMPLES loop editor, preview audio and fade markers
+      - name: Apply reviewed v0.16 SAMPLES loop editor, preview audio and fade markers
         shell: bash
         run: |
           set -euo pipefail
@@ -215,6 +215,15 @@ jobs:
           test -f Source/LoopPreviewVoiceV015.h
           test -f Source/SampleZoneView.h
           test -f Source/PluginProcessor.cpp
+
+      - name: Apply v0.16 limited-memory sample preview and A/B analysis
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/apply_v016_preview.sh
+          grep -q 'renderSeamFromWindows' Source/PluginProcessor.cpp
+          grep -q 'measureRawSeamDifference' Source/PluginProcessor.cpp
+          ! grep -q 'AudioBuffer<float> decoded(channels, total)' Source/PluginProcessor.cpp
 
       - name: Configure Python for demo bank generator
         uses: actions/setup-python@v5
@@ -258,11 +267,11 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
-      - name: Package UI v0.15, installer, diagnostic and both demo banks
+      - name: Package UI v0.16, installer, diagnostic and both demo banks
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.15"
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.16"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -276,38 +285,39 @@ jobs:
           cp scripts/DIAGNOSTIC_MAC.command "$target/DIAGNOSTIC_MAC.command"
           cp docs/GUIDE_TEST_BOUCLES_V014.md "$target/GUIDE_TEST_BOUCLES_V014.md"
           cp docs/GUIDE_TEST_BOUCLES_V015.md "$target/GUIDE_TEST_BOUCLES_V015.md"
+          cp docs/GUIDE_TEST_BOUCLES_V016.md "$target/GUIDE_TEST_BOUCLES_V016.md"
           chmod +x "$target/INSTALLER_MAC.command" "$target/DIAGNOSTIC_MAC.command"
           for bundle in "$target/Liberty Rompler.app" "$target/Liberty Rompler.vst3" "$target/Liberty Rompler.component"; do
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.15 Liberty-Rompler-macOS-arm64-UI-v0.15.zip)
-          hdiutil create -volname "Liberty Rompler UI v0.15" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.16 Liberty-Rompler-macOS-arm64-UI-v0.16.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.16" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.15.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.15.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.15.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.16.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.16.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.16.dmg
 
-      - name: Preserve editable v0.15 source in the same artifact
+      - name: Preserve editable v0.16 source in the same artifact
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf dist/Liberty-Rompler-source-v0.15.tar.gz Source tests tools docs scripts overlays CMakeLists.txt
-          test -s dist/Liberty-Rompler-source-v0.15.tar.gz
+          tar -czf dist/Liberty-Rompler-source-v0.16.tar.gz Source tests tools docs scripts overlays CMakeLists.txt
+          test -s dist/Liberty-Rompler-source-v0.16.tar.gz
 
       - name: Verify AU VST3 Standalone and full release archives
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/verify_release_v015.py
+          python3 scripts/verify_release_v016.py
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-UI-v0.15-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.16-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.15.zip
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.15.dmg
-            dist/Liberty-Rompler-source-v0.15.tar.gz
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.16.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.16.dmg
+            dist/Liberty-Rompler-source-v0.16.tar.gz
           if-no-files-found: error
           retention-days: 30
