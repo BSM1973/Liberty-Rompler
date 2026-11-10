@@ -1,3 +1,17 @@
+# Liberty Rompler v0.14.1 — Installation fiable et vérification de la distribution
+
+Cette livraison de maintenance **conserve le moteur audio, les neuf onglets et l'édition des boucles de la v0.14**. Il ne s'agit pas encore d'une nouvelle fonction de synthèse ni d'un changement de l'algorithme AUTO ZÉRO.
+
+- **Installation macOS plus sûre** : copie des bundles AU, VST3 et Standalone dans les emplacements par utilisateur, préparation avant remplacement, sauvegarde des anciennes versions et conservation des banques déjà installées.
+- **Diagnostic non destructif** : `DIAGNOSTIC_MAC.command` vérifie l'architecture Apple Silicon, les emplacements, signatures et banques, et signale d'éventuelles installations en double.
+- **Contrôle de livraison renforcé** : intégrité du ZIP et du DMG, architecture arm64, signatures, sources, banques et scripts vérifiés avant publication de l'artifact.
+- **Guide de recette** : `GUIDE_TEST_BOUCLES_V014.md` décrit les essais visuels, sonores et de compatibilité pour ZOOM, POSITION, AUTO ZÉRO et fondu anti-clic.
+- **Règles Liberty** : aucune modification des dimensions de l'interface ni des libellés français ; les audits de non-chevauchement et d'UTF-8 de v0.14 restent exécutés.
+
+La distribution macOS est **signée ad hoc, non notarisée**. Le résultat du build GitHub et les essais dans un DAW réel restent à confirmer séparément. Les modifications de fichiers hors du workflow ne déclenchent pas de compilation : un seul build est lancé pour ce lot quand le workflow est modifié.
+
+---
+
 # Liberty Rompler v0.14 — Zoom forme d'onde et calage automatique des boucles
 
 L'onglet **SAMPLES > BOUCLES** permet de travailler plus précisément à l'intérieur d'un WAV, en conservant l'édition non destructive des versions précédentes.
