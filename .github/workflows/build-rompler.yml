@@ -296,6 +296,6 @@ jobs:
           path: |
             dist/Liberty-Rompler-macOS-arm64-UI-v0.14.1.zip
             dist/Liberty-Rompler-macOS-arm64-UI-v0.14.1.dmg
-            dist/Liberty-Rompler-source-v0.14.tar.gz
+            dist/Liberty-Rompler-source-v0.14.1.tar.gz
           if-no-files-found: error
           retention-days: 30
