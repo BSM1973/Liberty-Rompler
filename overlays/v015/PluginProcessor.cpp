@@ -180,7 +180,7 @@ juce::Result LibertyRomplerAudioProcessor::previewSampleZoneLoop(
         reader->lengthInSamples, reader->sampleRate);
     const liberty::loop_v015::Loop loop {startFrame, endFrame, total};
     if (!liberty::loop_v015::isValid(loop, 11))
-        return juce::Result::fail("Boucle invalide pour la préécoute.");
+        return juce::Result::fail("Boucle invalide pour la pr\u00e9\u00e9coute.");
     if (!liberty::loopfade::valid(startFrame, endFrame, crossfadeFrames))
         return juce::Result::fail("Fondu de boucle hors limites.");
 
@@ -192,7 +192,7 @@ juce::Result LibertyRomplerAudioProcessor::previewSampleZoneLoop(
     juce::AudioBuffer<float> decoded(channels, total);
     decoded.clear();
     if (!reader->read(&decoded, 0, total, 0, true, true))
-        return juce::Result::fail("Lecture des échantillons impossible.");
+        return juce::Result::fail("Lecture des \u00e9chantillons impossible.");
     std::vector<std::vector<float>> samples((size_t)channels);
     for (int ch = 0; ch < channels; ++ch) {
         const auto* first = decoded.getReadPointer(ch);
@@ -202,18 +202,18 @@ juce::Result LibertyRomplerAudioProcessor::previewSampleZoneLoop(
     auto snapshot = liberty::loop_v015::renderSeamPreview(
         samples, loop, contextFrames, crossfadeFrames);
     if (snapshot.channels.empty() || snapshot.channels[0].empty())
-        return juce::Result::fail("Préécoute indisponible.");
+        return juce::Result::fail("Pr\u00e9\u00e9coute indisponible.");
 
     // The source WAV may have a different sample rate from the host. Linear
     // resampling is sufficient for this short audition only (not for exports).
     const double ratio = currentSampleRate / reader->sampleRate;
     if (!std::isfinite(ratio) || ratio < 0.1 || ratio > 16.0)
-        return juce::Result::fail("Fréquence d'échantillonnage incompatible.");
+        return juce::Result::fail("Fr\u00e9quence d'\u00e9chantillonnage incompatible.");
     if (std::abs(ratio - 1.0) > 0.000001) {
         const auto inputFrames = snapshot.channels[0].size();
         const auto required = std::ceil((double)inputFrames * ratio);
         if (!std::isfinite(required) || required > 131072.0 || required < 1.0)
-            return juce::Result::fail("Préécoute trop longue.");
+            return juce::Result::fail("Pr\u00e9\u00e9coute trop longue.");
         const auto outputFrames = (size_t)required;
         for (auto& channel : snapshot.channels) {
             std::vector<float> converted(outputFrames);
@@ -238,7 +238,7 @@ juce::Result LibertyRomplerAudioProcessor::previewSampleZoneLoop(
         previewVoice.prepare(nullptr);
         previewSnapshot = std::move(snapshot);
         if (!previewVoice.prepare(&previewSnapshot, 64))
-            return juce::Result::fail("Impossible de préparer la préécoute.");
+            return juce::Result::fail("Impossible de pr\u00e9parer la pr\u00e9\u00e9coute.");
         previewVoice.start();
     }
     return juce::Result::ok();
