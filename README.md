@@ -1,16 +1,19 @@
-# Liberty ROMpler v0.15 — Édition des boucles (développement en cours)
+# Liberty ROMpler v0.15 — Préécoute et édition des boucles
 
-Le premier lot de la v0.15 est maintenant dans le dépôt, **sans déclencher de build** et **sans annoncer de version utilisable** :
+**État au 10 novembre 2026 : prévalidation Linux verte ; compilation macOS et recette sonore encore à confirmer.**
 
-- \`Source/LoopEditorV015.h\` : déplacement exact des marqueurs par frame, avec limites et durée minimale de boucle.
-- \`renderSeamPreview()\` : génération hors thread audio d'un extrait stéréo autour du raccord, avec ou sans fondu. Le lecteur de préécoute n'est **pas encore raccordé** au plugin.
-- \`crossfadeBands()\` : calcul de deux zones de fondu alignées sur le zoom et le défilement, chacune limitée à la partie visible de la forme d'onde.
-- \`tests/test_v015_loop_helpers.py\` : compilation des tests C++ dans la suite Python existante, sans modifier le déclenchement GitHub Actions.
-- \`docs/LOOP_EDITOR_V015.md\` : spécification et critères de validation.
+Le code de la v0.15 est intégré dans les sources JUCE reconstruites de Liberty ROMpler, au moyen de `overlays/v015` et de `scripts/apply_v015_overlays.sh` :
 
-**Restant à intégrer :** les contrôles de précision à la frame dans \`SAMPLES > BOUCLES\`, le lecteur sonore de préécoute et le dessin des bandes de fondu. Le projet assemble encore le code JUCE à partir de correctifs et d'archives ; une intégration non vérifiée risquerait de gâcher les crédits GitHub. Ces fonctions ne seront annoncées qu'après raccordement, compilation et essais macOS.
+- **Marqueurs exacts** : contrôle de la position du début et de la fin de boucle à la frame par les champs existants et les nouveaux boutons −1 / +1.
+- **PRÉÉCOUTE** : préparation du raccord WAV hors callback audio ; lecture une seule fois par le processeur, sans allocations dans le callback. Compatible mono/stéréo et adaptation aux différences de fréquence d'échantillonnage du DAW.
+- **Repères de fondu** : deux bandes colorées, côté début et côté fin, alignées sur le zoom et la position horizontale.
+- **Fondu fidèle** : l'audition utilise les coefficients de mélange du moteur `LoopCrossfade` de la v0.14.
+- **Règles Liberty** : aucun chevauchement de contrôles ; tous les accents français conservés via les échappements Unicode acceptés par l'audit. AUTO ZÉRO désactivé par défaut pour les anciens projets.
 
-**Règles absolues :** aucun chevauchement graphique, aucune substitution de caractères français. **AUTO ZÉRO reste désactivé par défaut** pour la compatibilité.
+**Contrôles GitHub :** reconstruction des sources réussie, tests de régression réussis, audit de l'interface réussi et compilation Linux VST3 JUCE 8.0.10 réussie. Le build macOS de livraison reste distinct et n'est pas inclus dans cette prévalidation.
+
+Le guide `docs/GUIDE_TEST_BOUCLES_V015.md` détaille la recette Standalone, AU et VST3 à effectuer sur le Mac après la compilation ; `docs/LOOP_EDITOR_V015.md` conserve les détails de l'intégration.
+
 
 ---
 
