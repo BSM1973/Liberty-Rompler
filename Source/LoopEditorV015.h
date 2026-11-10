@@ -142,6 +142,9 @@ inline SeamPreview renderSeamPreview (const std::vector<std::vector<float>>& sou
     const Frame length = r.end - r.begin;
     const Frame context = std::min (contextFrames, length);
     const Frame overlap = std::min (crossfadeFrames, context);
+    // Avoid signed overflow before calculating a potentially large preview.
+    if (context > std::numeric_limits<Frame>::max() / 2)
+        return out;
     const Frame resultFrames = context * 2 - overlap;
     if (resultFrames <= 0 || static_cast<std::uint64_t> (resultFrames)
         > static_cast<std::uint64_t> (std::numeric_limits<std::size_t>::max()))
