@@ -24,8 +24,9 @@ class PairedLoopV019(unittest.TestCase):
                 str(ROOT / "tests/loop_paired_seam_v019_test.cpp"),
                 "-o", str(binary)
             ], check=True, timeout=120, cwd=ROOT)
-            result = subprocess.run([str(binary)], check=True, timeout=30,
+            result = subprocess.run([str(binary)], check=False, timeout=30,
                                     text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("stereo and duration-lock tests OK", result.stdout)
 
     def test_juce_uses_existing_two_zero_buttons_and_existing_apply_cancel(self):
