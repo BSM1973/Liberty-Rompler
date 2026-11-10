@@ -34,8 +34,8 @@ class WindowedPreviewV016(unittest.TestCase):
         processor = (ROOT / "overlays/v015/PluginProcessor.h").read_text(encoding="ascii")
         patch = (ROOT / "scripts/apply_v016_preview.sh").read_text(encoding="utf-8")
         for expected in (
-            "previewSelectedLoop(bool withoutFade)",
-            "getCurrentModifiers().isShiftDown()",
+            "previewSelectedLoop(bool withoutFade, bool extendedContext)",
+            "keys.isShiftDown()",
             "withoutFade ? 0 : (int)sliders[6].getValue(), &rawSeamStepDb",
             "juce::String(rawSeamStepDb, 1)",
             'feedback.setTooltip(message)',
