@@ -1,0 +1,136 @@
+[0/2] Re-checking globbed directories...
+[1/35] Generating LibertyRompler_artefacts/JuceLibraryCode/JuceHeader.h
+[2/35] Building CXX object CMakeFiles/LibertyRompler_vst3_helper.dir/JUCE/modules/juce_audio_plugin_client/VST3/juce_VST3ManifestHelper.cpp.o
+[3/35] Building CXX object CMakeFiles/LibertyRompler.dir/Source/BankLibrary.cpp.o
+[4/35] Building CXX object CMakeFiles/LibertyRompler.dir/Source/SampleEngine.cpp.o
+In file included from /home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_basics/juce_audio_basics.h:132,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_processors/juce_audio_processors.h:68,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/build-linux/LibertyRompler_artefacts/JuceLibraryCode/JuceHeader.h:15,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/BankLibrary.h:2,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleEngine.h:2,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleEngine.cpp:1:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_basics/synthesisers/juce_Synthesiser.h:203:18: warning: ‘virtual void juce::SynthesiserVoice::renderNextBlock(juce::AudioBuffer<double>&, int, int)’ was hidden [-Woverloaded-virtual=]
+  203 |     virtual void renderNextBlock (AudioBuffer<double>& outputBuffer,
+      |                  ^~~~~~~~~~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleEngine.h:116:10: note:   by ‘virtual void liberty::SampleVoice::renderNextBlock(juce::AudioBuffer<float>&, int, int)’
+  116 |     void renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
+      |          ^~~~~~~~~~~~~~~
+[5/35] Building CXX object CMakeFiles/LibertyRompler.dir/Source/PluginProcessor.cpp.o
+In file included from /home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_basics/juce_audio_basics.h:132,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_processors/juce_audio_processors.h:68,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/build-linux/LibertyRompler_artefacts/JuceLibraryCode/JuceHeader.h:15,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginProcessor.h:2,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginProcessor.cpp:1:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_basics/synthesisers/juce_Synthesiser.h:203:18: warning: ‘virtual void juce::SynthesiserVoice::renderNextBlock(juce::AudioBuffer<double>&, int, int)’ was hidden [-Woverloaded-virtual=]
+  203 |     virtual void renderNextBlock (AudioBuffer<double>& outputBuffer,
+      |                  ^~~~~~~~~~~~~~~
+In file included from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginProcessor.h:4:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleEngine.h:116:10: note:   by ‘virtual void liberty::SampleVoice::renderNextBlock(juce::AudioBuffer<float>&, int, int)’
+  116 |     void renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
+      |          ^~~~~~~~~~~~~~~
+In file included from /home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_processors/juce_audio_processors.h:155:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:289:18: warning: ‘virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)’ was hidden [-Woverloaded-virtual=]
+  289 |     virtual void processBlock (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginProcessor.h:17:10: note:   by ‘virtual void LibertyRomplerAudioProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)’
+   17 |     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~
+In file included from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.h:6,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginProcessor.cpp:6:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleZoneView.h: In member function ‘virtual void LibertySampleZoneView::mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails&)’:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleZoneView.h:291:30: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+  291 |             if (wheel.deltaY != 0.0f) {
+      |                 ~~~~~~~~~~~~~^~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleZoneView.h:297:30: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+  297 |             if (wheel.deltaX != 0.0f && viewSpan < sampleFrames) {
+      |                 ~~~~~~~~~~~~~^~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginProcessor.cpp: In member function ‘virtual void LibertyRomplerAudioProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)’:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginProcessor.cpp:65:15: warning: declaration of ‘playHead’ shadows a member of ‘LibertyRomplerAudioProcessor’ [-Wshadow]
+   65 |     if (auto* playHead = getPlayHead()) hostPosition = playHead->getPosition();
+      |               ^~~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:1484:33: note: shadowed declaration is here
+ 1484 |     std::atomic<AudioPlayHead*> playHead { nullptr };
+      |                                 ^~~~~~~~
+[6/35] Building CXX object CMakeFiles/LibertyRompler.dir/Source/PluginEditor.cpp.o
+In file included from /home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_basics/juce_audio_basics.h:132,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_processors/juce_audio_processors.h:68,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/build-linux/LibertyRompler_artefacts/JuceLibraryCode/JuceHeader.h:15,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.h:2,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.cpp:1:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_basics/synthesisers/juce_Synthesiser.h:203:18: warning: ‘virtual void juce::SynthesiserVoice::renderNextBlock(juce::AudioBuffer<double>&, int, int)’ was hidden [-Woverloaded-virtual=]
+  203 |     virtual void renderNextBlock (AudioBuffer<double>& outputBuffer,
+      |                  ^~~~~~~~~~~~~~~
+In file included from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginProcessor.h:4,
+                 from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.h:3:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleEngine.h:116:10: note:   by ‘virtual void liberty::SampleVoice::renderNextBlock(juce::AudioBuffer<float>&, int, int)’
+  116 |     void renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
+      |          ^~~~~~~~~~~~~~~
+In file included from /home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_processors/juce_audio_processors.h:155:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/JUCE/modules/juce_audio_processors/processors/juce_AudioProcessor.h:289:18: warning: ‘virtual void juce::AudioProcessor::processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&)’ was hidden [-Woverloaded-virtual=]
+  289 |     virtual void processBlock (AudioBuffer<double>& buffer,
+      |                  ^~~~~~~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginProcessor.h:17:10: note:   by ‘virtual void LibertyRomplerAudioProcessor::processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&)’
+   17 |     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+      |          ^~~~~~~~~~~~
+In file included from /home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.h:6:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleZoneView.h: In member function ‘virtual void LibertySampleZoneView::mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails&)’:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleZoneView.h:291:30: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+  291 |             if (wheel.deltaY != 0.0f) {
+      |                 ~~~~~~~~~~~~~^~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/SampleZoneView.h:297:30: warning: comparing floating-point with ‘==’ or ‘!=’ is unsafe [-Wfloat-equal]
+  297 |             if (wheel.deltaX != 0.0f && viewSpan < sampleFrames) {
+      |                 ~~~~~~~~~~~~~^~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.h: In constructor ‘LibertyRomplerAudioProcessorEditor::LibertyRomplerAudioProcessorEditor(LibertyRomplerAudioProcessor&)’:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.h:87:33: warning: ‘LibertyRomplerAudioProcessorEditor::keyboard’ will be initialized after [-Wreorder]
+   87 |     juce::MidiKeyboardComponent keyboard;
+      |                                 ^~~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.h:48:25: warning:   ‘LibertyRoutingGraph LibertyRomplerAudioProcessorEditor::routingGraph’ [-Wreorder]
+   48 |     LibertyRoutingGraph routingGraph;
+      |                         ^~~~~~~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.cpp:105:1: warning:   when initialized here [-Wreorder]
+  105 | LibertyRomplerAudioProcessorEditor::LibertyRomplerAudioProcessorEditor(LibertyRomplerAudioProcessor& p)
+      | ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.cpp: In lambda function:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.cpp:487:23: warning: declaration of ‘ctrl’ shadows a previous local [-Wshadow]
+  487 |                 auto& ctrl = processor.getControls().layers[(size_t)i];
+      |                       ^~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.cpp:173:11: note: shadowed declaration is here
+  173 |     auto& ctrl = p.getControls();
+      |           ^~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.cpp: In member function ‘virtual void LibertyRomplerAudioProcessorEditor::resized()’:
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.cpp:1024:19: warning: declaration of ‘width’ shadows a previous local [-Wshadow]
+ 1024 |         const int width=juce::jlimit(78,150,32+button->getButtonText().length()*8);
+      |                   ^~~~~
+/home/runner/work/Liberty-Rompler/Liberty-Rompler/Source/PluginEditor.cpp:988:35: note: shadowed declaration is here
+  988 |     const int left=work.getX()+24,width=work.getWidth()-48;
+      |                                   ^~~~~
+[7/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_audio_processors/juce_audio_processors_ara.cpp.o
+[8/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_audio_processors/juce_audio_processors_lv2_libs.cpp.o
+[9/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_gui_extra/juce_gui_extra.cpp.o
+[10/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_audio_processors/juce_audio_processors.cpp.o
+[11/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_graphics/juce_graphics.cpp.o
+[12/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_gui_basics/juce_gui_basics.cpp.o
+[13/35] Building C object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_graphics/juce_graphics_Sheenbidi.c.o
+[14/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_events/juce_events.cpp.o
+[15/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_graphics/juce_graphics_Harfbuzz.cpp.o
+[16/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_core/juce_core_CompilationTime.cpp.o
+[17/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_data_structures/juce_data_structures.cpp.o
+[18/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_core/juce_core.cpp.o
+[19/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_audio_basics/juce_audio_basics.cpp.o
+[20/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_audio_utils/juce_audio_utils.cpp.o
+[21/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_audio_formats/juce_audio_formats.cpp.o
+[22/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_audio_devices/juce_audio_devices.cpp.o
+[23/35] Linking CXX executable LibertyRompler_vst3_helper
+[24/35] Building CXX object CMakeFiles/LibertyRompler_VST3.dir/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX.cpp.o
+[25/35] Building CXX object CMakeFiles/LibertyRompler_VST3.dir/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_AAX_utils.cpp.o
+[26/35] Building CXX object CMakeFiles/LibertyRompler_VST3.dir/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_ARA.cpp.o
+[27/35] Building CXX object CMakeFiles/LibertyRompler_VST3.dir/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_LV2.cpp.o
+[28/35] Building CXX object CMakeFiles/LibertyRompler_VST3.dir/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Standalone.cpp.o
+[29/35] Building CXX object CMakeFiles/LibertyRompler_VST3.dir/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_Unity.cpp.o
+[30/35] Building CXX object CMakeFiles/LibertyRompler_VST3.dir/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST2.cpp.o
+[31/35] Building CXX object CMakeFiles/LibertyRompler.dir/JUCE/modules/juce_dsp/juce_dsp.cpp.o
+[32/35] Linking CXX static library "LibertyRompler_artefacts/libLiberty Rompler_SharedCode.a"
+[33/35] Building CXX object CMakeFiles/LibertyRompler_VST3.dir/JUCE/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp.o
+[34/35] Linking CXX shared module "LibertyRompler_artefacts/VST3/Liberty Rompler.vst3/Contents/x86_64-linux/Liberty Rompler.so"
+removing moduleinfo.json
+creating /home/runner/work/Liberty-Rompler/Liberty-Rompler/build-linux/LibertyRompler_artefacts//VST3/Liberty Rompler.vst3
