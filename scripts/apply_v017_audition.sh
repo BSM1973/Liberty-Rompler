@@ -22,7 +22,7 @@ old_context = '''    const int contextFrames = juce::jmin(
 new_context = '''    const auto plan = liberty::loop_v017::planAudition(
         reader->sampleRate, length, crossfadeFrames, contextMilliseconds);
     if (!plan.valid)
-        return juce::Result::fail("Duree de preecoute incorrecte.");
+        return juce::Result::fail("Dur\u00e9e de pr\u00e9\u00e9coute incorrecte.");
     const int contextFrames = plan.contextFrames;'''
 assert s.count(old_context) == 1, "Expected v0.16 audition duration"
 s = s.replace(old_context, new_context, 1)
