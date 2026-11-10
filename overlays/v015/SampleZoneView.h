@@ -124,10 +124,12 @@ public:
         }
         addAndMakeVisible(previewButton);
         previewButton.setButtonText(juce::String::fromUTF8(u8"PR\u00c9\u00c9COUTE"));
-        previewButton.setTooltip("\u00c9couter le raccord entre la fin et le d\u00e9but de la boucle");
+        previewButton.setTooltip("Clic : avec fondu. Maj + clic : sans fondu (A/B).");
         previewButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff243e50));
         previewButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe3edf2));
-        previewButton.onClick = [this] { previewSelectedLoop(); };
+        previewButton.onClick = [this] {
+            previewSelectedLoop(juce::ModifierKeys::getCurrentModifiers().isShiftDown());
+        };
         addAndMakeVisible(feedback);
         feedback.setColour(juce::Label::textColourId, juce::Colour(0xffa8dcca));
         feedback.setFont(juce::Font(juce::FontOptions(10.0f)));
@@ -540,15 +542,16 @@ private:
             snapLoopMarker(startMarker);
     }
 
-    void previewSelectedLoop() {
+    void previewSelectedLoop(bool withoutFade) {
         const auto* row = currentRow();
         if (!showLoops || !row || !loopEnabled.getToggleState() ||
             sampleFrames < 12) return;
         const auto result = processor.previewSampleZoneLoop(
             row->zone.file, (int)sliders[4].getValue(), (int)sliders[5].getValue(),
-            (int)sliders[6].getValue());
+            withoutFade ? 0 : (int)sliders[6].getValue());
         status = result.wasOk()
-            ? juce::String::fromUTF8(u8"Pr\u00e9\u00e9coute du raccord")
+            ? (withoutFade ? juce::String::fromUTF8(u8"Pr\u00e9\u00e9coute sans fondu (A)")
+                           : juce::String::fromUTF8(u8"Pr\u00e9\u00e9coute avec fondu (B)"))
             : result.getErrorMessage();
         updateFeedback();
     }
