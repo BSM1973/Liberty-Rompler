@@ -1,6 +1,6 @@
-# Liberty ROMpler v0.15 — édition des boucles : composants développés
+# Liberty ROMpler v0.15 — Édition des boucles et préécoute
 
-**Statut : implémentation des composants C++ terminée et tests locaux réussis ; intégration JUCE à réaliser. Aucun nouveau build macOS déclenché.**
+**Statut : raccordement JUCE et traitement de la préécoute réalisés dans `overlays/v015`. La prévalidation GitHub Linux est verte : reconstruction, tests, audit des accents et compilation VST3 JUCE 8.0.10. Le build macOS et les essais auditifs restent à confirmer.**
 
 ## Fonctions préparées
 
@@ -18,7 +18,7 @@ c++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -o /tmp/loop_v015_test tests/
 
 Le lanceur `tests/test_v015_loop_helpers.py` exécute ce test dans la suite Python préexistante de GitHub Actions. La matrice couvre les changements de frames, les limites, l'annulation, les buffers mono/stéréo, l'arrêt de préécoute et les rectangles d'interface. Des tests locaux supplémentaires ont été exécutés avec `-fsanitize=address,undefined`, sans erreur.
 
-## Raccordement JUCE préparé
+## Raccordement JUCE intégré
 
 Les composants JUCE suivants sont désormais disponibles dans `Source/` :
 
@@ -26,7 +26,7 @@ Les composants JUCE suivants sont désormais disponibles dans `Source/` :
 - `LoopFadeOverlayV015.h` : calque non interactif aligné sur la forme d'onde. `setState(loop, fadeFrames, viewport)` redessine les deux bandes de fondu ; `setInterceptsMouseClicks(false, false)` laisse les marqueurs existants manipulables.
 - `tests/test_v015_ui_contract.py` : vérifie que le panneau, les callbacks et le calque sont présents et que les sources sont bien en UTF-8.
 
-### Brancher dans l'éditeur du plugin (encore à faire)
+### Branchements réalisés dans les overlays (contrôle technique)
 
 1. Après assemblage des correctifs jusqu'à la v0.14, inclure les deux en-têtes JUCE dans le fichier source de l'éditeur, puis créer le panneau dans l'onglet SAMPLES > BOUCLES.
 2. À chaque changement de zone WAV, appeler `setLoop()` avec les positions exactes en frames et `setState()` avec la même vue zoomée. Les coordonnées du calque doivent correspondre aux limites locales de la forme d'onde.
@@ -34,7 +34,7 @@ Les composants JUCE suivants sont désormais disponibles dans `Source/` :
 4. Relier `onPreviewRequested` à l'accès au WAV déjà décodé, préparer le raccord hors thread audio et faire transiter le déclenchement par une commande sûre vers `processBlock()`. Ne pas lire les fichiers, allouer ni échanger de pointeurs non protégés dans le callback audio. Traiter les différences de fréquence d'échantillonnage entre le WAV et le DAW.
 5. Monter le panneau avec l'espace réellement disponible et le masquer proprement si son `makeLoopToolbarLayout()` ne peut pas le contenir ; conserver un accès via défilement ou agrandissement de l'onglet.
 
-**Ces opérations ne sont pas encore réalisées dans `PluginEditor.cpp` et `PluginProcessor.cpp`.** Le dépôt contient les composants et leurs contrats, mais la version v0.15 n'est pas encore livrable et les contrôles ne sont pas visibles dans le plugin v0.14.1.
+**Intégration effective :** `overlays/v015/SampleZoneView.h` branche les boutons ±1 et PRÉÉCOUTE aux fonctions du processeur ; `overlays/v015/PluginProcessor.h/.cpp` prépare le WAV hors du callback et joue le buffer par accès non bloquant. `scripts/apply_v015_overlays.sh` remplace les trois fichiers après assemblage de la v0.14. `PluginEditor.cpp` conserve l'onglet SAMPLES et reçoit uniquement la nouvelle indication de version. La compilation Linux a validé le raccordement ; le rendu et l'écoute sur macOS restent à contrôler.
 
 ### Vérifications avant le build macOS unique
 
@@ -47,8 +47,8 @@ Les composants JUCE suivants sont désormais disponibles dans `Source/` :
 
 ## Conditions obligatoires avant de distribuer v0.15
 
-- Reconstruire les fichiers `PluginEditor.cpp` et `PluginProcessor.cpp` du projet à partir des correctifs GitHub existants.
-- Raccorder les boutons et les champs de `SAMPLES > BOUCLES` aux classes ci-dessus ; relier PRÉÉCOUTE au flux audio de test sans interrompre le moteur du DAW.
+- Reconstruction des sources JUCE depuis les correctifs GitHub **réalisée et validée sur Linux** ; vérifier à nouveau lors du build macOS.
+- Raccordement des boutons, champs et du flux de préécoute **réalisé et compilé sur Linux** ; confirmer le résultat dans le Standalone, AU et VST3 sur Mac.
 - Vérifier à l'écoute que le raccord entendu reproduit la méthode de fondu réelle du moteur v0.14 ; l'algorithme de référence devra être harmonisé si nécessaire.
 - Contrôler les tailles des fenêtres sur Mac : **aucun chevauchement**, surtout sur écran 13 pouces.
 - Vérifier l'UTF-8 et les accents français : **aucun symbole ne remplace une lettre**.
