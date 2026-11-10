@@ -1,0 +1,17 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting numpy
+  Downloading numpy-2.5.4-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+Downloading numpy-2.5.4-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.7/16.7 MB 18.1 MB/s eta 0:00:00
+Installing collected packages: numpy
+Successfully installed numpy-2.5.4
+Factory Starter: (7, 12) presets / samples
+Expansion Demo: (3, 6) presets / samples
+IMPORTANT: this demonstration contains no licence / encryption system.
+Checked: 2 banks, 10 presets
+PASS: all bank manifests, sample paths, and WAV files verified
+ECHEC AUDIT UI : Source/SampleZoneView.h: caractère brut non ASCII dans source C++
+ECHEC AUDIT UI : Source/PluginProcessor.cpp: caractère brut non ASCII dans source C++
+ECHEC AUDIT UI : Source/LoopEditorPanelV015.h: caractère brut non ASCII dans source C++
+ECHEC AUDIT UI : overlays/v015/SampleZoneView.h: caractère brut non ASCII dans source C++
+ECHEC AUDIT UI : overlays/v015/PluginProcessor.cpp: caractère brut non ASCII dans source C++
