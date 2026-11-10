@@ -1,6 +1,7 @@
 #include "../Source/LoopEditorV015.h"
 #include "../Source/LoopFrameInputV015.h"
 #include "../Source/LoopPreviewVoiceV015.h"
+#include "../Source/LoopToolbarLayoutV015.h"
 
 #include <cassert>
 #include <cmath>
@@ -133,6 +134,31 @@ int main()
     voice.process (stereo, 2, 4);
     assert (l2[0] == r2[0] && l2[1] == r2[1]);
     assert (! voice.isPlaying());
+
+    // No controls outside the editor or overlapping, including compact views.
+    for (int width : {214, 240, 284, 320, 440, 520, 706, 740, 1024, 1600})
+    {
+        for (int height : {32, 43, 60, 80, 120, 175, 280})
+        {
+            const auto layout = makeLoopToolbarLayout (width, height);
+            assert (layout.noOverlap (width, height));
+            if (layout.fits)
+            {
+                assert (layout.beginFrame.visible());
+                assert (layout.endFrame.visible());
+                assert (layout.preview.visible());
+                assert (layout.apply.visible());
+                assert (layout.cancel.visible());
+            }
+        }
+    }
+    assert (makeLoopToolbarLayout (740, 43).fits);
+    assert (makeLoopToolbarLayout (520, 80).fits);
+    assert (makeLoopToolbarLayout (320, 120).fits);
+    assert (makeLoopToolbarLayout (240, 175).fits);
+    assert (! makeLoopToolbarLayout (120, 100).fits);
+    assert (intersects (Rect {0, 0, 12, 12}, Rect {10, 2, 2, 2}));
+    assert (! intersects (Rect {0, 0, 12, 12}, Rect {12, 2, 2, 2}));
 
     std::cout << "Loop editor v0.15: C++ unit tests OK\n";
 }
