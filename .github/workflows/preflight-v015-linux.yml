@@ -33,11 +33,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m pip install --disable-pip-version-check numpy
-          python3 tools/make_demo_banks.py
-          python3 tools/validate_banks.py
-          python3 tools/audit_ui_text.py
-          python3 -m unittest discover -s tests -p 'test_*.py' -v
+          mkdir -p v015-preflight
+          {
+            python3 -m pip install --disable-pip-version-check numpy
+            python3 tools/make_demo_banks.py
+            python3 tools/validate_banks.py
+            python3 tools/audit_ui_text.py
+            python3 -m unittest discover -s tests -p 'test_*.py' -v
+          } 2>&1 | tee v015-preflight/test-output.log
 
       - name: Install Linux JUCE build dependencies
         id: deps
@@ -93,10 +96,14 @@ jobs:
             echo "Linux VST3 build: $COMPILE"
             echo "Mac release build: NOT TRIGGERED"
           } > v015-preflight/RESULT.txt
+          echo "GitHub run: $GITHUB_RUN_ID" >> v015-preflight/RESULT.txt
           cat v015-preflight/RESULT.txt >> "$GITHUB_STEP_SUMMARY"
+          if test -f v015-preflight/test-output.log; then
+            tail -n 140 v015-preflight/test-output.log >> "$GITHUB_STEP_SUMMARY"
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c validation/v015-linux-20261110
-          git add -f v015-preflight/RESULT.txt
+          git switch -c validation/v015-linux-20261110-r2
+          git add -f v015-preflight/RESULT.txt v015-preflight/test-output.log
           git commit -m "ci: record v0.15 JUCE preflight results"
-          git push origin HEAD:refs/heads/validation/v015-linux-20261110
+          git push origin HEAD:refs/heads/validation/v015-linux-20261110-r2
