@@ -33,7 +33,7 @@ class AuditionV017(unittest.TestCase):
             "previewSelectedLoop(bool withoutFade, bool extendedContext)",
             "extendedContext ? 250 : 60",
             "Option + clic = 10 frames",
-            "nudgeLoopMarker(i < 2, (i % 2 == 0 ? -1 : 1) * distance)",
+            "nudgeLoopMarker(i < 2, delta)",
             "extendedContext ? \" 250 ms\" : \" 60 ms\"",
         )
         for part in required:
