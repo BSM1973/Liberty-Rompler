@@ -20,7 +20,7 @@ public:
     {
         setComponentID ("liberty-loop-editor-v015");
 
-        startLabel.setText (juce::String::fromUTF8 ("DÉBUT"), juce::dontSendNotification);
+        startLabel.setText (juce::String::fromUTF8 (u8"D\u00c9BUT"), juce::dontSendNotification);
         endLabel.setText (juce::String::fromUTF8 ("FIN"), juce::dontSendNotification);
         startLabel.setJustificationType (juce::Justification::centredLeft);
         endLabel.setJustificationType (juce::Justification::centredLeft);
@@ -41,11 +41,11 @@ public:
                               juce::Colour::fromRGB (91, 114, 151));
         }
 
-        startMinus.setButtonText ("−");
-        endMinus.setButtonText ("−");
+        startMinus.setButtonText ("-");
+        endMinus.setButtonText ("-");
         startPlus.setButtonText ("+");
         endPlus.setButtonText ("+");
-        preview.setButtonText (juce::String::fromUTF8 ("PRÉÉCOUTE"));
+        preview.setButtonText (juce::String::fromUTF8 (u8"PR\u00c9\u00c9COUTE"));
         apply.setButtonText ("APPLIQUER");
         cancel.setButtonText ("ANNULER");
 
