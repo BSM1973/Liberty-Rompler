@@ -168,9 +168,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c validation/v020-linux-manual-nudge
+          git switch -c validation/v020-linux-manual-nudge-r2
           git add -f v020-preflight/RESULT.txt
           if test -f v020-preflight/test-output.log; then git add -f v020-preflight/test-output.log; fi
           if test -f v020-preflight/build-output.log; then git add -f v020-preflight/build-output.log; fi
           git commit -m "ci: record v0.20 JUCE preflight results"
-          git push origin HEAD:refs/heads/validation/v020-linux-manual-nudge
+          git push origin HEAD:refs/heads/validation/v020-linux-manual-nudge-r2
