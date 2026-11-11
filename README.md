@@ -1,3 +1,19 @@
+# Liberty ROMpler v0.27 — Historique du cadrage de la forme d'onde
+
+Dans **SAMPLES > BOUCLES**, **Maj + double-clic sur la forme d'onde** restaure le **cadrage précédent** : zoom et position horizontale. Un deuxième Maj + double-clic revient au cadrage qui vient d'être quitté, pour comparer facilement deux zones du WAV.
+
+La vue précédente est mémorisée lors du zoom, du déplacement à la molette ou à la barre POSITION, du cadrage de boucle, du recentrage et d'Option + glisser. Lors d'un glissement, la position initiale est conservée une fois : les étapes intermédiaires ne polluent pas l'historique. Le changement de sample efface cet historique.
+
+Tous les raccourcis existants sont conservés : double-clic normal, Option + double-clic, Commande + double-clic, Maj + molette, Option + molette, Option + glisser et Maj + glisser. Les fonctions PAIRE, SAUT MIN, ZÉRO, ±1/±10 et préécoute A/B sont inchangées.
+
+Cette fonction ne modifie **ni DÉBUT, ni FIN, ni FONDU**, ni les WAV, banques, presets ou projets. Elle n'ajoute aucun bouton ni traitement audio temps réel. Les deux règles Liberty restent incontournables : **aucun chevauchement** et **accents français intacts**.
+
+Sources : `Source/LoopViewHistoryV027.h` et `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_view_history_v027_test.cpp` et `tests/test_v027_view_history.py`. Guide Mac : `docs/GUIDE_TEST_BOUCLES_V027.md`.
+
+**Statut : v0.27 en prévalidation Linux. La v0.26 reste la dernière distribution Mac confirmée tant que le build v0.27 n'est pas vert.**
+
+---
+
 # Liberty ROMpler v0.26 — Commande + double-clic pour recentrer le WAV
 
 Dans **SAMPLES > BOUCLES**, **Commande (⌘) + double-clic sur la forme d'onde** recentre désormais la fenêtre visible autour du point choisi, **sans changer le zoom**. La position est limitée aux bornes du WAV ; à zoom 1×, la vue reste inchangée.

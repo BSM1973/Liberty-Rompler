@@ -35,7 +35,7 @@ class LoopViewportFocusV022(unittest.TestCase):
             "zoomSlider.setValue(1.0);",
             "bool focusLoopViewport()",
             "liberty::loop_v022::planFocus(",
-            "focus.centerFrame, sampleFrames, viewSpan",
+            "focus.centerFrame, sampleFrames, targetSpan",
             "zoomSlider.setValue(focus.requestedZoom, juce::dontSendNotification)",
             "syncPositionControl();",
             "void nudgeLoopPair(int delta)",
