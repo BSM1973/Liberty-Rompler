@@ -1,3 +1,19 @@
+# Liberty ROMpler v0.26 — Commande + double-clic pour recentrer le WAV
+
+Dans **SAMPLES > BOUCLES**, **Commande (⌘) + double-clic sur la forme d'onde** recentre désormais la fenêtre visible autour du point choisi, **sans changer le zoom**. La position est limitée aux bornes du WAV ; à zoom 1×, la vue reste inchangée.
+
+Les commandes historiques restent disponibles : double-clic normal pour afficher tout le WAV, Option + double-clic pour cadrer la boucle, Option + molette pour zoomer autour de la souris, Maj + molette pour naviguer horizontalement, Option + glisser pour déplacer la vue et Maj + glisser pour déplacer toute la boucle.
+
+La v0.26 ne modifie ni DÉBUT, ni FIN, ni FONDU, ni les WAV, ni les banques, presets ou projets. Aucun bouton ni traitement temps réel supplémentaire n'a été ajouté.
+
+**Nos deux règles Liberty** restent prioritaires : aucun chevauchement d'interface et aucun symbole incorrect à la place d'une lettre française.
+
+Code : `Source/LoopCenterViewV026.h`, `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_center_view_v026_test.cpp`, `tests/test_v026_center_view.py`. Guide Mac : `docs/GUIDE_TEST_BOUCLES_V026.md`.
+
+**Statut : v0.26 en prévalidation Linux. La v0.25 est la dernière distribution Mac confirmée tant que le build v0.26 n'est pas vert.**
+
+---
+
 # Liberty ROMpler v0.25 — Navigation horizontale avec Maj + molette
 
 Dans **SAMPLES > BOUCLES**, **Maj + molette** déplace horizontalement la fenêtre visible dans le WAV sans changer DÉBUT, FIN ou FONDU. Un pas de molette déplace environ 20 % de la fenêtre affichée, et le déplacement est limité aux bornes du WAV. La fonction accepte également les trackpads macOS qui convertissent Maj + défilement vertical en défilement horizontal.
