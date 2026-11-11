@@ -1,5 +1,6 @@
 name: Liberty ROMpler v0.37 - Linux preflight (no macOS build)
 # Recheck v0.37 regression assertions for the ten-tab MORPH navigation.
+# Verify Smart Import never invents ambiguous L/S/H or S01 sample mappings.
 
 on:
   push:

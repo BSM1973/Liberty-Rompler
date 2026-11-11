@@ -106,6 +106,14 @@ class MultisampleV037(unittest.TestCase):
                 importer.create_manifest(root, "bank", "Bank")
             self.assertFalse((root / "manifest.json").exists())
 
+    def test_ambiguous_velocity_or_take_suffix_is_never_guessed(self):
+        with tempfile.TemporaryDirectory(prefix="liberty-ambiguous-") as tmp:
+            root = Path(tmp)
+            make_wav(root / "Piano_C4_S01.wav")
+            with self.assertRaisesRegex(importer.ImportErrorWithContext,
+                                        "ambiguous L/S/H"):
+                importer.create_manifest(root, "bank", "Bank")
+
     def test_invalid_new_bank_metadata_rejected(self):
         with tempfile.TemporaryDirectory(prefix="liberty-invalid-") as tmp:
             root = Path(tmp)

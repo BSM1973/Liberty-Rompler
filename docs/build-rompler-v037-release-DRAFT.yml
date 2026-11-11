@@ -336,6 +336,8 @@ jobs:
           cp docs/GUIDE_TEST_BOUCLES_V035.md "$target/GUIDE_TEST_BOUCLES_V035.md"
           cp docs/GUIDE_TEST_MORPH_V036.md "$target/GUIDE_TEST_MORPH_V036.md"
           cp docs/GUIDE_TEST_MULTISAMPLE_V037.md "$target/GUIDE_TEST_MULTISAMPLE_V037.md"
+          cp tools/smart_import_v037.py "$target/SMART_IMPORT_V037.py"
+          cp docs/MULTISAMPLE_V037.md "$target/SMART_IMPORT_GUIDE_V037.md"
           chmod +x "$target/INSTALLER_MAC.command" "$target/DIAGNOSTIC_MAC.command"
           for bundle in "$target/Liberty Rompler.app" "$target/Liberty Rompler.vst3" "$target/Liberty Rompler.component"; do
             codesign --force --deep --sign - "$bundle"

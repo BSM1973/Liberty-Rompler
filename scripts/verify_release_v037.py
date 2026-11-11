@@ -51,6 +51,8 @@ def verify() -> None:
         "GUIDE_TEST_BOUCLES_V035.md",
         "GUIDE_TEST_MORPH_V036.md",
         "GUIDE_TEST_MULTISAMPLE_V037.md",
+        "SMART_IMPORT_V037.py",
+        "SMART_IMPORT_GUIDE_V037.md",
         "Banks/Factory-Starter/manifest.json",
         "Banks/Expansion-Demo/manifest.json",
     ]

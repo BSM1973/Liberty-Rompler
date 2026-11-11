@@ -24,6 +24,8 @@ VEL = re.compile(r"(?:^|[_\-\s])(?:VEL|V)(\d{1,3})[-_](\d{1,3})(?=$|[_\-\s])", r
 RR = re.compile(r"(?:^|[_\-\s])(?:RR|TAKE)(\d{1,2})(?=$|[_\-\s])", re.I)
 ART = re.compile(r"(?:^|[_\-\s])ART(SUSTAIN|STACCATO|LEGATO|PIZZICATO|MUTE|TREMOLO)(?=$|[_\-\s])", re.I)
 KS = re.compile(r"(?:^|[_\-\s])KS(\d{1,3})(?=$|[_\-\s])", re.I)
+AMBIGUOUS = re.compile(
+    r"(?:^|[_\-\s])(?:L|S|H|S\d{1,2})(?=$|[_\-\s])", re.I)
 ARTICULATIONS = {"SUSTAIN": 1, "STACCATO": 2, "LEGATO": 3,
                  "PIZZICATO": 4, "MUTE": 5, "TREMOLO": 6}
 NOTES = {"C": 0, "D": 2, "E": 4, "F": 5,
@@ -83,6 +85,9 @@ def parse_sample(path, root):
     relative = path.relative_to(root).as_posix()
     if "\\" in relative or ".." in path.relative_to(root).parts:
         raise ImportErrorWithContext("unsafe relative path")
+    if AMBIGUOUS.search(path.stem):
+        raise ImportErrorWithContext(
+            "ambiguous L/S/H or Snn filename suffix: specify V001-063 and RR01 explicitly")
     note, instrument = get_root(path.stem)
     matches = list(VEL.finditer(path.stem))
     if len(matches) > 1:
@@ -226,6 +231,12 @@ def main(argv=None):
         with pending.open("x", encoding="utf-8") as handle:
             json.dump(manifest, handle, ensure_ascii=False, indent=2)
             handle.write("\n")
+        if dest.exists():
+            backup = folder / "manifest.json.liberty-backup"
+            if backup.exists():
+                pending.unlink()
+                raise ImportErrorWithContext("backup already exists: preserve it manually")
+            dest.replace(backup)
         os.replace(pending, dest)
         print(f"Manifest written: {dest}")
         return 0
