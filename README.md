@@ -1,3 +1,17 @@
+# Liberty ROMpler v0.25 — Navigation horizontale avec Maj + molette
+
+Dans **SAMPLES > BOUCLES**, **Maj + molette** déplace horizontalement la fenêtre visible dans le WAV sans changer DÉBUT, FIN ou FONDU. Un pas de molette déplace environ 20 % de la fenêtre affichée, et le déplacement est limité aux bornes du WAV. La fonction accepte également les trackpads macOS qui convertissent Maj + défilement vertical en défilement horizontal.
+
+Les gestes des versions précédentes restent disponibles : molette normale pour le zoom classique, Option + molette pour le zoom sous la souris, Option + glisser pour déplacer la vue, Maj + glisser pour déplacer toute la boucle, Option + double-clic pour cadrer la boucle, les boutons ±1/±10, SAUT MIN, PAIRE et préécoute A/B.
+
+Aucun nouveau bouton ni traitement temps réel n'est ajouté. Les WAV, banques, presets et projets ne sont pas modifiés par la navigation. Les deux règles Liberty restent absolues : **aucun chevauchement** d'interface et **aucun symbole à la place des accents français**.
+
+Algorithme : `Source/LoopWheelPanV025.h`. Intégration : `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_wheel_pan_v025_test.cpp` et `tests/test_v025_shift_wheel_pan.py`. Guide Mac : `docs/GUIDE_TEST_BOUCLES_V025.md`.
+
+**Statut : la v0.25 est en validation. La v0.24 est la dernière compilation Mac confirmée jusqu'à la réussite du build v0.25.**
+
+---
+
 # Liberty ROMpler v0.24 — Option + glisser pour naviguer dans le WAV
 
 Dans **SAMPLES > BOUCLES**, **Option + glisser sur la forme d'onde** déplace désormais directement la fenêtre visible vers la gauche ou la droite, sans déplacer DÉBUT, FIN ou modifier FONDU.
