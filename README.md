@@ -1,3 +1,21 @@
+# Liberty ROMpler v0.32 — Pourcentage du fondu dans la boucle
+
+Dans **SAMPLES > BOUCLES**, l'infobulle existante « Boucle activée » affiche désormais le **pourcentage du FONDU par rapport à la durée de la boucle**, en plus des durées en frames et millisecondes de la v0.30.
+
+Par exemple, un FONDU de **2400 frames** dans une boucle de **24000 frames** représente **10,00 %**. Le calcul est fondé sur **FIN − DÉBUT**, en tenant compte de FIN exclusif et sans dépendre de la fréquence du WAV.
+
+**La v0.32 regroupe aussi la nouveauté v0.31 non encore publiée :** les infobulles des boutons ZÉRO DÉBUT et ZÉRO FIN indiquent leurs positions absolues en frames et millisecondes, à la fréquence réelle du WAV.
+
+Tous les raccourcis de ZÉRO / SAUT MIN / PAIRE / cadrage / zoom de précision, la préécoute et les éditions MIDI, banque et preset sont conservés. Il n'y a aucun nouveau bouton, aucune écriture WAV, aucun changement du moteur audio.
+
+Nos règles Liberty restent obligatoires : **zéro chevauchement**, **aucun caractère erroné à la place des lettres françaises accentuées**. Les textes supplémentaires restent dans les infobulles existantes.
+
+Code : `Source/LoopFadeRatioV032.h`, `Source/LoopMarkerTimesV031.h`, `overlays/v015/SampleZoneView.h`. Tests : `tests/test_v031_marker_times.py`, `tests/test_v032_fade_ratio.py` et leurs tests C++17. Guide Mac : `docs/GUIDE_TEST_BOUCLES_V032.md`.
+
+**Statut : v0.32 en prévalidation Linux. La v0.30 reste la dernière version macOS confirmée jusqu'à la validation et compilation de la v0.32. Un seul build Mac doit couvrir les v0.31 et v0.32.**
+
+---
+
 # Liberty ROMpler v0.31 — Position exacte de DÉBUT et FIN en millisecondes
 
 Dans **SAMPLES > BOUCLES**, les infobulles des boutons **ZÉRO DÉBUT** et **ZÉRO FIN** affichent maintenant la position précise de chacun des deux marqueurs, en **frames et millisecondes depuis le début du WAV**.
