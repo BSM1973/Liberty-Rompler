@@ -8,6 +8,7 @@
 #include "LoopSeamSearchV018.h"
 #include "LoopPairedSeamV019.h"
 #include "LoopPairedNudgeV020.h"
+#include "LoopDragV021.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -37,6 +38,8 @@ public:
         }
         mappingMode.setButtonText("MAPPING");
         loopMode.setButtonText("BOUCLES");
+        loopMode.setTooltip(juce::String::fromUTF8(
+            u8"Maj + glisser la zone color\u00e9e pour d\u00e9placer toute la boucle."));
         apply.setButtonText("APPLIQUER");
         reset.setButtonText("RESTAURER");
         snapStartButton.setButtonText(juce::String::fromUTF8(u8"Z\u00c9RO D\u00c9BUT"));
@@ -259,6 +262,8 @@ public:
     }
 
     void mouseDown(const juce::MouseEvent& e) override {
+        dragging = -1;
+        pairedDrag.cancel();
         if (showLoops) {
             if (!currentRow() || !loopEnabled.getToggleState() ||
                 sampleFrames < 12 || !waveArea.contains(e.getPosition())) return;
@@ -268,6 +273,18 @@ public:
                 loopStart, waveArea.getWidth(), viewStart, viewSpan);
             const int endX = waveArea.getX() + liberty::wavezoom::pixelAt(
                 loopEnd, waveArea.getWidth(), viewStart, viewSpan);
+            // Shift-drag the filled loop area to translate both markers.
+            // Capture the original position so there is no cumulative drift.
+            if (e.mods.isShiftDown() && e.x >= startX && e.x < endX) {
+                const int pressed = liberty::wavezoom::frameAt(
+                    e.x - waveArea.getX(), waveArea.getWidth(),
+                    viewStart, viewSpan, sampleFrames);
+                const int anchored = juce::jlimit(loopStart, loopEnd - 1, pressed);
+                if (pairedDrag.begin({loopStart, loopEnd, sampleFrames}, anchored)) {
+                    dragging = 4;
+                    return;
+                }
+            }
             const int distStart = std::abs(e.x - startX), distEnd = std::abs(e.x - endX);
             // Do not jump offscreen markers when clicking an arbitrary waveform position.
             if (juce::jmin(distStart, distEnd) > 18) return;
@@ -289,6 +306,28 @@ public:
     }
     void mouseDrag(const juce::MouseEvent& e) override {
         if (dragging < 0 || !currentRow()) return;
+        if (dragging == 4 && pairedDrag.active()) {
+            const int pointer = liberty::wavezoom::frameAt(
+                e.x - waveArea.getX(), waveArea.getWidth(),
+                viewStart, viewSpan, sampleFrames);
+            const auto candidate = pairedDrag.move(pointer);
+            if (!candidate.valid) return;
+            if ((int)sliders[4].getValue() == candidate.loop.begin
+                && (int)sliders[5].getValue() == candidate.loop.end)
+                return;
+            // Move both handles silently; reconcile once to retain fade
+            // and pending edit flags. Never AUTO ZERO a locked duration.
+            sliders[4].setValue((double)candidate.loop.begin,
+                                juce::dontSendNotification);
+            sliders[5].setValue((double)candidate.loop.end,
+                                juce::dontSendNotification);
+            reconcile(4);
+            status = juce::String("GLISSE BOUCLE ")
+                     + (candidate.appliedFrames > 0 ? "+" : "")
+                     + juce::String((int)candidate.appliedFrames) + " f";
+            updateFeedback();
+            return;
+        }
         if (dragging >= 2) {
             const int frame = liberty::wavezoom::frameAt(
                 e.x - waveArea.getX(), waveArea.getWidth(), viewStart, viewSpan, sampleFrames);
@@ -303,6 +342,7 @@ public:
     void mouseUp(const juce::MouseEvent&) override {
         const int moved = dragging;
         dragging = -1;
+        pairedDrag.cancel();
         if (showLoops && (moved == 2 || moved == 3) && autoSnap.getToggleState())
             snapLoopMarker(moved == 2);
     }
@@ -355,6 +395,7 @@ private:
     juce::Rectangle<int> mapArea, velocityArea, waveArea;
     juce::String status;
     int selected = -1, sampleFrames = 0, dragging = -1;
+    liberty::loop_v021::PairedLoopDrag pairedDrag;
     int viewStart = 0, viewSpan = 0;
     double loadedSeconds = 0.0;
     bool showLoops = false, loading = false, dirty = false;
@@ -382,6 +423,8 @@ private:
     bool hasLoopValues() const { return sliders[5].getValue() >= sliders[4].getValue() + 11; }
     int getNumRows() override { return (int)rows.size(); }
     void selectedRowsChanged(int index) override {
+        dragging = -1;
+        pairedDrag.cancel();
         selected = index >= 0 && index < (int)rows.size() ? index : -1;
         thumbnail.clear();
         sampleFrames = 0;

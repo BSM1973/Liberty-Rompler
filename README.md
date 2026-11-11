@@ -1,3 +1,15 @@
+# Liberty ROMpler v0.21 — Maj + glisser la boucle sur la forme d'onde
+
+Dans **SAMPLES > BOUCLES**, **Maj + glisser à l'intérieur de la zone de boucle colorée** déplace maintenant directement DÉBUT et FIN ensemble, sans changer **FIN − DÉBUT** ni le fondu. Le geste est calculé par rapport à la position initiale de la souris, ce qui évite la dérive lors des allers-retours.
+
+Les gestes habituels restent disponibles : glisser un marqueur sans Maj, ±1/±10 frames, préécoute A/B, ZÉRO, SAUT MIN et recherche PAIRE. La fonction n'ajoute **aucun bouton**, ne réécrit **aucun WAV** et respecte ANNULER / APPLIQUER. AUTO ZÉRO ne casse pas la durée pendant un glissement couplé.
+
+Les deux règles Liberty sont conservées : **zéro chevauchement graphique** et **accents français corrects**. Code C++17 dans `Source/LoopDragV021.h` et `overlays/v015/SampleZoneView.h`. Tests dans `tests/loop_drag_v021_test.cpp` et `tests/test_v021_waveform_drag.py`. Guide : `docs/GUIDE_TEST_BOUCLES_V021.md`.
+
+**Statut : v0.21 en validation sur `feature/v021-waveform-shift-drag-loop` ; la v0.20 reste la dernière distribution Mac confirmée jusqu'au build v0.21 vert.**
+
+---
+
 # Liberty ROMpler v0.20 — Glissement manuel de boucle verrouillée
 
 Dans **SAMPLES > BOUCLES**, le nouveau geste **Maj + clic sur ±1** déplace DÉBUT et FIN ensemble d'une frame ; **Maj + Option + clic** déplace l'ensemble jusqu'à 10 frames. La longueur de la boucle reste strictement inchangée même aux bornes du WAV. Le clic normal et Option + clic conservent les déplacements d'un seul marqueur de 1 ou 10 frames.
