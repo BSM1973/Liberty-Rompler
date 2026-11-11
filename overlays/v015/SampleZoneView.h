@@ -12,6 +12,7 @@
 #include "LoopFocusV022.h"
 #include "LoopCursorZoomV023.h"
 #include "LoopPanV024.h"
+#include "LoopWheelPanV025.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -66,7 +67,8 @@ public:
             u8"Option + molette sur la forme d'onde : zoom sur le point vis\u00e9."));
         positionCaption.setText("POSITION", juce::dontSendNotification);
         positionCaption.setTooltip(juce::String::fromUTF8(
-            u8"Option + glisser la forme d'onde : d\u00e9placer la vue sans toucher aux marqueurs."));
+            u8"Option + glisser la forme d'onde : d\u00e9placer la vue sans toucher aux marqueurs."
+            u8" Maj + molette : navigation horizontale rapide."));
         addAndMakeVisible(zoomSlider);
         zoomSlider.setSliderStyle(juce::Slider::LinearHorizontal);
         zoomSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 44, 20);
@@ -386,6 +388,23 @@ public:
     void mouseWheelMove(const juce::MouseEvent& event,
                         const juce::MouseWheelDetails& wheel) override {
         if (showLoops && waveArea.contains(event.getPosition())) {
+            // Shift+wheel pans the current viewport, even with a disabled
+            // loop; never edits the loop start/end/fade or triggers AUTO ZERO.
+            // Some macOS trackpads expose Shift+vertical as deltaX instead.
+            if (event.mods.isShiftDown() && !event.mods.isAltDown()
+                && (wheel.deltaY != 0.0f || wheel.deltaX != 0.0f)
+                && viewSpan > 0) {
+                const double wheelAmount = wheel.deltaY != 0.0f
+                                              ? wheel.deltaY : wheel.deltaX;
+                const auto nextView = liberty::loop_v025::panByWheel(
+                    sampleFrames, viewStart, viewSpan, wheelAmount);
+                if (nextView.valid) {
+                    viewStart = nextView.firstFrame;
+                    syncPositionControl();
+                    repaint();
+                    return;
+                }
+            }
             if (wheel.deltaY != 0.0f) {
                 const double current = zoomSlider.getValue();
                 const double next = juce::jlimit(1.0, liberty::wavezoom::maxZoom,
