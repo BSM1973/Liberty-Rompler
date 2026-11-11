@@ -1,3 +1,17 @@
+# Liberty ROMpler v0.23 — Zoom centré sur le curseur
+
+Dans **SAMPLES > BOUCLES**, **Option + molette verticale** zoome désormais sur le point de la forme d'onde visé par la souris, plutôt que sur le milieu de la fenêtre. Le point reste sous le curseur aussi longtemps que les limites du WAV le permettent. La molette ordinaire conserve le zoom classique, et le défilement horizontal reste disponible.
+
+Le cadrage **Option + double-clic** (v0.22), **Maj + glisser** (v0.21), les déplacements ±1/±10 et les fonctions SAUT MIN, PAIRE et préécoute A/B sont conservés. Aucun bouton n'est ajouté. Le zoom ne modifie **ni DÉBUT, ni FIN, ni FONDU**, ni le fichier WAV ou l'état du DAW.
+
+Les deux règles Liberty restent prioritaires : **aucun chevauchement** et **aucune lettre française remplacée par un symbole**. Les sources C++ emploient des échappements Unicode vérifiés.
+
+Sources : `Source/LoopCursorZoomV023.h` et `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_cursor_zoom_v023_test.cpp` et `tests/test_v023_cursor_zoom.py`. Guide Mac : `docs/GUIDE_TEST_BOUCLES_V023.md`.
+
+**Statut : v0.23 en validation sur `feature/v023-pointer-anchored-waveform-zoom`. La v0.22 reste la dernière version Mac confirmée jusqu'au build v0.23 vert.**
+
+---
+
 # Liberty ROMpler v0.22 — Zoom automatique sur la boucle
 
 Dans **SAMPLES > BOUCLES**, **Option + double-clic sur la forme d'onde** centre et cadre automatiquement la boucle active avec un peu de contexte autour. Un **double-clic normal** conserve le comportement historique : afficher tout le WAV.

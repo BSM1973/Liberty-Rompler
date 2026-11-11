@@ -10,6 +10,7 @@
 #include "LoopPairedNudgeV020.h"
 #include "LoopDragV021.h"
 #include "LoopFocusV022.h"
+#include "LoopCursorZoomV023.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -60,6 +61,8 @@ public:
             label->setFont(juce::Font(juce::FontOptions(10.5f)));
         }
         zoomCaption.setText("ZOOM", juce::dontSendNotification);
+        zoomCaption.setTooltip(juce::String::fromUTF8(
+            u8"Option + molette sur la forme d'onde : zoom sur le point vis\u00e9."));
         positionCaption.setText("POSITION", juce::dontSendNotification);
         addAndMakeVisible(zoomSlider);
         zoomSlider.setSliderStyle(juce::Slider::LinearHorizontal);
@@ -361,8 +364,27 @@ public:
         if (showLoops && waveArea.contains(event.getPosition())) {
             if (wheel.deltaY != 0.0f) {
                 const double current = zoomSlider.getValue();
-                const double next = current * std::pow(2.0, wheel.deltaY * 3.0);
-                zoomSlider.setValue(juce::jlimit(1.0, liberty::wavezoom::maxZoom, next));
+                const double next = juce::jlimit(1.0, liberty::wavezoom::maxZoom,
+                                                 current * std::pow(2.0, wheel.deltaY * 3.0));
+                if (event.mods.isAltDown()
+                    && sampleFrames > 0 && viewSpan > 0) {
+                    const int nextSpan = liberty::wavezoom::span(sampleFrames, next);
+                    const auto viewport = liberty::loop_v023::zoomAtCursor(
+                        sampleFrames, viewStart, viewSpan, nextSpan,
+                        waveArea.getWidth(), event.x - waveArea.getX());
+                    if (viewport.valid) {
+                        // Changing the zoom slider with notifications would
+                        // re-center the view on its former middle. Instead,
+                        // set zoom and scroll together, leaving markers intact.
+                        zoomSlider.setValue(next, juce::dontSendNotification);
+                        viewSpan = viewport.spanFrames;
+                        viewStart = viewport.firstFrame;
+                        syncPositionControl();
+                        repaint();
+                        return;
+                    }
+                }
+                zoomSlider.setValue(next);
                 return;
             }
             if (wheel.deltaX != 0.0f && viewSpan < sampleFrames) {
