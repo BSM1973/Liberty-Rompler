@@ -127,7 +127,7 @@ class MultisampleV037(unittest.TestCase):
         h = (ROOT / "Source" / "SampleEngine.h").read_text("utf-8")
         bank = (ROOT / "Source" / "BankLibrary.cpp").read_text("utf-8")
         host = (ROOT / "Source" / "PluginProcessor.cpp").read_text("utf-8")
-        for word in ("round_robin", "getRoundRobin", "rrGroup",
+        for word in ("rr_group", "getRoundRobin", "rrGroup",
                      "getKeyswitchNote", "getActiveArticulation",
                      "velocityCrossfadeGain"):
             self.assertIn(word, engine + h + bank + host)
