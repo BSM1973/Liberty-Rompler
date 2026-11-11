@@ -1,4 +1,5 @@
 name: Liberty ROMpler v0.36 - Linux preflight (no macOS build)
+# Recheck v0.36 regression assertions for the ten-tab MORPH navigation.
 
 on:
   push:

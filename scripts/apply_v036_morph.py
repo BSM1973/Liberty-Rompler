@@ -60,3 +60,38 @@ s = once(s,
 header.write_text(h, encoding="utf-8")
 source.write_text(s, encoding="utf-8")
 print("Liberty MORPH v0.36: integrated pad into real JUCE editor, 10 tabs, layout safe.")
+
+
+# Update the legacy assertions that hard-coded precisely nine tabs.
+# Preserve all geometry tests, now calculated for the real tenth MORPH tab.
+def upgrade_test(relative_path, edits):
+    path = root / relative_path
+    content = path.read_text(encoding="utf-8")
+    for old, new in edits:
+        content = once(content, old, new)
+    path.write_text(content, encoding="utf-8")
+
+old_pages = "enum class Page { Presets, Layers, Routing, Effects, Matrix, Modulators, Arpeggiator, Samples, Settings }"
+new_pages = "enum class Page { Presets, Layers, Morph, Routing, Effects, Matrix, Modulators, Arpeggiator, Samples, Settings }"
+upgrade_test("tests/test_layers_v06.py", [(old_pages, new_pages)])
+upgrade_test("tests/test_ui_v05.py", [(old_pages, new_pages)])
+upgrade_test("tests/test_arp_v08.py", [
+    ("(getWidth()-294-24-8*tabGap)/9",
+     "(getWidth()-294-24-9*tabGap)/10"),
+    ("max(80,min(126,(w-294-24-8*4)//9))",
+     "max(72,min(116,(w-294-24-9*4)//10))"),
+    ("294+9*tab+8*4", "294+10*tab+9*4"),
+])
+upgrade_test("tests/test_ui_v10.py", [
+    ("def test_exactly_nine_pages_in_requested_order(self):",
+     "def test_exactly_ten_pages_in_requested_order(self):"),
+    ('["presetsTab", "layersTab", "routingTab", "effectsTab", "matrixTab",',
+     '["presetsTab", "layersTab", "morphTab", "routingTab", "effectsTab", "matrixTab",'),
+    (old_pages, new_pages),
+    ("(width - 294 - 24 - 8*gap) // 9", "(width - 294 - 24 - 9*gap) // 10"),
+    ("max(80, min(126,", "max(72, min(116,"),
+    ("for i in range(9):", "for i in range(10):"),
+    ("tabWidth=juce::jlimit(80,126,(getWidth()-294-24-8*tabGap)/9)",
+     "tabWidth=juce::jlimit(72,116,(getWidth()-294-24-9*tabGap)/10)"),
+])
+print("Liberty MORPH v0.36: legacy tab tests upgraded to check 10 tabs.")
