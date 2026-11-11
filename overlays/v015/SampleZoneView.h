@@ -11,6 +11,7 @@
 #include "LoopDragV021.h"
 #include "LoopFocusV022.h"
 #include "LoopCursorZoomV023.h"
+#include "LoopPanV024.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -64,6 +65,8 @@ public:
         zoomCaption.setTooltip(juce::String::fromUTF8(
             u8"Option + molette sur la forme d'onde : zoom sur le point vis\u00e9."));
         positionCaption.setText("POSITION", juce::dontSendNotification);
+        positionCaption.setTooltip(juce::String::fromUTF8(
+            u8"Option + glisser la forme d'onde : d\u00e9placer la vue sans toucher aux marqueurs."));
         addAndMakeVisible(zoomSlider);
         zoomSlider.setSliderStyle(juce::Slider::LinearHorizontal);
         zoomSlider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 44, 20);
@@ -270,8 +273,19 @@ public:
         dragging = -1;
         pairedDrag.cancel();
         if (showLoops) {
-            if (!currentRow() || !loopEnabled.getToggleState() ||
-                sampleFrames < 12 || !waveArea.contains(e.getPosition())) return;
+            if (!currentRow() || sampleFrames < 12
+                || !waveArea.contains(e.getPosition())) return;
+            // Option-drag has its own anchored gesture; it must take
+            // priority over individual marker handles but never over
+            // Shift-drag of the entire loop from v0.21.
+            if (e.mods.isAltDown() && !e.mods.isShiftDown()
+                && viewSpan > 0 && waveArea.getWidth() > 0) {
+                panFirstAtDown = viewStart;
+                panAnchorX = e.x;
+                dragging = 5;
+                return;
+            }
+            if (!loopEnabled.getToggleState()) return;
             const int loopStart = (int)sliders[4].getValue();
             const int loopEnd = (int)sliders[5].getValue();
             const int startX = waveArea.getX() + liberty::wavezoom::pixelAt(
@@ -311,6 +325,16 @@ public:
     }
     void mouseDrag(const juce::MouseEvent& e) override {
         if (dragging < 0 || !currentRow()) return;
+        if (dragging == 5) {
+            const auto panned = liberty::loop_v024::panFromAnchor(
+                sampleFrames, panFirstAtDown, viewSpan, waveArea.getWidth(),
+                panAnchorX, e.x);
+            if (!panned.valid || panned.firstFrame == viewStart) return;
+            viewStart = panned.firstFrame;
+            syncPositionControl();
+            repaint();
+            return;
+        }
         if (dragging == 4 && pairedDrag.active()) {
             const int pointer = liberty::wavezoom::frameAt(
                 e.x - waveArea.getX(), waveArea.getWidth(),
@@ -424,6 +448,7 @@ private:
     juce::Rectangle<int> mapArea, velocityArea, waveArea;
     juce::String status;
     int selected = -1, sampleFrames = 0, dragging = -1;
+    int panFirstAtDown = 0, panAnchorX = 0;
     liberty::loop_v021::PairedLoopDrag pairedDrag;
     int viewStart = 0, viewSpan = 0;
     double loadedSeconds = 0.0;
