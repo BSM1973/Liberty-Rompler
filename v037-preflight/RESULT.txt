@@ -1,0 +1,32 @@
+Liberty ROMpler v0.37 Linux preflight
+Reconstruction: success
+Integration: success
+Windowed preview patch: success
+Audition duration patch: success
+Liberty MORPH XY DSP/UI integration: success
+Professional multisample integration: failure
+Stereo seam search: skipped
+Paired marker lock: skipped
+Manual paired nudge: skipped
+Whole-loop waveform drag: skipped
+Viewport loop focus: skipped
+Cursor-anchored zoom: skipped
+Option waveform pan: skipped
+Shift-wheel navigation: skipped
+Command-double-click center: skipped
+Reversible view history: skipped
+Loop marker focus: skipped
+Precision marker zoom: skipped
+Loop duration in milliseconds: skipped
+WAV-relative marker timestamps: skipped
+Loop crossfade percentage: skipped
+Loop coverage of source WAV: skipped
+Loop segment balance: skipped
+Before/after WAV durations: skipped
+Linux JUCE packages preinstalled: 
+Regression tests: skipped
+Linux dependencies: skipped
+JUCE 8 checkout: skipped
+Linux VST3 build: skipped
+Mac release build: NOT TRIGGERED
+GitHub run: 43085517994
