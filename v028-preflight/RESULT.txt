@@ -1,0 +1,22 @@
+Liberty ROMpler v0.28 Linux preflight
+Reconstruction: success
+Integration: success
+Windowed preview patch: success
+Audition duration patch: success
+Stereo seam search: success
+Paired marker lock: success
+Manual paired nudge: success
+Whole-loop waveform drag: success
+Viewport loop focus: success
+Cursor-anchored zoom: success
+Option waveform pan: success
+Shift-wheel navigation: success
+Command-double-click center: success
+Reversible view history: success
+Loop marker focus: success
+Regression tests: success
+Linux dependencies: success
+JUCE 8 checkout: success
+Linux VST3 build: success
+Mac release build: NOT TRIGGERED
+GitHub run: 43008683431
