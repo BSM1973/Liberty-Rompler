@@ -1,3 +1,19 @@
+# Liberty ROMpler v0.28 — Centrer directement DÉBUT ou FIN de boucle
+
+Dans **SAMPLES > BOUCLES**, **Commande + clic sur ZÉRO DÉBUT** ou **Commande + clic sur ZÉRO FIN** permet de centrer le marqueur correspondant sur la forme d'onde, **sans changer le zoom, les marqueurs, le fondu ou le son**.
+
+Le geste est conservé dans l'historique visuel de la v0.27 : **Maj + double-clic** restaure le cadrage précédent. À proximité des limites du WAV, la vue reste bornée au fichier. Si aucune boucle valide n'est active, la commande n'a pas d'effet.
+
+Tous les usages des boutons ZÉRO sont préservés : clic normal = recherche du passage par zéro ; Option + clic = SAUT MIN ; Maj + Option + clic = optimisation PAIRE. Les commandes de navigation des v0.21–v0.27 restent disponibles.
+
+La v0.28 n'ajoute **aucun bouton**, ne réécrit **aucun WAV, banque ou preset** et ne modifie pas le moteur audio. Elle conserve nos deux règles absolues : **aucun chevauchement graphique** et **aucune lettre française remplacée par un symbole**.
+
+Moteur C++17 : `Source/LoopMarkerFocusV028.h`. Interface : `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_marker_focus_v028_test.cpp` et `tests/test_v028_marker_focus.py`. Vérification Mac : `docs/GUIDE_TEST_BOUCLES_V028.md`.
+
+**Statut : v0.28 en prévalidation Linux ; v0.27 est la dernière compilation macOS confirmée jusqu'au résultat du build v0.28.**
+
+---
+
 # Liberty ROMpler v0.27 — Historique du cadrage de la forme d'onde
 
 Dans **SAMPLES > BOUCLES**, **Maj + double-clic sur la forme d'onde** restaure le **cadrage précédent** : zoom et position horizontale. Un deuxième Maj + double-clic revient au cadrage qui vient d'être quitté, pour comparer facilement deux zones du WAV.

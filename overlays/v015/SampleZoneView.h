@@ -15,6 +15,7 @@
 #include "LoopWheelPanV025.h"
 #include "LoopCenterViewV026.h"
 #include "LoopViewHistoryV027.h"
+#include "LoopMarkerFocusV028.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -88,8 +89,8 @@ public:
         positionSlider.setValue(0.0, juce::dontSendNotification);
         positionSlider.setColour(juce::Slider::trackColourId, juce::Colour(0xff63dccc));
         positionSlider.onValueChange = [this] { updatePosition(); };
-        snapStartButton.setTooltip("Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe).");
-        snapEndButton.setTooltip("Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe).");
+        snapStartButton.setTooltip("Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe). Commande + clic : centrer D\u00c9BUT.");
+        snapEndButton.setTooltip("Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe). Commande + clic : centrer FIN.");
         cancelButton.setTooltip("Annuler les modifications non appliquees de cette zone");
         snapStartButton.onClick = [this] {
             const auto modifiers = juce::ModifierKeys::getCurrentModifiers();
@@ -97,6 +98,8 @@ public:
                 optimizeLoopPair();
             else if (modifiers.isAltDown())
                 optimizeLoopMarker(true);
+            else if (modifiers.isCommandDown() && !modifiers.isShiftDown())
+                focusLoopMarker(true);
             else
                 snapLoopMarker(true);
         };
@@ -106,6 +109,8 @@ public:
                 optimizeLoopPair();
             else if (modifiers.isAltDown())
                 optimizeLoopMarker(false);
+            else if (modifiers.isCommandDown() && !modifiers.isShiftDown())
+                focusLoopMarker(false);
             else
                 snapLoopMarker(false);
         };
@@ -530,6 +535,23 @@ private:
     }
     // Command-double-click centers the current zoom on the clicked frame.
     // This is viewport-only; markers, fade, source WAV and session untouched.
+    // Command-click on either existing ZERO button navigates to that loop
+    // boundary, preserving zoom and the complete sample-zone edit state.
+    bool focusLoopMarker(bool startMarker) {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState()
+            || sampleFrames < 12 || viewSpan < 1 || !hasLoopValues())
+            return false;
+        const int marker = (int)sliders[startMarker ? 4 : 5].getValue();
+        const auto target = liberty::loop_v028::focusOnMarker(
+            sampleFrames, viewStart, viewSpan, marker);
+        if (!target.valid) return false;
+        if (target.firstFrame != viewStart)
+            rememberViewport();
+        viewStart = target.firstFrame;
+        syncPositionControl();
+        repaint();
+        return true;
+    }
     bool centerViewportOnClick(int localX) {
         if (!showLoops || !currentRow() || sampleFrames < 1 || viewSpan < 1)
             return false;
