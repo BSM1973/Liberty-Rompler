@@ -18,6 +18,7 @@
 #include "LoopMarkerFocusV028.h"
 #include "LoopMarkerDetailV029.h"
 #include "LoopTimingV030.h"
+#include "LoopMarkerTimesV031.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -528,6 +529,13 @@ private:
     double loadedSampleRate = 0.0;
     bool showLoops = false, loading = false, dirty = false;
 
+    liberty::loop_v031::MarkerTimes markerTimes() const noexcept {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
+            return {};
+        return liberty::loop_v031::describePositions(
+            sampleFrames, (int)sliders[4].getValue(),
+            (int)sliders[5].getValue(), loadedSampleRate);
+    }
     liberty::loop_v030::Timing loopTiming() const noexcept {
         if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
             return {};
@@ -1195,6 +1203,29 @@ private:
         else
             loopEnabled.setTooltip(juce::String::fromUTF8(
                 u8"Dur\u00e9e de boucle indisponible"));
+
+        // v0.31: retain every pre-existing gesture in the two ZERO tooltips.
+        // Append read-only source-relative times; rebuild on each edit so
+        // values never accumulate or outlive a sample switch.
+        const auto markerStartHelp = juce::String::fromUTF8(
+            u8"Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe)."
+            u8" Commande + clic : centrer D\u00c9BUT. Commande + Option : ZOOM D\u00c9TAIL.");
+        const auto markerEndHelp = juce::String::fromUTF8(
+            u8"Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe)."
+            u8" Commande + clic : centrer FIN. Commande + Option : ZOOM D\u00c9TAIL.");
+        const auto positions = markerTimes();
+        if (positions.valid) {
+            snapStartButton.setTooltip(markerStartHelp
+                + juce::String::fromUTF8(u8" | D\u00c9BUT ")
+                + juce::String(positions.beginFrame) + " frames | "
+                + juce::String(positions.beginMs, 3) + " ms");
+            snapEndButton.setTooltip(markerEndHelp
+                + " | FIN " + juce::String(positions.endFrame)
+                + " frames | " + juce::String(positions.endMs, 3) + " ms");
+        } else {
+            snapStartButton.setTooltip(markerStartHelp);
+            snapEndButton.setTooltip(markerEndHelp);
+        }
     }
     void updateLayout() {
         const auto b = getLocalBounds().reduced(12, 10);
