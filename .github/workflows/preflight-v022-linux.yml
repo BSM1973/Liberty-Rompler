@@ -193,9 +193,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c validation/v022-linux-loop-focus
+          git switch -c validation/v022-linux-loop-focus-r2
           git add -f v022-preflight/RESULT.txt
           if test -f v022-preflight/test-output.log; then git add -f v022-preflight/test-output.log; fi
           if test -f v022-preflight/build-output.log; then git add -f v022-preflight/build-output.log; fi
           git commit -m "ci: record v0.22 JUCE preflight results"
-          git push origin HEAD:refs/heads/validation/v022-linux-loop-focus
+          git push origin HEAD:refs/heads/validation/v022-linux-loop-focus-r2
