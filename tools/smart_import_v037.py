@@ -119,7 +119,9 @@ def parse_sample(path, root):
     return instrument, zone, (rate, frames)
 
 
-def create_manifest(folder, bank_id, bank_name):
+def create_manifest(folder, bank_id, bank_name, velocity_fade=8):
+    if not 0 <= velocity_fade <= 32:
+        raise ImportErrorWithContext('velocity fade must be in 0..32')
     if not folder.is_dir():
         raise ImportErrorWithContext("bank folder does not exist")
     if not ID.fullmatch(bank_id):
@@ -164,6 +166,15 @@ def create_manifest(folder, bank_id, bank_name):
             if 0 in takes and len(takes) > 1:
                 raise ImportErrorWithContext(
                     f"{instrument}: mixed RR/non-RR takes at MIDI {key[0]}")
+        # Only crossfade where multiple explicit velocity bands coexist.
+        bands_by_note = defaultdict(set)
+        for zone in zones:
+            bands_by_note[(zone["root_note"], zone.get("articulation", 0))].add(
+                (zone["low_velocity"], zone["high_velocity"]))
+        for zone in zones:
+            key = (zone["root_note"], zone.get("articulation", 0))
+            if len(bands_by_note[key]) > 1 and velocity_fade > 0:
+                zone["velocity_fade"] = velocity_fade
         zones.sort(key=lambda z: (z["root_note"], z["low_velocity"],
                                   z.get("articulation", 0), z.get("rr_index", 0)))
         # Current bank format limits each preset to 32 zones.
@@ -189,6 +200,8 @@ def main(argv=None):
     parser.add_argument("--bank-folder", type=Path, required=True)
     parser.add_argument("--bank-id", required=True)
     parser.add_argument("--bank-name", required=True)
+    parser.add_argument("--velocity-fade", type=int, default=8,
+                        help="MIDI velocity steps around each multi-band crossover (0..32)")
     parser.add_argument("--write", action="store_true",
                         help="write manifest.json (DRY RUN otherwise)")
     parser.add_argument("--replace", action="store_true",
@@ -196,7 +209,7 @@ def main(argv=None):
     options = parser.parse_args(argv)
     folder = options.bank_folder.expanduser().resolve()
     try:
-        manifest = create_manifest(folder, options.bank_id, options.bank_name)
+        manifest = create_manifest(folder, options.bank_id, options.bank_name, options.velocity_fade)
         dest = folder / "manifest.json"
         print(f"Smart Import: {sum(len(x['zones']) for x in manifest['presets'])} WAV zones, "
               f"{len(manifest['presets'])} presets")
