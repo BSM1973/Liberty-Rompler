@@ -1,0 +1,237 @@
+name: Liberty ROMpler v0.25 - Linux preflight (no macOS build)
+
+on:
+  push:
+    branches: [feature/v025-shift-wheel-waveform-navigation]
+    paths:
+      - '.github/workflows/preflight-v025-linux.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    name: Test integrated sources before a single macOS release build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Recover v0.14 full JUCE source
+        id: reconstruct
+        shell: bash
+        run: bash scripts/reconstruct_source_v014.sh
+
+      - name: Apply v0.15 real editor and DSP integration
+        id: integrate
+        shell: bash
+        run: bash scripts/apply_v015_overlays.sh
+
+      - name: Apply v0.16 bounded WAV preview and seam metric
+        id: optimize
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/apply_v016_preview.sh
+          bash scripts/apply_v016_preview.sh
+          grep -q 'renderSeamFromWindows' Source/PluginProcessor.cpp
+          grep -q 'measureRawSeamDifference(tail, head)' Source/PluginProcessor.cpp
+          ! grep -q 'AudioBuffer<float> decoded(channels, total)' Source/PluginProcessor.cpp
+
+      - name: Apply v0.17 audition lengths and precise Option-click controls
+        id: audition
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/apply_v017_audition.sh
+          bash scripts/apply_v017_audition.sh
+          grep -q 'LoopAuditionPlanV017.h' Source/PluginProcessor.cpp
+          grep -q 'planAudition(' Source/PluginProcessor.cpp
+          grep -q 'Option + clic = 10 frames' Source/SampleZoneView.h
+
+      - name: Check v0.25 stereo seam minimizer and existing zero buttons
+        id: seam
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s Source/LoopSeamSearchV018.h
+          grep -q 'LoopSeamSearchV018.h' Source/SampleZoneView.h
+          grep -q 'optimizeLoopMarker(bool startMarker)' Source/SampleZoneView.h
+          grep -q 'findLowestRawStep' Source/SampleZoneView.h
+
+      - name: Check v0.25 synchronized marker shift and preserved loop length
+        id: pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s Source/LoopPairedSeamV019.h
+          grep -q 'LoopPairedSeamV019.h' Source/SampleZoneView.h
+          grep -q 'void optimizeLoopPair()' Source/SampleZoneView.h
+          grep -q 'findBestPairedShift' Source/SampleZoneView.h
+          grep -q 'reconcile(4)' Source/SampleZoneView.h
+
+      - name: Validate v0.25 manual paired marker controls
+        id: nudge
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s Source/LoopPairedNudgeV020.h
+          grep -q 'LoopPairedNudgeV020.h' Source/SampleZoneView.h
+          grep -q 'void nudgeLoopPair(int delta)' Source/SampleZoneView.h
+          grep -q 'modifiers.isShiftDown()' Source/SampleZoneView.h
+
+      - name: Validate v0.25 drag of the full loop without time drift
+        id: drag
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s Source/LoopDragV021.h
+          grep -q 'LoopDragV021.h' Source/SampleZoneView.h
+          grep -q 'pairedDrag.begin(' Source/SampleZoneView.h
+          grep -q 'pairedDrag.move(' Source/SampleZoneView.h
+          grep -q 'if (dragging == 4' Source/SampleZoneView.h
+
+      - name: Validate v0.25 loop-focused viewport without state edits
+        id: focus
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s Source/LoopFocusV022.h
+          grep -q 'LoopFocusV022.h' Source/SampleZoneView.h
+          grep -q 'focusLoopViewport()' Source/SampleZoneView.h
+          grep -q 'event.mods.isAltDown()' Source/SampleZoneView.h
+
+      - name: Validate v0.25 cursor-anchored waveform zoom
+        id: pointerzoom
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s Source/LoopCursorZoomV023.h
+          grep -q 'LoopCursorZoomV023.h' Source/SampleZoneView.h
+          grep -q 'zoomAtCursor(' Source/SampleZoneView.h
+          grep -q 'event.mods.isAltDown()' Source/SampleZoneView.h
+
+      - name: Validate v0.25 bounded waveform Option-drag navigation
+        id: pan
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s Source/LoopPanV024.h
+          grep -q 'LoopPanV024.h' Source/SampleZoneView.h
+          grep -q 'panFromAnchor(' Source/SampleZoneView.h
+          grep -q 'if (dragging == 5)' Source/SampleZoneView.h
+
+      - name: Validate v0.25 Shift-wheel waveform navigation
+        id: wheelpan
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s Source/LoopWheelPanV025.h
+          grep -q 'LoopWheelPanV025.h' Source/SampleZoneView.h
+          grep -q 'panByWheel(' Source/SampleZoneView.h
+          grep -q 'event.mods.isShiftDown()' Source/SampleZoneView.h
+
+      - name: Validate banks, Unicode, UI geometry and C++ helpers
+        id: unit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p v025-preflight
+          {
+            python3 -m pip install --disable-pip-version-check numpy
+            python3 tools/make_demo_banks.py
+            python3 tools/validate_banks.py
+            python3 tools/audit_ui_text.py
+            python3 -m unittest discover -s tests -p 'test_*.py' -v
+          } 2>&1 | tee v025-preflight/test-output.log
+
+      - name: Install Linux JUCE build dependencies
+        id: deps
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config libasound2-dev libjack-jackd2-dev \
+            libcurl4-openssl-dev libfreetype6-dev libx11-dev libxext-dev \
+            libxinerama-dev libxcursor-dev libxrandr-dev libxrender-dev \
+            libxcomposite-dev libgl1-mesa-dev libglu1-mesa-dev \
+            libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Checkout JUCE 8.0.10
+        id: juce
+        uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: '8.0.10'
+          path: JUCE
+          fetch-depth: 1
+
+      - name: Configure and compile Linux VST3 with integrated v0.25
+        id: compile
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S . -B build-linux -G Ninja \
+            -DJUCE_DIR="$GITHUB_WORKSPACE/JUCE" \
+            -DJUCE_WEB_BROWSER=0 -DJUCE_USE_CURL=0
+          mkdir -p v025-preflight
+          cmake --build build-linux --target LibertyRompler_VST3 --parallel 2 \
+            2>&1 | tee v025-preflight/build-output.log
+
+      - name: Save a readable preflight result to GitHub
+        if: always()
+        shell: bash
+        env:
+          RECONSTRUCT: ${{ steps.reconstruct.outcome }}
+          INTEGRATE: ${{ steps.integrate.outcome }}
+          OPTIMIZE: ${{ steps.optimize.outcome }}
+          AUDITION: ${{ steps.audition.outcome }}
+          SEAM: ${{ steps.seam.outcome }}
+          PAIR: ${{ steps.pair.outcome }}
+          NUDGE: ${{ steps.nudge.outcome }}
+          DRAG: ${{ steps.drag.outcome }}
+          FOCUS: ${{ steps.focus.outcome }}
+          POINTERZOOM: ${{ steps.pointerzoom.outcome }}
+          PAN: ${{ steps.pan.outcome }}
+          WHEELPAN: ${{ steps.wheelpan.outcome }}
+          UNIT: ${{ steps.unit.outcome }}
+          DEPENDENCIES: ${{ steps.deps.outcome }}
+          JUCE: ${{ steps.juce.outcome }}
+          COMPILE: ${{ steps.compile.outcome }}
+        run: |
+          set -euo pipefail
+          mkdir -p v025-preflight
+          {
+            echo "Liberty ROMpler v0.25 Linux preflight"
+            echo "Reconstruction: $RECONSTRUCT"
+            echo "Integration: $INTEGRATE"
+            echo "Windowed preview patch: $OPTIMIZE"
+            echo "Audition duration patch: $AUDITION"
+            echo "Stereo seam search: $SEAM"
+            echo "Paired marker lock: $PAIR"
+            echo "Manual paired nudge: $NUDGE"
+            echo "Whole-loop waveform drag: $DRAG"
+            echo "Viewport loop focus: $FOCUS"
+            echo "Cursor-anchored zoom: $POINTERZOOM"
+            echo "Option waveform pan: $PAN"
+            echo "Shift-wheel navigation: $WHEELPAN"
+            echo "Regression tests: $UNIT"
+            echo "Linux dependencies: $DEPENDENCIES"
+            echo "JUCE 8 checkout: $JUCE"
+            echo "Linux VST3 build: $COMPILE"
+            echo "Mac release build: NOT TRIGGERED"
+          } > v025-preflight/RESULT.txt
+          echo "GitHub run: $GITHUB_RUN_ID" >> v025-preflight/RESULT.txt
+          cat v025-preflight/RESULT.txt >> "$GITHUB_STEP_SUMMARY"
+          if test -f v025-preflight/test-output.log; then
+            tail -n 140 v025-preflight/test-output.log >> "$GITHUB_STEP_SUMMARY"
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c validation/v025-linux-shift-wheel-pan
+          git add -f v025-preflight/RESULT.txt
+          if test -f v025-preflight/test-output.log; then git add -f v025-preflight/test-output.log; fi
+          if test -f v025-preflight/build-output.log; then git add -f v025-preflight/build-output.log; fi
+          git commit -m "ci: record v0.25 JUCE preflight results"
+          git push origin HEAD:refs/heads/validation/v025-linux-shift-wheel-pan
