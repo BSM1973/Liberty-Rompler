@@ -1,3 +1,21 @@
+# Liberty ROMpler v0.30 — Durée de la boucle et du fondu en millisecondes
+
+Dans **SAMPLES > BOUCLES**, la ligne d'information située sous la forme d'onde affiche désormais **la durée exacte de la boucle en frames et millisecondes**, calculée selon la fréquence d'échantillonnage réelle du WAV.
+
+Exemple : **BOUCLE 24000 frames | 500.00 ms** pour une boucle de 24000 frames à 48 kHz.
+
+L'infobulle du contrôle « Boucle activée » donne également la durée du **FONDU en frames et millisecondes**, avec trois décimales de précision. Les valeurs suivent automatiquement les changements de DÉBUT, FIN et FONDU ; elles disparaissent lorsqu'aucune boucle valide n'est activée.
+
+Aucune nouvelle ligne, aucun bouton et aucun chevauchement : la lecture se fait dans les 14 pixels déjà réservés sous la forme d'onde. Les calculs ne modifient **ni DÉBUT, ni FIN, ni FONDU**, ni aucun WAV, banque ou preset. Les anciennes commandes ZÉRO, SAUT MIN, PAIRE, zoom de précision, déplacement et préécoute sont conservées.
+
+Les deux règles Liberty restent obligatoires : **aucun chevauchement** et **aucun caractère erroné à la place des lettres françaises accentuées**.
+
+Sources : `Source/LoopTimingV030.h`, `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_timing_v030_test.cpp`, `tests/test_v030_loop_timing.py`. Guide de vérification macOS : `docs/GUIDE_TEST_BOUCLES_V030.md`.
+
+**Statut : v0.30 en prévalidation Linux ; la v0.29 reste la dernière compilation Mac confirmée tant que le build v0.30 n'est pas vert.**
+
+---
+
 # Liberty ROMpler v0.29 — Zoom de précision sur DÉBUT et FIN de boucle
 
 Dans **SAMPLES > BOUCLES**, **Commande + Option + clic sur ZÉRO DÉBUT ou ZÉRO FIN** ouvre désormais une vue de précision centrée sur le marqueur choisi. Le zoom vise environ **512 frames**, dans les limites du zoom maximal de Liberty. Il ne réduit jamais un zoom déjà plus précis.
