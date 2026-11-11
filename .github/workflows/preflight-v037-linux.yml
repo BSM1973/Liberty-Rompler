@@ -71,7 +71,7 @@ jobs:
           set -euo pipefail
           python3 scripts/apply_v037_multisample.py
           test -s Source/MultiSamplePolicyV037.h
-          grep -q 'round_robin' tools/smart_import_v037.py
+          grep -q 'rr_group' tools/smart_import_v037.py
           grep -q 'getRoundRobinGroup' Source/SampleEngine.h
           grep -q 'velocityCrossfadeGain' Source/SampleEngine.cpp
           grep -q 'resetPerformanceSelectors' Source/PluginProcessor.cpp
