@@ -33,7 +33,7 @@ class ShiftWheelNavigationV025(unittest.TestCase):
             '#include "LoopWheelPanV025.h"',
             "event.mods.isShiftDown() && !event.mods.isAltDown()",
             "wheel.deltaY != 0.0f || wheel.deltaX != 0.0f",
-            "wheel.deltaY != 0.0f ? wheel.deltaY : wheel.deltaX",
+            "? wheel.deltaY : wheel.deltaX;",
             "liberty::loop_v025::panByWheel(",
             "viewStart = nextView.firstFrame;",
             "syncPositionControl();",
