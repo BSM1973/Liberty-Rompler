@@ -14,6 +14,7 @@
 #include "LoopPanV024.h"
 #include "LoopWheelPanV025.h"
 #include "LoopCenterViewV026.h"
+#include "LoopViewHistoryV027.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -46,7 +47,8 @@ public:
         loopMode.setTooltip(juce::String::fromUTF8(
             u8"Maj + glisser la zone color\u00e9e pour d\u00e9placer toute la boucle."
             u8" Option + double-clic : cadrer la boucle."
-            u8" Commande + double-clic : centrer la vue."));
+            u8" Commande + double-clic : centrer la vue."
+            u8" Maj + double-clic : revenir au cadrage pr\u00e9c\u00e9dent."));
         apply.setButtonText("APPLIQUER");
         reset.setButtonText("RESTAURER");
         snapStartButton.setButtonText(juce::String::fromUTF8(u8"Z\u00c9RO D\u00c9BUT"));
@@ -276,6 +278,7 @@ public:
     void mouseDown(const juce::MouseEvent& e) override {
         dragging = -1;
         pairedDrag.cancel();
+        panHistoryPending = false;
         if (showLoops) {
             if (!currentRow() || sampleFrames < 12
                 || !waveArea.contains(e.getPosition())) return;
@@ -286,6 +289,7 @@ public:
                 && viewSpan > 0 && waveArea.getWidth() > 0) {
                 panFirstAtDown = viewStart;
                 panAnchorX = e.x;
+                panHistoryPending = true;
                 dragging = 5;
                 return;
             }
@@ -334,6 +338,10 @@ public:
                 sampleFrames, panFirstAtDown, viewSpan, waveArea.getWidth(),
                 panAnchorX, e.x);
             if (!panned.valid || panned.firstFrame == viewStart) return;
+            if (panHistoryPending) {
+                rememberViewport();
+                panHistoryPending = false;
+            }
             viewStart = panned.firstFrame;
             syncPositionControl();
             repaint();
@@ -376,11 +384,19 @@ public:
         const int moved = dragging;
         dragging = -1;
         pairedDrag.cancel();
+        panHistoryPending = false;
         if (showLoops && (moved == 2 || moved == 3) && autoSnap.getToggleState())
             snapLoopMarker(moved == 2);
     }
     void mouseDoubleClick(const juce::MouseEvent& event) override {
         if (!showLoops || !waveArea.contains(event.getPosition())) return;
+        // Shift+double-click toggles the previous zoom/position snapshot.
+        // All older double-click gestures retain their previous behavior.
+        if (event.mods.isShiftDown() && !event.mods.isAltDown()
+            && !event.mods.isCommandDown()) {
+            restorePreviousViewport();
+            return;
+        }
         // Keep plain double-click as FIT ALL; Option+double-click focuses
         // the chosen loop without moving either marker or changing the fade.
         if (event.mods.isAltDown() && focusLoopViewport())
@@ -404,6 +420,8 @@ public:
                 const auto nextView = liberty::loop_v025::panByWheel(
                     sampleFrames, viewStart, viewSpan, wheelAmount);
                 if (nextView.valid) {
+                    if (nextView.firstFrame != viewStart)
+                        rememberViewport();
                     viewStart = nextView.firstFrame;
                     syncPositionControl();
                     repaint();
@@ -424,9 +442,13 @@ public:
                         // Changing the zoom slider with notifications would
                         // re-center the view on its former middle. Instead,
                         // set zoom and scroll together, leaving markers intact.
+                        if (viewport.spanFrames != viewSpan
+                            || viewport.firstFrame != viewStart)
+                            rememberViewport();
                         zoomSlider.setValue(next, juce::dontSendNotification);
                         viewSpan = viewport.spanFrames;
                         viewStart = viewport.firstFrame;
+                        lastAppliedZoom = next;
                         syncPositionControl();
                         repaint();
                         return;
@@ -473,11 +495,33 @@ private:
     juce::String status;
     int selected = -1, sampleFrames = 0, dragging = -1;
     int panFirstAtDown = 0, panAnchorX = 0;
+    bool panHistoryPending = false;
     liberty::loop_v021::PairedLoopDrag pairedDrag;
     int viewStart = 0, viewSpan = 0;
+    double lastAppliedZoom = 1.0;
+    liberty::loop_v027::ViewHistory viewHistory;
     double loadedSeconds = 0.0;
     bool showLoops = false, loading = false, dirty = false;
 
+    liberty::loop_v027::View currentViewport() const noexcept {
+        return {sampleFrames, viewStart, viewSpan, lastAppliedZoom};
+    }
+    void rememberViewport() {
+        viewHistory.remember(currentViewport());
+    }
+    bool restorePreviousViewport() {
+        liberty::loop_v027::View restored;
+        if (!viewHistory.toggle(currentViewport(), restored))
+            return false;
+        // Silent restoration keeps exactly the previous zoom and position.
+        zoomSlider.setValue(restored.zoom, juce::dontSendNotification);
+        viewSpan = restored.span;
+        viewStart = restored.first;
+        lastAppliedZoom = restored.zoom;
+        syncPositionControl();
+        repaint();
+        return true;
+    }
     void syncPositionControl() {
         positionSlider.setValue(liberty::wavezoom::toScroll(viewStart, sampleFrames, viewSpan),
                                 juce::dontSendNotification);
@@ -492,6 +536,8 @@ private:
         const auto centered = liberty::loop_v026::centerOnPointer(
             sampleFrames, viewStart, viewSpan, waveArea.getWidth(), localX);
         if (!centered.valid) return false;
+        if (centered.firstFrame != viewStart)
+            rememberViewport();
         viewStart = centered.firstFrame;
         syncPositionControl();
         repaint();
@@ -507,11 +553,16 @@ private:
 
         // No notification: avoid updateZoom() recentering around the
         // previous viewport. Set zoom + center as one atomic UI operation.
+        const int targetSpan = liberty::wavezoom::span(
+            sampleFrames, focus.requestedZoom);
+        const int targetStart = liberty::wavezoom::centeredStart(
+            focus.centerFrame, sampleFrames, targetSpan);
+        if (targetSpan != viewSpan || targetStart != viewStart)
+            rememberViewport();
         zoomSlider.setValue(focus.requestedZoom, juce::dontSendNotification);
-        viewSpan = liberty::wavezoom::span(
-            sampleFrames, zoomSlider.getValue());
-        viewStart = liberty::wavezoom::centeredStart(
-            focus.centerFrame, sampleFrames, viewSpan);
+        viewSpan = targetSpan;
+        viewStart = targetStart;
+        lastAppliedZoom = focus.requestedZoom;
         syncPositionControl();
         status = juce::String("CADRAGE BOUCLE ") +
                  juce::String((int)sliders[5].getValue()
@@ -522,13 +573,23 @@ private:
     }
     void updateZoom() {
         const int center = viewSpan > 0 ? viewStart + viewSpan / 2 : sampleFrames / 2;
-        viewSpan = liberty::wavezoom::span(sampleFrames, zoomSlider.getValue());
-        viewStart = liberty::wavezoom::centeredStart(center, sampleFrames, viewSpan);
+        const int nextSpan = liberty::wavezoom::span(sampleFrames, zoomSlider.getValue());
+        const int nextStart = liberty::wavezoom::centeredStart(
+            center, sampleFrames, nextSpan);
+        if (nextSpan != viewSpan || nextStart != viewStart)
+            rememberViewport();
+        viewSpan = nextSpan;
+        viewStart = nextStart;
+        lastAppliedZoom = zoomSlider.getValue();
         syncPositionControl();
         repaint();
     }
     void updatePosition() {
-        viewStart = liberty::wavezoom::fromScroll(positionSlider.getValue(), sampleFrames, viewSpan);
+        const int nextStart = liberty::wavezoom::fromScroll(
+            positionSlider.getValue(), sampleFrames, viewSpan);
+        if (nextStart != viewStart)
+            rememberViewport();
+        viewStart = nextStart;
         repaint();
     }
     const Row* currentRow() const {
@@ -539,6 +600,9 @@ private:
     void selectedRowsChanged(int index) override {
         dragging = -1;
         pairedDrag.cancel();
+        panHistoryPending = false;
+        viewHistory.clear();
+        lastAppliedZoom = 1.0;
         selected = index >= 0 && index < (int)rows.size() ? index : -1;
         thumbnail.clear();
         sampleFrames = 0;
