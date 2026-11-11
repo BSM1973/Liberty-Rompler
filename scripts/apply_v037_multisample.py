@@ -244,4 +244,36 @@ juce::AudioProcessorEditor* LibertyRomplerAudioProcessor::createEditor() {""",
     ),
 ])
 
+# Existing demo banks remain valid. Enforce optional multisample fields
+# in the offline validator as strictly as in the native JUCE manifest parser.
+validator = ROOT / "tools" / "validate_banks.py"
+validation_code = validator.read_text(encoding="utf-8")
+validator_anchor = """                try:
+                    with wave.open(str(resolved), 'rb') as wav:"""
+validator_extension = """                # v0.37: Optional RR/keyswitch/fade extension. Legacy defaults
+                # are neutral and intentionally accepted unchanged.
+                rr_group = zone.get('rr_group', 0)
+                rr_index = zone.get('rr_index', 0)
+                art = zone.get('articulation', 0)
+                keyswitch = zone.get('keyswitch_note', -1)
+                fade = zone.get('velocity_fade', 0)
+                if (type(rr_group) is not int or not 0 <= rr_group <= 16 or
+                        type(rr_index) is not int or
+                        (rr_group == 0 and rr_index != 0) or
+                        (rr_group != 0 and not 1 <= rr_index <= 16)):
+                    errors.append(f'{ident}: invalid round robin group/take')
+                if (type(art) is not int or not 0 <= art <= 16 or
+                        type(keyswitch) is not int or
+                        (art == 0 and keyswitch != -1) or
+                        (art != 0 and not 0 <= keyswitch <= 127)):
+                    errors.append(f'{ident}: invalid keyswitch articulation')
+                if type(fade) is not int or not 0 <= fade <= 32:
+                    errors.append(f'{ident}: invalid velocity fade')
+                try:
+                    with wave.open(str(resolved), 'rb') as wav:"""
+if validation_code.count(validator_anchor) != 1:
+    raise SystemExit("v0.37: cannot patch bank validator safely")
+validator.write_text(validation_code.replace(
+    validator_anchor, validator_extension, 1), encoding="utf-8")
+
 print("Liberty ROMpler v0.37: RR / keyswitch / velocity fades integrated.")
