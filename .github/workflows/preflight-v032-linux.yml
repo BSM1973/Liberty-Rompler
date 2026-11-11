@@ -227,18 +227,33 @@ jobs:
         id: deps
         shell: bash
         run: |
-          # Fail instead of hanging indefinitely on a transient apt mirror.
-          # Retries and bounded network timeouts reduce wasted CI minutes.
-          timeout --signal=TERM 240s sudo apt-get update -qq \
-            -o Acquire::Retries=2 \
-            -o Acquire::http::Timeout=20 \
-            -o Acquire::https::Timeout=20
-          timeout --signal=TERM 360s sudo apt-get install -y --no-install-recommends \
-            ninja-build pkg-config libasound2-dev libjack-jackd2-dev \
-            libcurl4-openssl-dev libfreetype6-dev libx11-dev libxext-dev \
-            libxinerama-dev libxcursor-dev libxrandr-dev libxrender-dev \
-            libxcomposite-dev libgl1-mesa-dev libglu1-mesa-dev \
-            libgtk-3-dev libwebkit2gtk-4.1-dev
+          set -euo pipefail
+          # Prefer preinstalled libraries: apt-get update hung in v0.31 and
+          # v0.32, independently of the 131 green source regression tests.
+          missing=0
+          for pkg in alsa freetype2 x11 xext xinerama xcursor xrandr; do
+            if ! pkg-config --exists "$pkg"; then
+              echo "Missing pkg-config dependency: $pkg"
+              missing=1
+            fi
+          done
+          if command -v ninja >/dev/null && test "$missing" -eq 0; then
+            echo "Using preinstalled runner development packages"
+          else
+            echo "::warning::Installing missing packages without apt-get update"
+            if ! timeout --signal=TERM 150s sudo apt-get install -y \
+              -o Acquire::Retries=0 \
+              -o Acquire::http::Timeout=15 \
+              -o Acquire::https::Timeout=15 \
+              --no-install-recommends \
+              ninja-build pkg-config libasound2-dev libjack-jackd2-dev \
+              libcurl4-openssl-dev libfreetype6-dev libx11-dev libxext-dev \
+              libxinerama-dev libxcursor-dev libxrandr-dev libxrender-dev \
+              libxcomposite-dev libgl1-mesa-dev libglu1-mesa-dev \
+              libgtk-3-dev libwebkit2gtk-4.1-dev; then
+              echo "::warning::APT unavailable; trying JUCE with installed libs"
+            fi
+          fi
 
       - name: Checkout JUCE 8.0.10
         id: juce
@@ -325,9 +340,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c validation/v032-linux-bundled-fade
+          git switch -c validation/v032-linux-bundled-fade-r2
           git add -f v032-preflight/RESULT.txt
           if test -f v032-preflight/test-output.log; then git add -f v032-preflight/test-output.log; fi
           if test -f v032-preflight/build-output.log; then git add -f v032-preflight/build-output.log; fi
           git commit -m "ci: record v0.32 JUCE preflight results"
-          git push origin HEAD:refs/heads/validation/v032-linux-bundled-fade
+          git push origin HEAD:refs/heads/validation/v032-linux-bundled-fade-r2
