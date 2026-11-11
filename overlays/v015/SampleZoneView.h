@@ -9,6 +9,7 @@
 #include "LoopPairedSeamV019.h"
 #include "LoopPairedNudgeV020.h"
 #include "LoopDragV021.h"
+#include "LoopFocusV022.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -39,7 +40,8 @@ public:
         mappingMode.setButtonText("MAPPING");
         loopMode.setButtonText("BOUCLES");
         loopMode.setTooltip(juce::String::fromUTF8(
-            u8"Maj + glisser la zone color\u00e9e pour d\u00e9placer toute la boucle."));
+            u8"Maj + glisser la zone color\u00e9e pour d\u00e9placer toute la boucle."
+            u8" Option + double-clic : cadrer la boucle."));
         apply.setButtonText("APPLIQUER");
         reset.setButtonText("RESTAURER");
         snapStartButton.setButtonText(juce::String::fromUTF8(u8"Z\u00c9RO D\u00c9BUT"));
@@ -347,7 +349,12 @@ public:
             snapLoopMarker(moved == 2);
     }
     void mouseDoubleClick(const juce::MouseEvent& event) override {
-        if (showLoops && waveArea.contains(event.getPosition())) zoomSlider.setValue(1.0);
+        if (!showLoops || !waveArea.contains(event.getPosition())) return;
+        // Keep plain double-click as FIT ALL; Option+double-click focuses
+        // the chosen loop without moving either marker or changing the fade.
+        if (event.mods.isAltDown() && focusLoopViewport())
+            return;
+        zoomSlider.setValue(1.0);
     }
     void mouseWheelMove(const juce::MouseEvent& event,
                         const juce::MouseWheelDetails& wheel) override {
@@ -405,6 +412,29 @@ private:
                                 juce::dontSendNotification);
         positionSlider.setEnabled(showLoops && viewSpan > 0 && viewSpan < sampleFrames);
         fitWaveButton.setEnabled(showLoops && zoomSlider.getValue() > 1.0);
+    }
+    bool focusLoopViewport() {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState()
+            || sampleFrames < 12) return false;
+        const auto focus = liberty::loop_v022::planFocus(
+            sampleFrames, (int)sliders[4].getValue(),
+            (int)sliders[5].getValue(), liberty::wavezoom::maxZoom);
+        if (!focus.valid) return false;
+
+        // No notification: avoid updateZoom() recentering around the
+        // previous viewport. Set zoom + center as one atomic UI operation.
+        zoomSlider.setValue(focus.requestedZoom, juce::dontSendNotification);
+        viewSpan = liberty::wavezoom::span(
+            sampleFrames, zoomSlider.getValue());
+        viewStart = liberty::wavezoom::centeredStart(
+            focus.centerFrame, sampleFrames, viewSpan);
+        syncPositionControl();
+        status = juce::String("CADRAGE BOUCLE ") +
+                 juce::String((int)sliders[5].getValue()
+                              - (int)sliders[4].getValue()) + " frames";
+        updateFeedback();
+        repaint();
+        return true;
     }
     void updateZoom() {
         const int center = viewSpan > 0 ? viewStart + viewSpan / 2 : sampleFrames / 2;

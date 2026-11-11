@@ -1,3 +1,17 @@
+# Liberty ROMpler v0.22 — Zoom automatique sur la boucle
+
+Dans **SAMPLES > BOUCLES**, **Option + double-clic sur la forme d'onde** centre et cadre automatiquement la boucle active avec un peu de contexte autour. Un **double-clic normal** conserve le comportement historique : afficher tout le WAV.
+
+Le cadrage ne change **ni DÉBUT, ni FIN, ni FONDU** et n'ajoute aucun bouton. Les fonctions des versions antérieures restent disponibles, notamment le glissement couplé avec Maj, SAUT MIN/PAIRE, les déplacements ±1/±10 et la préécoute A/B. Le raccourci fonctionne sans écriture du sample ni modification de session.
+
+Les deux règles Liberty demeurent impératives : **aucun chevauchement** des contrôles, notamment sur écran 13 pouces, et **aucun caractère incorrect** à la place des accents français.
+
+Code : `Source/LoopFocusV022.h` et `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_focus_v022_test.cpp` et `tests/test_v022_loop_focus.py`. Guide Mac : `docs/GUIDE_TEST_BOUCLES_V022.md`.
+
+**Statut : la v0.22 est en validation. La v0.21 reste la dernière compilation macOS confirmée tant que le build v0.22 n'est pas vert.**
+
+---
+
 # Liberty ROMpler v0.21 — Maj + glisser la boucle sur la forme d'onde
 
 Dans **SAMPLES > BOUCLES**, **Maj + glisser à l'intérieur de la zone de boucle colorée** déplace maintenant directement DÉBUT et FIN ensemble, sans changer **FIN − DÉBUT** ni le fondu. Le geste est calculé par rapport à la position initiale de la souris, ce qui évite la dérive lors des allers-retours.
