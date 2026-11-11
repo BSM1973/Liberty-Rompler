@@ -1231,7 +1231,7 @@ private:
                 + " | PART DU WAV " + juce::String(coverage.percentage, 2)
                 + " %"
                 + "\nAVANT LA BOUCLE " + juce::String(segments.beforePercentage, 2)
-                + juce::String::fromUTF8(u8" % | APR\\u00c8S LA BOUCLE ")
+                + juce::String::fromUTF8(u8" % | APR\u00c8S LA BOUCLE ")
                 + juce::String(segments.afterPercentage, 2) + " %");
         else
             loopEnabled.setTooltip(juce::String::fromUTF8(

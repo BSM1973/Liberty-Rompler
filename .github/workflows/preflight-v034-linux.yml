@@ -228,7 +228,7 @@ jobs:
           grep -q 'LoopSegmentsV034.h' Source/SampleZoneView.h
           grep -q 'describeSegments(' Source/SampleZoneView.h
           grep -q 'AVANT LA BOUCLE' Source/SampleZoneView.h
-          grep -Fq 'APR\\u00c8S LA BOUCLE' Source/SampleZoneView.h
+          grep -Fq 'APR\u00c8S LA BOUCLE' Source/SampleZoneView.h
 
       - name: Validate banks, Unicode, UI geometry and C++ helpers
         id: unit
