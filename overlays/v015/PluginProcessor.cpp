@@ -8,6 +8,21 @@
 LibertyRomplerAudioProcessor::LibertyRomplerAudioProcessor()
     : juce::AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       library(liberty::BankLibrary::defaultDirectory()) {
+    // Stable IDs; v0.36 is opt-in so all previous project mixes remain unchanged.
+    morphActiveParam = new juce::AudioParameterBool(
+        juce::ParameterID("libertyMorphActive", 1), "Liberty MORPH Active", false);
+    addParameter(morphActiveParam);
+    morphXParam = new juce::AudioParameterFloat(
+        juce::ParameterID("libertyMorphX", 1), "Liberty MORPH X",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f);
+    addParameter(morphXParam);
+    morphYParam = new juce::AudioParameterFloat(
+        juce::ParameterID("libertyMorphY", 1), "Liberty MORPH Y",
+        juce::NormalisableRange<float>(0.0f, 1.0f), 0.5f);
+    addParameter(morphYParam);
+    morphMidiParam = new juce::AudioParameterBool(
+        juce::ParameterID("libertyMorphMidi", 1), "Liberty MORPH MIDI CC16/17", false);
+    addParameter(morphMidiParam);
     formats.registerBasicFormats();
     for (auto& synth : synths)
         for (int i = 0; i < 32; ++i) synth.addVoice(new liberty::SampleVoice(controls));
@@ -28,6 +43,10 @@ void LibertyRomplerAudioProcessor::prepareToPlay(double rate, int maximumExpecte
     // No allocation in the render loop; 65536 supports unusually large host buffers.
     layerScratch.setSize(2, juce::jmax(65536, maximumExpectedSamplesPerBlock));
     layerScratch.clear();
+    for (auto& gain : morphLayerGain) {
+        gain.reset(currentSampleRate, 0.045); // 45 ms click-free transition
+        gain.setCurrentAndTargetValue(1.0f); // legacy sound unchanged by default
+    }
     for (auto& rack : fxRacks) rack.prepare(currentSampleRate, juce::jmax(65536, maximumExpectedSamplesPerBlock));
     juce::dsp::ProcessSpec spec { currentSampleRate,
                                   (juce::uint32)juce::jmax(1, maximumExpectedSamplesPerBlock), 2 };
@@ -43,17 +62,36 @@ void LibertyRomplerAudioProcessor::prepareToPlay(double rate, int maximumExpecte
     lfoPhaseOne = lfoPhaseTwo = 0.0;
     currentModWheel = 0.0f;
 }
+float LibertyRomplerAudioProcessor::morphDisplayX() const noexcept {
+    return liberty::morph_v036::normalized(morphMidiParam->get()
+        ? midiMorphX.load(std::memory_order_relaxed) : morphXParam->get());
+}
+float LibertyRomplerAudioProcessor::morphDisplayY() const noexcept {
+    return liberty::morph_v036::normalized(morphMidiParam->get()
+        ? midiMorphY.load(std::memory_order_relaxed) : morphYParam->get());
+}
 bool LibertyRomplerAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
     return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
 }
 void LibertyRomplerAudioProcessor::processBlock(juce::AudioBuffer<float>& audio, juce::MidiBuffer& midi) {
     juce::ScopedNoDenormals noDenormals;
     audio.clear();
+    // MIDI CC16/CC17 move XY when enabled. Do not notify the host from
+    // processBlock: automation uses dedicated JUCE parameters instead.
+    const bool useMidiMorph = morphMidiParam->get();
     // Capture the channel modulation wheel before the keyboard consumes input.
     for (const auto metadata : midi) {
         auto message = metadata.getMessage();
         if (message.isController() && message.getControllerNumber() == 1)
             currentModWheel = (float)message.getControllerValue() / 127.0f;
+        if (useMidiMorph && message.isController()) {
+            if (message.getControllerNumber() == 16)
+                midiMorphX.store((float)message.getControllerValue() / 127.0f,
+                                 std::memory_order_relaxed);
+            else if (message.getControllerNumber() == 17)
+                midiMorphY.store((float)message.getControllerValue() / 127.0f,
+                                 std::memory_order_relaxed);
+        }
     }
     keyboard.processNextMidiBuffer(midi, 0, audio.getNumSamples(), true);
     // Generate sample-accurate arpeggio MIDI before all four layers and the
@@ -88,15 +126,36 @@ void LibertyRomplerAudioProcessor::processBlock(juce::AudioBuffer<float>& audio,
     // Each JUCE synth reads the same MIDI events; its sounds belong to one layer.
     const int blockLength = audio.getNumSamples();
     if (blockLength > layerScratch.getNumSamples()) return; // guard host contract
+    const bool morphOn = morphActiveParam->get();
+    const auto morphWeights = liberty::morph_v036::weights(
+        useMidiMorph ? midiMorphX.load(std::memory_order_relaxed) : morphXParam->get(),
+        useMidiMorph ? midiMorphY.load(std::memory_order_relaxed) : morphYParam->get());
     for (int layer=0; layer<4; ++layer) {
+        auto& gainSmoother = morphLayerGain[(size_t)layer];
+        gainSmoother.setTargetValue(morphOn ? morphWeights[(size_t)layer] : 1.0f);
         layerScratch.clear(0,blockLength);
         synths[(size_t)layer].renderNextBlock(layerScratch, midi, 0, blockLength);
         for (int slot=0; slot<2; ++slot) {
             const int effect=controls.layerFx[(size_t)layer][(size_t)slot].load(std::memory_order_relaxed);
             fxRacks[(size_t)layer].process(effect,layerScratch,controls,blockLength);
         }
-        for (int channel=0; channel<juce::jmin(2,audio.getNumChannels()); ++channel)
-            audio.addFrom(channel,0,layerScratch,channel,0,blockLength);
+        // MORPH is applied after each layer FX chain, before the master FX.
+        // The bypass fast path is sample-equivalent to pre-v0.36 mixing.
+        const int channels = juce::jmin(2, audio.getNumChannels());
+        if (!morphOn && !gainSmoother.isSmoothing()) {
+            for (int channel=0; channel<channels; ++channel)
+                audio.addFrom(channel,0,layerScratch,channel,0,blockLength);
+        } else if (channels > 0) {
+            float* destL = audio.getWritePointer(0);
+            const float* srcL = layerScratch.getReadPointer(0);
+            float* destR = channels > 1 ? audio.getWritePointer(1) : nullptr;
+            const float* srcR = channels > 1 ? layerScratch.getReadPointer(1) : nullptr;
+            for (int sample=0; sample<blockLength; ++sample) {
+                const float gain = gainSmoother.getNextValue();
+                destL[sample] += srcL[sample] * gain;
+                if (destR != nullptr) destR[sample] += srcR[sample] * gain;
+            }
+        }
     }
 
     // Audio-thread-only LFO state: 4 independent user matrix slots, 2 LFOs,
@@ -443,6 +502,12 @@ void LibertyRomplerAudioProcessor::getStateInformation(juce::MemoryBlock& dest) 
     auto* object = state.getDynamicObject();
     object->setProperty("bank", currentBankId);
     object->setProperty("preset", currentPresetId);
+    object->setProperty("morphActive", morphActiveParam->get());
+    object->setProperty("morphX", morphXParam->get());
+    object->setProperty("morphY", morphYParam->get());
+    object->setProperty("morphMidi", morphMidiParam->get());
+    object->setProperty("morphMidiX", midiMorphX.load(std::memory_order_relaxed));
+    object->setProperty("morphMidiY", midiMorphY.load(std::memory_order_relaxed));
     object->setProperty("gain", controls.masterGain.load());
     object->setProperty("attack", controls.attackSeconds.load());
     object->setProperty("release", controls.releaseSeconds.load());
@@ -556,6 +621,22 @@ void LibertyRomplerAudioProcessor::setStateInformation(const void* data, int siz
     const auto json = juce::String::fromUTF8((const char*)data, size);
     const auto state = juce::JSON::parse(json);
     if (auto* o = state.getDynamicObject()) {
+        // Explicit legacy bypass when loading sessions created before MORPH.
+        static_cast<juce::AudioProcessorParameter*>(morphActiveParam)->setValue(
+            o->hasProperty("morphActive") && (bool)o->getProperty("morphActive") ? 1.0f : 0.0f);
+        static_cast<juce::AudioProcessorParameter*>(morphMidiParam)->setValue(
+            o->hasProperty("morphMidi") && (bool)o->getProperty("morphMidi") ? 1.0f : 0.0f);
+        const auto safeMorph = [](const juce::var& value) {
+            return liberty::morph_v036::normalized((float)(double)value);
+        };
+        static_cast<juce::AudioProcessorParameter*>(morphXParam)->setValue(
+            o->hasProperty("morphX") ? safeMorph(o->getProperty("morphX")) : 0.5f);
+        static_cast<juce::AudioProcessorParameter*>(morphYParam)->setValue(
+            o->hasProperty("morphY") ? safeMorph(o->getProperty("morphY")) : 0.5f);
+        midiMorphX.store(o->hasProperty("morphMidiX")
+            ? safeMorph(o->getProperty("morphMidiX")) : 0.5f, std::memory_order_relaxed);
+        midiMorphY.store(o->hasProperty("morphMidiY")
+            ? safeMorph(o->getProperty("morphMidiY")) : 0.5f, std::memory_order_relaxed);
         controls.masterGain = juce::jlimit(0.0f, 1.5f, (float)(double)o->getProperty("gain"));
         controls.attackSeconds = juce::jlimit(0.0f, 2.0f, (float)(double)o->getProperty("attack"));
         controls.releaseSeconds = juce::jlimit(0.02f, 5.0f, (float)(double)o->getProperty("release"));
