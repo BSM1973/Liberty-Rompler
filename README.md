@@ -1,3 +1,17 @@
+# Liberty ROMpler v0.37 — Multisampling professionnel (Lot 2, phase 1)
+
+**Round Robin** (16 variantes), **articulations à Keyswitch**, **transitions progressives entre zones de vélocité** et **Smart Import non destructif** sont ajoutés au code source. Le moteur conserve le fonctionnement historique des banques qui n'utilisent pas ces options.
+
+Smart Import `tools/smart_import_v037.py` parcourt des WAV nommés avec notes, vélocités, prises alternatives et articulations, prépare un mapping MIDI et n'écrit `manifest.json` que sur demande `--write`. Les noms ambigus et fichiers non pris en charge sont refusés plutôt que devinés.
+
+**Streaming disque : planifié mais non livré en v0.37.** La limite existante de 20 secondes par zone demeure. Plan de conception et tests exigés : `docs/DISK_STREAMING_PLAN_V037.md`.
+
+Tests C++17, validation des banques et de l'ancien format JSON, tests d'importation. Guide macOS `docs/GUIDE_TEST_MULTISAMPLE_V037.md`.
+
+**Statut : en prévalidation Linux ; attendre les tests avant toute compilation macOS. La v0.36 est confirmée verte.**
+
+---
+
 # Liberty ROMpler v0.36 — Liberty MORPH : fusion XY à quatre couches
 
 **Liberty MORPH** ajoute un nouvel onglet professionnel et un pad XY musical : A/B aux coins supérieurs, C/D aux coins inférieurs. Le moteur JUCE mélange réellement les **quatre couches après leurs effets individuels**, avec interpolation bilinéaire et rampes de gain de 45 ms, sans allouer de mémoire dans l'audio callback.

@@ -1,0 +1,375 @@
+name: Liberty Rompler - Build macOS AU VST3 Standalone
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-rompler.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rompler-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-macos:
+    name: macOS Apple Silicon - UI v0.37 / AU + VST3 + Standalone
+    runs-on: macos-15
+    timeout-minutes: 50
+
+    steps:
+      - name: Checkout Liberty Rompler
+        uses: actions/checkout@v4
+
+      - name: Verify and unpack prototype source
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '0da09c77c326780c5f972a45984be0f345ff3a39639c340192e04c2a33476e9e  assets/rompler-source-v0.1.tar.xz' | shasum -a 256 --check
+          tar -xJf assets/rompler-source-v0.1.tar.xz
+          test -f CMakeLists.txt
+          test -f Source/PluginProcessor.cpp
+          test -f tools/make_demo_banks.py
+
+      - name: Apply new Nexus-style Liberty UI, audio filter and regression checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v02/part-{1..5}.b64 | base64 -D > /tmp/liberty-ui-v02.tar.xz
+          echo '3cfe2791987fd1a9e4b51abb60696b24b24da4ef09d45a9ce93e59652d9fe061  /tmp/liberty-ui-v02.tar.xz' | shasum -a 256 --check
+          tar -xJf /tmp/liberty-ui-v02.tar.xz
+          test -f tests/test_ui_regression.py
+          test -f Source/PluginEditor.cpp
+          test -f Source/SampleEngine.h
+
+      - name: Apply UI v0.3 tabs, effects, modulation and full-width keyboard
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v03/part-{1..4}.b64 | base64 -D > /tmp/liberty-ui-v03.patch.xz
+          echo '2048ee0ec90574a07c52fa738a907f7e1570cbf9f373e9305aa0ee6147041c94  /tmp/liberty-ui-v03.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v03.patch.xz > /tmp/liberty-ui-v03.patch
+          patch -p1 < /tmp/liberty-ui-v03.patch
+          test -f Source/PluginEditor.cpp
+          test -f Source/PluginProcessor.cpp
+          test -f tests/test_ui_regression.py
+
+      - name: Apply v0.4 Delay Distortion + full French-text fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v04/part-{1..3}.b64 | base64 -D > /tmp/liberty-ui-v04.patch.xz
+          echo '37fce78e5a9eb0dfdb4c6106b25540ad26f1e5f93276ed51d467f47e07950d1d  /tmp/liberty-ui-v04.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v04.patch.xz > /tmp/liberty-ui-v04.patch
+          patch -p1 < /tmp/liberty-ui-v04.patch
+          test -f tools/audit_ui_text.py
+          test -f tests/test_ui_v04.py
+
+      - name: Apply v0.5 modulators, three-band EQ and compressor
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v05/part-{1..5}.b64 | base64 -D > /tmp/liberty-ui-v05.patch.xz
+          echo '103afbbefa19e00f88128e6f21d2980dd6cd7862f410ca09f4987d2cf683fc57  /tmp/liberty-ui-v05.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v05.patch.xz > /tmp/liberty-ui-v05.patch
+          patch -p1 < /tmp/liberty-ui-v05.patch
+          test -f tests/test_ui_v05.py
+          test -f Source/PluginEditor.cpp
+          test -f Source/PluginProcessor.cpp
+
+      - name: Apply v0.6 four-layer multisample engine and UI
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v06/part-{1..6}.b64 | base64 -D > /tmp/liberty-ui-v06.patch.xz
+          echo 'fdea4e597422beba2f9dbf2a902e53a81e204d579dca786211d1583c8dfd1f1a  /tmp/liberty-ui-v06.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v06.patch.xz > /tmp/liberty-ui-v06.patch
+          patch -p1 < /tmp/liberty-ui-v06.patch
+          python3 scripts/fix_v06_header.py
+          test -f tests/test_layers_v06.py
+          test -f Source/SampleEngine.cpp
+          test -f Source/BankLibrary.cpp
+
+      - name: Apply v0.7 graphical routing and real per-layer effect buses
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v07/part-{1..5}.b64 | base64 -D > /tmp/liberty-ui-v07.patch.xz
+          echo '8dc6ce8ec8633453f4f06f27757f4613898a17c7f83166c6f3011cb5f4c61e8d  /tmp/liberty-ui-v07.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v07.patch.xz > /tmp/liberty-ui-v07.patch
+          patch --batch -p1 < /tmp/liberty-ui-v07.patch
+          test -f Source/RoutingDSP.h
+          test -f Source/RoutingGraph.h
+          test -f tests/test_routing_v07.py
+
+      - name: Apply v0.8 arpeggiator MIDI scheduler and 32-step editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v08/part-{1..6}.b64 | base64 -D > /tmp/liberty-ui-v08.patch.xz
+          echo '8eaf16d5c4366d8442c555e00085dfdde3866353b55a7a96c9f3780f0ffd279a  /tmp/liberty-ui-v08.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v08.patch.xz > /tmp/liberty-ui-v08.patch
+          patch --batch -p1 < /tmp/liberty-ui-v08.patch
+          test -f Source/Arpeggiator.h
+          test -f Source/ArpStepGrid.h
+          test -f tests/test_arp_v08.py
+          test -f tests/arp_midi_test.cpp
+
+      - name: Apply v0.9 JUCE 8 MIDI fix, pattern models and editor tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v09/part-{1..4}.b64 | base64 -D > /tmp/liberty-ui-v09.patch.xz
+          echo '36d7ad16a83946851159444f5f874fcf336f7271ccb155349bd3a17f64660f7e  /tmp/liberty-ui-v09.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v09.patch.xz | patch --batch -p1
+          test -f Source/ArpPatternTools.h
+          test -f Source/ArpStepGrid.h
+          test -f tests/test_arp_v09.py
+          test -f tests/arp_pattern_test.cpp
+
+      - name: Apply v0.10 nine-tab navigation and multisample waveform viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v10/part-{1..3}.b64 | base64 -D > /tmp/liberty-ui-v10-overlay.tar.xz
+          echo '4067f8c49c6c5d2019cb61628eddaa0a8bea1785b17621c9f48dc3a2ac25c0f5  /tmp/liberty-ui-v10-overlay.tar.xz' | shasum -a 256 --check
+          tar -xJf /tmp/liberty-ui-v10-overlay.tar.xz
+          python3 scripts/upgrade_ui_v10.py
+          test -f Source/SampleZoneView.h
+          test -f tests/test_ui_v10.py
+
+      - name: Apply v0.11 editable key and velocity maps with non-destructive sample loops
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v11/part-{1..6}.b64 | base64 -D > /tmp/liberty-ui-v11.patch.xz
+          echo '3245e4b8b71fb8931eb91a245be0f0688a2bc6c7b3cea2a6d47f2b881c272fbc  /tmp/liberty-ui-v11.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v11.patch.xz | patch --batch -p1
+          python3 -c 'from pathlib import Path; p=Path("Source/PluginEditor.cpp"); s=p.read_text(); old="Prototype 0.10  |"; assert s.count(old)==1; p.write_text(s.replace(old, "Prototype 0.11  |"))'
+          test -f Source/SampleZoneMath.h
+          test -f tests/sample_zone_math_test.cpp
+          test -f tests/test_samples_v011.py
+          test -f docs/SAMPLES_EDITOR_V011.md
+
+      - name: Apply v0.12 real-time loop crossfade and draggable waveform markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v12/part-{1..4}.b64 | base64 -D > /tmp/liberty-ui-v12.patch.xz
+          echo '66352c5b1fc793343194754f772af3a8b74bc8350955e001c4bbcfb216939369  /tmp/liberty-ui-v12.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v12.patch.xz | patch --batch -p1
+          python3 -c 'from pathlib import Path; p=Path("Source/PluginEditor.cpp"); s=p.read_text(); old="Prototype 0.11  |"; assert s.count(old)==1; p.write_text(s.replace(old, "Prototype 0.12  |"))'
+          test -f Source/LoopCrossfade.h
+          test -f tests/loop_crossfade_test.cpp
+          test -f tests/test_samples_v012.py
+          test -f docs/SAMPLES_EDITOR_V012.md
+
+      - name: Apply v0.13 zero crossing loop snapping and pending edit undo
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v13/part-{1..3}.b64 | base64 -D > /tmp/liberty-ui-v13.patch.xz
+          echo '23be410ac83f6d2c3ef99a0daf8bb93c9f1d714e4844cd6ac01bbbcdcc65e287  /tmp/liberty-ui-v13.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v13.patch.xz | patch --batch -p1
+          python3 -c 'from pathlib import Path; p=Path("Source/PluginEditor.cpp"); s=p.read_text(); old="Prototype 0.12  |"; assert s.count(old)==1; p.write_text(s.replace(old, "Prototype 0.13  |"))'
+          test -f Source/ZeroCrossSnap.h
+          test -f tests/test_samples_v013.py
+          test -f tests/zero_cross_snap_test.cpp
+          test -f docs/SAMPLES_EDITOR_V013.md
+
+      - name: Apply v0.14 waveform zoom, navigation and automatic marker zero snap
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat assets/ui-v14/part-{1..4}.b64 | base64 -D > /tmp/liberty-ui-v14.patch.xz
+          echo '35cb670447a3214f4a8d12a4cec4f3cf0ad43e657a622ff9d445adf733dd834b  /tmp/liberty-ui-v14.patch.xz' | shasum -a 256 --check
+          xz -dc /tmp/liberty-ui-v14.patch.xz | patch --batch -p1
+          python3 -c 'from pathlib import Path; p=Path("Source/PluginEditor.cpp"); s=p.read_text(); old="Prototype 0.13  |"; assert s.count(old)==1; p.write_text(s.replace(old, "Prototype 0.14  |"))'
+          test -f Source/WaveformZoom.h
+          test -f tests/test_samples_v014.py
+          test -f tests/waveform_zoom_test.cpp
+          test -f docs/SAMPLES_EDITOR_V014.md
+
+      - name: Restore tracked installer, diagnostic, loop guide and release checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git show HEAD:scripts/install_mac.command > scripts/install_mac.command
+          git show HEAD:scripts/DIAGNOSTIC_MAC.command > scripts/DIAGNOSTIC_MAC.command
+          git show HEAD:scripts/verify_release_v037.py > scripts/verify_release_v037.py
+          git show HEAD:docs/GUIDE_TEST_BOUCLES_V014.md > docs/GUIDE_TEST_BOUCLES_V014.md
+          bash -n scripts/install_mac.command
+          bash -n scripts/DIAGNOSTIC_MAC.command
+          python3 -m py_compile scripts/verify_release_v037.py
+
+      - name: Apply reviewed v0.37 SAMPLES loop editor, preview audio and fade markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/apply_v015_overlays.sh
+          python3 -c 'from pathlib import Path; p=Path("Source/PluginEditor.cpp"); s=p.read_text(); old="Prototype 0.14  |"; assert s.count(old)==1; p.write_text(s.replace(old, "Prototype 0.15  |"))'
+          test -f Source/LoopEditorV015.h
+          test -f Source/LoopPreviewVoiceV015.h
+          test -f Source/SampleZoneView.h
+          test -f Source/PluginProcessor.cpp
+
+      - name: Apply v0.37 limited-memory sample preview and A/B analysis
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/apply_v016_preview.sh
+          grep -q 'renderSeamFromWindows' Source/PluginProcessor.cpp
+          grep -q 'measureRawSeamDifference' Source/PluginProcessor.cpp
+          ! grep -q 'AudioBuffer<float> decoded(channels, total)' Source/PluginProcessor.cpp
+
+      - name: Apply v0.37 long/short seam audition and precise controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/apply_v017_audition.sh
+          grep -q 'LoopAuditionPlanV017.h' Source/PluginProcessor.cpp
+          grep -q 'planAudition(' Source/PluginProcessor.cpp
+          grep -q 'Option + clic = 10 frames' Source/SampleZoneView.h
+
+      - name: Integrate Liberty MORPH v0.37 engine and XY page
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/apply_v036_morph.py
+          test -s Source/MorphWeightsV036.h
+          test -s Source/LibertyMorphPadV036.h
+          grep -q 'morphLayerGain' Source/PluginProcessor.cpp
+          grep -q 'morphPad.setBounds' Source/PluginEditor.cpp
+
+      - name: Integrate v0.37 Round Robin Keyswitch and velocity crossfades
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/apply_v037_multisample.py
+          test -s Source/MultiSamplePolicyV037.h
+          test -s tools/smart_import_v037.py
+          grep -q 'getRoundRobinGroup' Source/SampleEngine.h
+          grep -q 'velocityCrossfadeGain' Source/SampleEngine.cpp
+
+      - name: Configure Python for demo bank generator
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate bank files, Unicode and no-overlap geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check numpy
+          python3 tools/make_demo_banks.py
+          python3 tools/validate_banks.py
+          python3 tools/audit_ui_text.py
+          python3 -m unittest discover -s tests -p 'test_*.py' -v
+          test -f Banks/Factory-Starter/manifest.json
+          test -f Banks/Expansion-Demo/manifest.json
+
+      - name: Download JUCE 8.0.10
+        uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: '8.0.10'
+          path: JUCE
+          fetch-depth: 1
+
+      - name: Configure CMake for arm64
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S . -B build -G Xcode \
+            -DJUCE_DIR="$GITHUB_WORKSPACE/JUCE" \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0
+
+      - name: Compile AU, VST3 and standalone
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake --build build --config Release \
+            --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
+            --parallel 3
+
+      - name: Package UI v0.37, installer, diagnostic and both demo banks
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.37"
+          mkdir -p "$target"
+          app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
+          vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
+          au="$(find build/LibertyRompler_artefacts -type d -name '*.component' -print -quit)"
+          test -n "$app" && test -n "$vst" && test -n "$au"
+          ditto "$app" "$target/Liberty Rompler.app"
+          ditto "$vst" "$target/Liberty Rompler.vst3"
+          ditto "$au" "$target/Liberty Rompler.component"
+          ditto Banks "$target/Banks"
+          cp scripts/install_mac.command "$target/INSTALLER_MAC.command"
+          cp scripts/DIAGNOSTIC_MAC.command "$target/DIAGNOSTIC_MAC.command"
+          cp docs/GUIDE_TEST_BOUCLES_V014.md "$target/GUIDE_TEST_BOUCLES_V014.md"
+          cp docs/GUIDE_TEST_BOUCLES_V015.md "$target/GUIDE_TEST_BOUCLES_V015.md"
+          cp docs/GUIDE_TEST_BOUCLES_V016.md "$target/GUIDE_TEST_BOUCLES_V016.md"
+          cp docs/GUIDE_TEST_BOUCLES_V017.md "$target/GUIDE_TEST_BOUCLES_V017.md"
+          cp docs/GUIDE_TEST_BOUCLES_V018.md "$target/GUIDE_TEST_BOUCLES_V018.md"
+          cp docs/GUIDE_TEST_BOUCLES_V019.md "$target/GUIDE_TEST_BOUCLES_V019.md"
+          cp docs/GUIDE_TEST_BOUCLES_V020.md "$target/GUIDE_TEST_BOUCLES_V020.md"
+          cp docs/GUIDE_TEST_BOUCLES_V021.md "$target/GUIDE_TEST_BOUCLES_V021.md"
+          cp docs/GUIDE_TEST_BOUCLES_V022.md "$target/GUIDE_TEST_BOUCLES_V022.md"
+          cp docs/GUIDE_TEST_BOUCLES_V023.md "$target/GUIDE_TEST_BOUCLES_V023.md"
+          cp docs/GUIDE_TEST_BOUCLES_V024.md "$target/GUIDE_TEST_BOUCLES_V024.md"
+          cp docs/GUIDE_TEST_BOUCLES_V025.md "$target/GUIDE_TEST_BOUCLES_V025.md"
+          cp docs/GUIDE_TEST_BOUCLES_V026.md "$target/GUIDE_TEST_BOUCLES_V026.md"
+          cp docs/GUIDE_TEST_BOUCLES_V027.md "$target/GUIDE_TEST_BOUCLES_V027.md"
+          cp docs/GUIDE_TEST_BOUCLES_V028.md "$target/GUIDE_TEST_BOUCLES_V028.md"
+          cp docs/GUIDE_TEST_BOUCLES_V029.md "$target/GUIDE_TEST_BOUCLES_V029.md"
+          cp docs/GUIDE_TEST_BOUCLES_V030.md "$target/GUIDE_TEST_BOUCLES_V030.md"
+          cp docs/GUIDE_TEST_BOUCLES_V031.md "$target/GUIDE_TEST_BOUCLES_V031.md"
+          cp docs/GUIDE_TEST_BOUCLES_V032.md "$target/GUIDE_TEST_BOUCLES_V032.md"
+          cp docs/GUIDE_TEST_BOUCLES_V033.md "$target/GUIDE_TEST_BOUCLES_V033.md"
+          cp docs/GUIDE_TEST_BOUCLES_V034.md "$target/GUIDE_TEST_BOUCLES_V034.md"
+          cp docs/GUIDE_TEST_BOUCLES_V035.md "$target/GUIDE_TEST_BOUCLES_V035.md"
+          cp docs/GUIDE_TEST_MORPH_V036.md "$target/GUIDE_TEST_MORPH_V036.md"
+          cp docs/GUIDE_TEST_MULTISAMPLE_V037.md "$target/GUIDE_TEST_MULTISAMPLE_V037.md"
+          cp tools/smart_import_v037.py "$target/SMART_IMPORT_V037.py"
+          cp docs/MULTISAMPLE_V037.md "$target/SMART_IMPORT_GUIDE_V037.md"
+          chmod +x "$target/INSTALLER_MAC.command" "$target/DIAGNOSTIC_MAC.command"
+          for bundle in "$target/Liberty Rompler.app" "$target/Liberty Rompler.vst3" "$target/Liberty Rompler.component"; do
+            codesign --force --deep --sign - "$bundle"
+            codesign --verify --deep --verbose "$bundle"
+          done
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.37 Liberty-Rompler-macOS-arm64-UI-v0.37.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.37" \
+            -srcfolder "$target" -ov -format UDZO \
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.37.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.37.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.37.dmg
+
+      - name: Preserve editable v0.37 source in the same artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf dist/Liberty-Rompler-source-v0.37.tar.gz Source tests tools docs scripts overlays CMakeLists.txt
+          test -s dist/Liberty-Rompler-source-v0.37.tar.gz
+
+      - name: Verify AU VST3 Standalone and full release archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_release_v037.py
+
+      - name: Upload downloadable macOS builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: Liberty-Rompler-macOS-arm64-UI-v0.37-AU-VST3-Standalone
+          path: |
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.37.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.37.dmg
+            dist/Liberty-Rompler-source-v0.37.tar.gz
+          if-no-files-found: error
+          retention-days: 30
