@@ -19,6 +19,7 @@
 #include "LoopMarkerDetailV029.h"
 #include "LoopTimingV030.h"
 #include "LoopMarkerTimesV031.h"
+#include "LoopFadeRatioV032.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -529,6 +530,13 @@ private:
     double loadedSampleRate = 0.0;
     bool showLoops = false, loading = false, dirty = false;
 
+    liberty::loop_v032::FadeRatio fadeRatio() const noexcept {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
+            return {};
+        return liberty::loop_v032::describeFade(
+            sampleFrames, (int)sliders[4].getValue(),
+            (int)sliders[5].getValue(), (int)sliders[6].getValue());
+    }
     liberty::loop_v031::MarkerTimes markerTimes() const noexcept {
         if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
             return {};
@@ -1194,12 +1202,14 @@ private:
         // Full frame and crossfade timing belongs in a tooltip so the
         // existing single-line UI and all previous labels remain intact.
         const auto timing = loopTiming();
-        if (timing.valid)
+        const auto ratio = fadeRatio();
+        if (timing.valid && ratio.valid)
             loopEnabled.setTooltip(juce::String("BOUCLE ")
                 + juce::String(timing.durationFrames) + " frames | "
                 + juce::String(timing.durationMs, 3) + " ms"
                 + " | FONDU " + juce::String(timing.fadeFrames)
-                + " frames | " + juce::String(timing.fadeMs, 3) + " ms");
+                + " frames | " + juce::String(timing.fadeMs, 3) + " ms"
+                + " | " + juce::String(ratio.percentage, 2) + " %");
         else
             loopEnabled.setTooltip(juce::String::fromUTF8(
                 u8"Dur\u00e9e de boucle indisponible"));
