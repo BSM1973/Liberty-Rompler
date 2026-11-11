@@ -1,3 +1,19 @@
+# Liberty ROMpler v0.29 — Zoom de précision sur DÉBUT et FIN de boucle
+
+Dans **SAMPLES > BOUCLES**, **Commande + Option + clic sur ZÉRO DÉBUT ou ZÉRO FIN** ouvre désormais une vue de précision centrée sur le marqueur choisi. Le zoom vise environ **512 frames**, dans les limites du zoom maximal de Liberty. Il ne réduit jamais un zoom déjà plus précis.
+
+Le nouveau cadrage est compatible avec l'historique : **Maj + double-clic** permet de retrouver la vue précédente (position et zoom).
+
+Les gestes antérieurs des boutons ZÉRO restent disponibles : clic normal = recherche du zéro ; Option + clic = SAUT MIN ; Maj + Option + clic = PAIRE ; Commande + clic = centrage simple à zoom inchangé. Les commandes de zoom, de molette, de glissement et la préécoute A/B des v0.15–v0.28 sont conservées.
+
+Aucun bouton supplémentaire, aucun changement des marqueurs DÉBUT/FIN ni du FONDU, des WAV, banques ou presets. Les règles absolues Liberty restent **zéro chevauchement** et **accents français corrects**.
+
+Sources : `Source/LoopMarkerDetailV029.h` et `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_marker_detail_v029_test.cpp`, `tests/test_v029_marker_detail.py`. Guide macOS : `docs/GUIDE_TEST_BOUCLES_V029.md`.
+
+**Statut : la v0.29 est en validation Linux. La v0.28 reste la dernière version macOS confirmée jusqu'à un build v0.29 vert.**
+
+---
+
 # Liberty ROMpler v0.28 — Centrer directement DÉBUT ou FIN de boucle
 
 Dans **SAMPLES > BOUCLES**, **Commande + clic sur ZÉRO DÉBUT** ou **Commande + clic sur ZÉRO FIN** permet de centrer le marqueur correspondant sur la forme d'onde, **sans changer le zoom, les marqueurs, le fondu ou le son**.
