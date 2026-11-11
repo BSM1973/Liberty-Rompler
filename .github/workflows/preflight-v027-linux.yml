@@ -253,9 +253,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c validation/v027-linux-view-history
+          git switch -c validation/v027-linux-view-history-r2
           git add -f v027-preflight/RESULT.txt
           if test -f v027-preflight/test-output.log; then git add -f v027-preflight/test-output.log; fi
           if test -f v027-preflight/build-output.log; then git add -f v027-preflight/build-output.log; fi
           git commit -m "ci: record v0.27 JUCE preflight results"
-          git push origin HEAD:refs/heads/validation/v027-linux-view-history
+          git push origin HEAD:refs/heads/validation/v027-linux-view-history-r2
