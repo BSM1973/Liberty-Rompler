@@ -21,6 +21,7 @@
 #include "LoopMarkerTimesV031.h"
 #include "LoopFadeRatioV032.h"
 #include "LoopCoverageV033.h"
+#include "LoopSegmentsV034.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -531,6 +532,13 @@ private:
     double loadedSampleRate = 0.0;
     bool showLoops = false, loading = false, dirty = false;
 
+    liberty::loop_v034::Segments loopSegments() const noexcept {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
+            return {};
+        return liberty::loop_v034::describeSegments(
+            sampleFrames, (int)sliders[4].getValue(),
+            (int)sliders[5].getValue());
+    }
     liberty::loop_v033::Coverage loopCoverage() const noexcept {
         if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
             return {};
@@ -1212,7 +1220,8 @@ private:
         const auto timing = loopTiming();
         const auto ratio = fadeRatio();
         const auto coverage = loopCoverage();
-        if (timing.valid && ratio.valid && coverage.valid)
+        const auto segments = loopSegments();
+        if (timing.valid && ratio.valid && coverage.valid && segments.valid)
             loopEnabled.setTooltip(juce::String("BOUCLE ")
                 + juce::String(timing.durationFrames) + " frames | "
                 + juce::String(timing.durationMs, 3) + " ms"
@@ -1220,7 +1229,10 @@ private:
                 + " frames | " + juce::String(timing.fadeMs, 3) + " ms"
                 + " | " + juce::String(ratio.percentage, 2) + " %"
                 + " | PART DU WAV " + juce::String(coverage.percentage, 2)
-                + " %");
+                + " %"
+                + "\nAVANT LA BOUCLE " + juce::String(segments.beforePercentage, 2)
+                + juce::String::fromUTF8(u8" % | APR\\u00c8S LA BOUCLE ")
+                + juce::String(segments.afterPercentage, 2) + " %");
         else
             loopEnabled.setTooltip(juce::String::fromUTF8(
                 u8"Dur\u00e9e de boucle indisponible"));
