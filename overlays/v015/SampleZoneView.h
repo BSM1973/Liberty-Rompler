@@ -16,6 +16,7 @@
 #include "LoopCenterViewV026.h"
 #include "LoopViewHistoryV027.h"
 #include "LoopMarkerFocusV028.h"
+#include "LoopMarkerDetailV029.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -89,15 +90,19 @@ public:
         positionSlider.setValue(0.0, juce::dontSendNotification);
         positionSlider.setColour(juce::Slider::trackColourId, juce::Colour(0xff63dccc));
         positionSlider.onValueChange = [this] { updatePosition(); };
-        snapStartButton.setTooltip("Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe). Commande + clic : centrer D\u00c9BUT.");
-        snapEndButton.setTooltip("Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe). Commande + clic : centrer FIN.");
+        snapStartButton.setTooltip("Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe). Commande + clic : centrer D\u00c9BUT. Commande + Option : ZOOM D\u00c9TAIL.");
+        snapEndButton.setTooltip("Clic : z\u00e9ro. Option : SAUT MIN. Maj + Option : PAIRE (dur\u00e9e fixe). Commande + clic : centrer FIN. Commande + Option : ZOOM D\u00c9TAIL.");
         cancelButton.setTooltip("Annuler les modifications non appliquees de cette zone");
         snapStartButton.onClick = [this] {
             const auto modifiers = juce::ModifierKeys::getCurrentModifiers();
             if (modifiers.isAltDown() && modifiers.isShiftDown())
                 optimizeLoopPair();
-            else if (modifiers.isAltDown())
-                optimizeLoopMarker(true);
+            else if (modifiers.isAltDown()) {
+                if (modifiers.isCommandDown())
+                    focusLoopMarkerDetail(true);
+                else
+                    optimizeLoopMarker(true);
+            }
             else if (modifiers.isCommandDown() && !modifiers.isShiftDown())
                 focusLoopMarker(true);
             else
@@ -107,8 +112,12 @@ public:
             const auto modifiers = juce::ModifierKeys::getCurrentModifiers();
             if (modifiers.isAltDown() && modifiers.isShiftDown())
                 optimizeLoopPair();
-            else if (modifiers.isAltDown())
-                optimizeLoopMarker(false);
+            else if (modifiers.isAltDown()) {
+                if (modifiers.isCommandDown())
+                    focusLoopMarkerDetail(false);
+                else
+                    optimizeLoopMarker(false);
+            }
             else if (modifiers.isCommandDown() && !modifiers.isShiftDown())
                 focusLoopMarker(false);
             else
@@ -537,6 +546,35 @@ private:
     // This is viewport-only; markers, fade, source WAV and session untouched.
     // Command-click on either existing ZERO button navigates to that loop
     // boundary, preserving zoom and the complete sample-zone edit state.
+    // Command+Option-click on an existing ZERO button: zoom into the
+    // selected boundary. Keep all marker positions and edits unchanged.
+    // Respect the max zoom and preserve any already finer magnification.
+    bool focusLoopMarkerDetail(bool startMarker) {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState()
+            || sampleFrames < 12 || viewSpan < 1 || !hasLoopValues())
+            return false;
+        const int marker = (int)sliders[startMarker ? 4 : 5].getValue();
+        const auto detail = liberty::loop_v029::planPrecisionZoom(
+            sampleFrames, marker, zoomSlider.getValue(),
+            liberty::wavezoom::maxZoom);
+        if (!detail.valid) return false;
+        const int nextSpan = liberty::wavezoom::span(
+            sampleFrames, detail.requestedZoom);
+        const auto target = liberty::loop_v028::focusOnMarker(
+            sampleFrames, viewStart, nextSpan, detail.markerFrame);
+        if (!target.valid) return false;
+        if (nextSpan != viewSpan || target.firstFrame != viewStart)
+            rememberViewport();
+        // Apply zoom + viewport silently together, to avoid the old-center
+        // updateZoom callback; Shift-double-click can restore both values.
+        zoomSlider.setValue(detail.requestedZoom, juce::dontSendNotification);
+        viewSpan = target.spanFrames;
+        viewStart = target.firstFrame;
+        lastAppliedZoom = detail.requestedZoom;
+        syncPositionControl();
+        repaint();
+        return true;
+    }
     bool focusLoopMarker(bool startMarker) {
         if (!showLoops || !currentRow() || !loopEnabled.getToggleState()
             || sampleFrames < 12 || viewSpan < 1 || !hasLoopValues())
