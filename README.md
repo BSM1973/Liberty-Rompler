@@ -1,3 +1,13 @@
+# Liberty ROMpler v0.39 — Hybrid Workstation, streaming disque A1
+
+Premier jalon de **streaming disque professionnel** : cache PCM stéréo préalloué, demandes multi-producteurs non bloquantes, lecteur anticipé hors thread audio, index de frames en 64 bits, et adaptateur JUCE pour la lecture par pages. Les tests stress couvrent les publications stéréo concurrentes, les positions virtuelles supérieures à deux heures et les débordements de file.
+
+**Statut : fondations techniques isolées, PAS ENCORE reliées à SampleVoice ni à la lecture réelle des banques longues.** Le plafond actuel de 20 secondes par zone reste inchangé, tout comme le rendu sonore, les banques et l'interface de la v0.38. Aucune compilation macOS de v0.39 n'est prévue pour un prototype inactif. Voir \`docs/STREAMING_FOUNDATION_V039.md\`.
+
+Les fichiers éditables sont extraits depuis un paquet SHA-256 vérifié puis publiés sur la branche via le preflight Linux après validation complète, sans consommer de build Mac. Respect absolu de nos règles : zéro chevauchement, accents français corrects et audio callback sans E/S disque.
+
+---
+
 # Liberty ROMpler v0.38 — CRÉATIF : GRANULAR, TIME ENGINE, SLICE, HARMONY
 
 Le **Lot 3** conserve le **MORPH XY** existant et ajoute un **onzième onglet CRÉATIF** : deux grains à recouvrement Hann (30–240 ms), TIME de 0,5× à 2× indépendant de la hauteur, huit tranches MIDI 36–43 et six modes d'accords jouables à une touche. Les cinq paramètres sont automatisables dans le DAW, sauvegardés et **OFF par défaut** lorsqu'ils modifient le son. Les anciennes banques et leurs fichiers WAV restent inchangés.
