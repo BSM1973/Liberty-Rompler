@@ -1,3 +1,15 @@
+# Liberty ROMpler v0.38 — CRÉATIF : GRANULAR, TIME ENGINE, SLICE, HARMONY
+
+Le **Lot 3** conserve le **MORPH XY** existant et ajoute un **onzième onglet CRÉATIF** : deux grains à recouvrement Hann (30–240 ms), TIME de 0,5× à 2× indépendant de la hauteur, huit tranches MIDI 36–43 et six modes d'accords jouables à une touche. Les cinq paramètres sont automatisables dans le DAW, sauvegardés et **OFF par défaut** lorsqu'ils modifient le son. Les anciennes banques et leurs fichiers WAV restent inchangés.
+
+**Limites assumées** : il s'agit d'un premier moteur de traitement granulaire et temporel (non optimisé pour les transitoires), les tranches sont actuellement de durée égale (sans détection d'attaques) et HARMONY propose six voicings prédéfinis (sans reconnaissance avancée des gammes). Le streaming disque des banques longues n'est pas intégré à cette étape.
+
+Sources : `assets/v038/part-*.b64` et `scripts/apply_v038_bundle.py` (checksum SHA-256), avec code JUCE reconstruit et tests `tests/test_v038_creative.py`. Guide : `docs/GUIDE_TEST_CREATIVE_V038.md`.
+
+**Statut : code en prévalidation ; la v0.37 est la dernière version macOS confirmée verte.**
+
+---
+
 # Liberty ROMpler v0.37 — Multisampling professionnel (Lot 2, phase 1)
 
 **Round Robin** (16 variantes), **articulations à Keyswitch**, **transitions progressives entre zones de vélocité** et **Smart Import non destructif** sont ajoutés au code source. Le moteur conserve le fonctionnement historique des banques qui n'utilisent pas ces options.
