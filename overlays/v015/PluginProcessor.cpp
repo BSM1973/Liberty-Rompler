@@ -86,10 +86,10 @@ void LibertyRomplerAudioProcessor::processBlock(juce::AudioBuffer<float>& audio,
             currentModWheel = (float)message.getControllerValue() / 127.0f;
         if (useMidiMorph && message.isController()) {
             if (message.getControllerNumber() == 16)
-                midiMorphX.store((float)message.getControllerValue() / 127.0f,
+                midiMorphX.store(liberty::morph_v036::fromMidi(message.getControllerValue()),
                                  std::memory_order_relaxed);
             else if (message.getControllerNumber() == 17)
-                midiMorphY.store((float)message.getControllerValue() / 127.0f,
+                midiMorphY.store(liberty::morph_v036::fromMidi(message.getControllerValue()),
                                  std::memory_order_relaxed);
         }
     }

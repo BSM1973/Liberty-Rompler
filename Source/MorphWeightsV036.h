@@ -12,6 +12,11 @@ inline float normalized(float v) noexcept
     return std::isfinite(v) ? std::max(0.0f, std::min(1.0f, v)) : 0.5f;
 }
 
+inline float fromMidi(int midiValue) noexcept
+{
+    return static_cast<float>(std::max(0, std::min(127, midiValue))) / 127.0f;
+}
+
 inline std::array<float, 4> weights(float rawX, float rawY) noexcept
 {
     const float x = normalized(rawX), y = normalized(rawY);

@@ -74,10 +74,10 @@ public:
             g.drawFittedText(text, area.toNearestInt(),
                              juce::Justification::centred, 1);
         };
-        drawName("A", {pad.getX()+8.0f, pad.getY()+8.0f, 32.0f, 24.0f}, colours[0]);
-        drawName("B", {pad.getRight()-40.0f, pad.getY()+8.0f, 32.0f, 24.0f}, colours[1]);
-        drawName("C", {pad.getX()+8.0f, pad.getBottom()-32.0f, 32.0f, 24.0f}, colours[2]);
-        drawName("D", {pad.getRight()-40.0f, pad.getBottom()-32.0f, 32.0f, 24.0f}, colours[3]);
+        drawName("A", {pad.getX()-44.0f, pad.getY()+2.0f, 32.0f, 24.0f}, colours[0]);
+        drawName("B", {pad.getRight()+12.0f, pad.getY()+2.0f, 32.0f, 24.0f}, colours[1]);
+        drawName("C", {pad.getX()-44.0f, pad.getBottom()-26.0f, 32.0f, 24.0f}, colours[2]);
+        drawName("D", {pad.getRight()+12.0f, pad.getBottom()-26.0f, 32.0f, 24.0f}, colours[3]);
 
         const float x = processor.morphDisplayX(), y = processor.morphDisplayY();
         const float markerX = pad.getX()+x*pad.getWidth();
