@@ -356,9 +356,9 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c validation/v034-source-preflight
+          git switch -c "validation/v034-source-preflight-${GITHUB_RUN_ID}"
           git add -f v034-preflight/RESULT.txt
           if test -f v034-preflight/test-output.log; then git add -f v034-preflight/test-output.log; fi
           if test -f v034-preflight/build-output.log; then git add -f v034-preflight/build-output.log; fi
           git commit -m "ci: record v0.34 source preflight results"
-          git push origin HEAD:refs/heads/validation/v034-source-preflight
+          git push origin "HEAD:refs/heads/validation/v034-source-preflight-${GITHUB_RUN_ID}"

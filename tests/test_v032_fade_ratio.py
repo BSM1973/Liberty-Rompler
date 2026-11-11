@@ -38,7 +38,7 @@ class FadeRatioV032(unittest.TestCase):
             "loadedSampleRate = reader->sampleRate;",
             "const auto timing = loopTiming();",
             "const auto ratio = fadeRatio();",
-            "if (timing.valid && ratio.valid && coverage.valid)",
+            "if (timing.valid && ratio.valid && coverage.valid && segments.valid)",
             "juce::String(ratio.percentage, 2)",
             ' + " %");',
             "snapStartButton.setTooltip(markerStartHelp",
