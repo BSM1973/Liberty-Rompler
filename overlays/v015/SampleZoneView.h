@@ -20,6 +20,7 @@
 #include "LoopTimingV030.h"
 #include "LoopMarkerTimesV031.h"
 #include "LoopFadeRatioV032.h"
+#include "LoopCoverageV033.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -530,6 +531,13 @@ private:
     double loadedSampleRate = 0.0;
     bool showLoops = false, loading = false, dirty = false;
 
+    liberty::loop_v033::Coverage loopCoverage() const noexcept {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
+            return {};
+        return liberty::loop_v033::describeCoverage(
+            sampleFrames, (int)sliders[4].getValue(),
+            (int)sliders[5].getValue());
+    }
     liberty::loop_v032::FadeRatio fadeRatio() const noexcept {
         if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
             return {};
@@ -1203,13 +1211,16 @@ private:
         // existing single-line UI and all previous labels remain intact.
         const auto timing = loopTiming();
         const auto ratio = fadeRatio();
-        if (timing.valid && ratio.valid)
+        const auto coverage = loopCoverage();
+        if (timing.valid && ratio.valid && coverage.valid)
             loopEnabled.setTooltip(juce::String("BOUCLE ")
                 + juce::String(timing.durationFrames) + " frames | "
                 + juce::String(timing.durationMs, 3) + " ms"
                 + " | FONDU " + juce::String(timing.fadeFrames)
                 + " frames | " + juce::String(timing.fadeMs, 3) + " ms"
-                + " | " + juce::String(ratio.percentage, 2) + " %");
+                + " | " + juce::String(ratio.percentage, 2) + " %"
+                + " | PART DU WAV " + juce::String(coverage.percentage, 2)
+                + " %");
         else
             loopEnabled.setTooltip(juce::String::fromUTF8(
                 u8"Dur\u00e9e de boucle indisponible"));

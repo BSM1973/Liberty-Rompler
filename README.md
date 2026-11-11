@@ -1,3 +1,19 @@
+# Liberty ROMpler v0.33 — Pourcentage du WAV occupé par la boucle
+
+Dans **SAMPLES > BOUCLES**, l'infobulle existante **Boucle activée** indique maintenant **PART DU WAV**, le pourcentage du fichier audio réellement couvert par la boucle : `100 × (FIN - DÉBUT) / nombre total de frames du WAV`.
+
+Exemple : une boucle de 24000 frames dans un WAV de 96000 frames couvre **25,00 %** du fichier. Une boucle couvrant tout le WAV indique **100,00 %**. Les limites du WAV et le marqueur FIN exclusif sont respectés, même sur des fichiers très longs.
+
+L'infobulle conserve toutes les données v0.30–v0.32 : durée de boucle en frames/ms, durée du FONDU en frames/ms et pourcentage du FONDU. Les boutons ZÉRO conservent leurs positions de marqueurs en frames/ms et tous leurs raccourcis.
+
+**Aucun nouveau contrôle ni chevauchement**. La mesure est en lecture seule, sans changement du son, des marqueurs, du fondu, des WAV, banques ou presets. Les caractères français accentués restent préservés.
+
+Moteur C++17 : `Source/LoopCoverageV033.h`. Intégration : `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_coverage_v033_test.cpp` et `tests/test_v033_loop_coverage.py`. Vérification macOS : `docs/GUIDE_TEST_BOUCLES_V033.md`.
+
+**Statut : v0.33 en validation. La v0.32 reste la dernière compilation Mac confirmée jusqu'au résultat du build v0.33.**
+
+---
+
 # Liberty ROMpler v0.32 — Pourcentage du fondu dans la boucle
 
 Dans **SAMPLES > BOUCLES**, l'infobulle existante « Boucle activée » affiche désormais le **pourcentage du FONDU par rapport à la durée de la boucle**, en plus des durées en frames et millisecondes de la v0.30.
