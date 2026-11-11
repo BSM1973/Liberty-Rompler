@@ -1,3 +1,15 @@
+# Liberty ROMpler v0.35 — Durées avant et après la boucle
+
+Dans **SAMPLES > BOUCLES**, la même infobulle ajoute **AVANT** et **APRÈS** en **frames et millisecondes**, à partir de la fréquence d'échantillonnage du WAV. Les parts en pourcentage introduites en v0.33–v0.34 sont conservées.
+
+Exemple : WAV de 96000 frames à 48 kHz, DÉBUT 24000, FIN 48000 : AVANT = 24000 frames / 500,000 ms ; APRÈS = 48000 frames / 1000,000 ms. FIN est exclusif. Aucun nouveau composant ni changement audio, WAV, presets, banques ou raccourcis.
+
+Source `Source/LoopSegmentTimesV035.h`, intégration `overlays/v015/SampleZoneView.h`, tests `tests/loop_segment_times_v035_test.cpp` et `tests/test_v035_loop_segment_times.py`, guide `docs/GUIDE_TEST_BOUCLES_V035.md`.
+
+**Statut : v0.35 en prévalidation ; compilation macOS distincte uniquement après tests et confirmation du build v0.34.**
+
+---
+
 # Liberty ROMpler v0.34 — Répartition avant / dans / après la boucle
 
 Dans **SAMPLES > BOUCLES**, l'infobulle existante contient désormais la proportion **AVANT LA BOUCLE** et **APRÈS LA BOUCLE**, en complément de **PART DU WAV** de v0.33. Exemple : WAV de 96000 frames, boucle DÉBUT 24000 / FIN 48000 : **25,00 % avant**, **25,00 % dans**, **50,00 % après**. Calcul en frames, FIN exclusif ; aucun changement audio.

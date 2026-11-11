@@ -22,6 +22,7 @@
 #include "LoopFadeRatioV032.h"
 #include "LoopCoverageV033.h"
 #include "LoopSegmentsV034.h"
+#include "LoopSegmentTimesV035.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -532,6 +533,13 @@ private:
     double loadedSampleRate = 0.0;
     bool showLoops = false, loading = false, dirty = false;
 
+    liberty::loop_v035::SegmentTimes loopSegmentTimes() const noexcept {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
+            return {};
+        return liberty::loop_v035::describeSegmentTimes(
+            sampleFrames, (int)sliders[4].getValue(),
+            (int)sliders[5].getValue(), loadedSampleRate);
+    }
     liberty::loop_v034::Segments loopSegments() const noexcept {
         if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
             return {};
@@ -1236,6 +1244,18 @@ private:
         else
             loopEnabled.setTooltip(juce::String::fromUTF8(
                 u8"Dur\u00e9e de boucle indisponible"));
+
+        // v0.35: add source-relative durations in the same tooltip.
+        // Earlier percentages and conditional validity remain unchanged.
+        const auto segmentTimes = loopSegmentTimes();
+        if (timing.valid && ratio.valid && coverage.valid && segments.valid
+            && segmentTimes.valid)
+            loopEnabled.setTooltip(loopEnabled.getTooltip()
+                + "\nAVANT : " + juce::String(segmentTimes.beforeFrames)
+                + " frames | " + juce::String(segmentTimes.beforeMs, 3) + " ms"
+                + juce::String::fromUTF8(u8" | APR\u00c8S : ")
+                + juce::String(segmentTimes.afterFrames) + " frames | "
+                + juce::String(segmentTimes.afterMs, 3) + " ms");
 
         // v0.31: retain every pre-existing gesture in the two ZERO tooltips.
         // Append read-only source-relative times; rebuild on each edit so
