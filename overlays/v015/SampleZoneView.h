@@ -13,6 +13,7 @@
 #include "LoopCursorZoomV023.h"
 #include "LoopPanV024.h"
 #include "LoopWheelPanV025.h"
+#include "LoopCenterViewV026.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -44,7 +45,8 @@ public:
         loopMode.setButtonText("BOUCLES");
         loopMode.setTooltip(juce::String::fromUTF8(
             u8"Maj + glisser la zone color\u00e9e pour d\u00e9placer toute la boucle."
-            u8" Option + double-clic : cadrer la boucle."));
+            u8" Option + double-clic : cadrer la boucle."
+            u8" Commande + double-clic : centrer la vue."));
         apply.setButtonText("APPLIQUER");
         reset.setButtonText("RESTAURER");
         snapStartButton.setButtonText(juce::String::fromUTF8(u8"Z\u00c9RO D\u00c9BUT"));
@@ -383,6 +385,9 @@ public:
         // the chosen loop without moving either marker or changing the fade.
         if (event.mods.isAltDown() && focusLoopViewport())
             return;
+        if (event.mods.isCommandDown() && !event.mods.isAltDown()
+            && centerViewportOnClick(event.x - waveArea.getX()))
+            return;
         zoomSlider.setValue(1.0);
     }
     void mouseWheelMove(const juce::MouseEvent& event,
@@ -478,6 +483,19 @@ private:
                                 juce::dontSendNotification);
         positionSlider.setEnabled(showLoops && viewSpan > 0 && viewSpan < sampleFrames);
         fitWaveButton.setEnabled(showLoops && zoomSlider.getValue() > 1.0);
+    }
+    // Command-double-click centers the current zoom on the clicked frame.
+    // This is viewport-only; markers, fade, source WAV and session untouched.
+    bool centerViewportOnClick(int localX) {
+        if (!showLoops || !currentRow() || sampleFrames < 1 || viewSpan < 1)
+            return false;
+        const auto centered = liberty::loop_v026::centerOnPointer(
+            sampleFrames, viewStart, viewSpan, waveArea.getWidth(), localX);
+        if (!centered.valid) return false;
+        viewStart = centered.firstFrame;
+        syncPositionControl();
+        repaint();
+        return true;
     }
     bool focusLoopViewport() {
         if (!showLoops || !currentRow() || !loopEnabled.getToggleState()
