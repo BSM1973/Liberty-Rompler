@@ -1,3 +1,15 @@
+# Liberty ROMpler v0.34 — Répartition avant / dans / après la boucle
+
+Dans **SAMPLES > BOUCLES**, l'infobulle existante contient désormais la proportion **AVANT LA BOUCLE** et **APRÈS LA BOUCLE**, en complément de **PART DU WAV** de v0.33. Exemple : WAV de 96000 frames, boucle DÉBUT 24000 / FIN 48000 : **25,00 % avant**, **25,00 % dans**, **50,00 % après**. Calcul en frames, FIN exclusif ; aucun changement audio.
+
+Les informations et gestes précédents sont conservés. Aucun contrôle supplémentaire ni chevauchement ; deuxième ligne dans l'infobulle, caractères français accentués conservés. La somme est de 100 % avant les arrondis de l'affichage.
+
+Implémentation : `Source/LoopSegmentsV034.h` et `overlays/v015/SampleZoneView.h`. Vérifications : `tests/loop_segments_v034_test.cpp`, `tests/test_v034_loop_segments.py`, `docs/GUIDE_TEST_BOUCLES_V034.md`.
+
+**Statut : prévalidation v0.34, la v0.33 est la dernière compilation macOS confirmée.**
+
+---
+
 # Liberty ROMpler v0.33 — Pourcentage du WAV occupé par la boucle
 
 Dans **SAMPLES > BOUCLES**, l'infobulle existante **Boucle activée** indique maintenant **PART DU WAV**, le pourcentage du fichier audio réellement couvert par la boucle : `100 × (FIN - DÉBUT) / nombre total de frames du WAV`.

@@ -36,7 +36,7 @@ class LoopCoverageV033(unittest.TestCase):
             "const auto timing = loopTiming();",
             "const auto ratio = fadeRatio();",
             "const auto coverage = loopCoverage();",
-            "if (timing.valid && ratio.valid && coverage.valid)",
+            "if (timing.valid && ratio.valid && coverage.valid && segments.valid)",
             "PART DU WAV ",
             "juce::String(coverage.percentage, 2)",
             ' + " %");',
