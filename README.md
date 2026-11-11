@@ -1,3 +1,19 @@
+# Liberty ROMpler v0.24 — Option + glisser pour naviguer dans le WAV
+
+Dans **SAMPLES > BOUCLES**, **Option + glisser sur la forme d'onde** déplace désormais directement la fenêtre visible vers la gauche ou la droite, sans déplacer DÉBUT, FIN ou modifier FONDU.
+
+La navigation est **ancrée à la position initiale de la souris**, pour un geste réversible sans dérive, et s'arrête aux limites du fichier. Au zoom 1×, la vue reste immobile. La commande fonctionne même lorsque la boucle n'est pas activée, à condition qu'un échantillon soit sélectionné.
+
+Tous les autres gestes restent disponibles : glisser normalement un marqueur, **Maj + glisser** pour déplacer la boucle entière, Option + molette pour zoomer sous la souris, Option + double-clic pour cadrer la boucle, PAIRE, SAUT MIN, ±1/±10 et préécoute A/B.
+
+La fonction est non destructive, ne modifie aucun WAV, aucune banque ou preset et n'ajoute aucun bouton ni traitement dans le moteur audio. Elle respecte nos deux règles Liberty : **aucun chevauchement** et **accents français corrects**.
+
+Sources : `Source/LoopPanV024.h` et `overlays/v015/SampleZoneView.h`. Tests : `tests/loop_pan_v024_test.cpp` et `tests/test_v024_waveform_pan.py`. Guide Mac : `docs/GUIDE_TEST_BOUCLES_V024.md`.
+
+**Statut : v0.24 en validation. La v0.23 demeure la dernière compilation macOS confirmée jusqu'à réussite de la v0.24.**
+
+---
+
 # Liberty ROMpler v0.23 — Zoom centré sur le curseur
 
 Dans **SAMPLES > BOUCLES**, **Option + molette verticale** zoome désormais sur le point de la forme d'onde visé par la souris, plutôt que sur le milieu de la fenêtre. Le point reste sous le curseur aussi longtemps que les limites du WAV le permettent. La molette ordinaire conserve le zoom classique, et le défilement horizontal reste disponible.
