@@ -6,6 +6,8 @@
 #include "RoutingDSP.h"
 #include "Arpeggiator.h"
 #include "LoopPreviewVoiceV015.h"
+#include "MorphWeightsV036.h"
+#include <atomic>
 
 class LibertyRomplerAudioProcessor final : public juce::AudioProcessor {
 public:
@@ -33,6 +35,13 @@ public:
     juce::MidiKeyboardState& getKeyboard() { return keyboard; }
     liberty::ArpControls& getArpControls() { return arpSettings; }
     liberty::PerformanceControls& getControls() { return controls; }
+    // Real host-automatable JUCE parameters for Liberty MORPH.
+    juce::AudioParameterBool& getMorphActive() noexcept { return *morphActiveParam; }
+    juce::AudioParameterFloat& getMorphX() noexcept { return *morphXParam; }
+    juce::AudioParameterFloat& getMorphY() noexcept { return *morphYParam; }
+    juce::AudioParameterBool& getMorphMidiMode() noexcept { return *morphMidiParam; }
+    float morphDisplayX() const noexcept;
+    float morphDisplayY() const noexcept;
     juce::Result selectPreset(const juce::String& bankId, const juce::String& presetId);
     juce::String getSelectedBankId() const { return currentBankId; }
     juce::String getSelectedPresetId() const { return currentPresetId; }
@@ -63,6 +72,15 @@ private:
     liberty::PerformanceControls controls;
     std::array<liberty::MappedSynthesiser, 4> synths;
     juce::AudioBuffer<float> layerScratch;
+    // Owned by JUCE AudioProcessor after registration; host automation safe.
+    juce::AudioParameterBool* morphActiveParam = nullptr;
+    juce::AudioParameterFloat* morphXParam = nullptr;
+    juce::AudioParameterFloat* morphYParam = nullptr;
+    juce::AudioParameterBool* morphMidiParam = nullptr;
+    // MIDI CC 16/17 override only when MIDI mode is explicitly enabled.
+    std::atomic<float> midiMorphX {0.5f}, midiMorphY {0.5f};
+    std::array<juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear>, 4>
+        morphLayerGain;
     std::array<liberty::RoutingFXRack,5> fxRacks;
     juce::MidiKeyboardState keyboard;
     liberty::ArpControls arpSettings;

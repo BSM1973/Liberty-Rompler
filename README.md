@@ -1,3 +1,17 @@
+# Liberty ROMpler v0.36 — Liberty MORPH : fusion XY à quatre couches
+
+**Liberty MORPH** ajoute un nouvel onglet professionnel et un pad XY musical : A/B aux coins supérieurs, C/D aux coins inférieurs. Le moteur JUCE mélange réellement les **quatre couches après leurs effets individuels**, avec interpolation bilinéaire et rampes de gain de 45 ms, sans allouer de mémoire dans l'audio callback.
+
+Nouveaux paramètres automatisables dans AU/VST3 : **Liberty MORPH Active**, **Liberty MORPH X**, **Liberty MORPH Y** et **Liberty MORPH MIDI CC16/17**. En mode MIDI, CC16 pilote X, CC17 pilote Y. Glisser à la souris ou enregistrer une automation permet des transitions en cours de note. La position et le mode MIDI sont enregistrés avec le projet.
+
+**Compatible avec les anciennes sessions** : MORPH est OFF par défaut et le mixage d'origine est conservé. Aucune banque, aucun sample, aucun preset et aucun autre onglet n'est modifié. Nos deux règles demeurent : zéro chevauchement et accents français corrects.
+
+Sources : `Source/MorphWeightsV036.h`, `Source/LibertyMorphPadV036.h`, `overlays/v015/PluginProcessor.cpp/.h`, `scripts/apply_v036_morph.py`. Tests : `tests/morph_v036_test.cpp`, `tests/test_v036_morph.py`. Guide macOS : `docs/GUIDE_TEST_MORPH_V036.md`.
+
+**Statut : v0.36 en prévalidation, une seule livraison macOS prévue après tests. v0.35 est la dernière version macOS confirmée verte.**
+
+---
+
 # Liberty ROMpler v0.35 — Durées avant et après la boucle
 
 Dans **SAMPLES > BOUCLES**, la même infobulle ajoute **AVANT** et **APRÈS** en **frames et millisecondes**, à partir de la fréquence d'échantillonnage du WAV. Les parts en pourcentage introduites en v0.33–v0.34 sont conservées.
