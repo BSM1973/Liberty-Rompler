@@ -17,6 +17,7 @@
 #include "LoopViewHistoryV027.h"
 #include "LoopMarkerFocusV028.h"
 #include "LoopMarkerDetailV029.h"
+#include "LoopTimingV030.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -284,8 +285,17 @@ public:
                      mapArea.translated(0, mapArea.getHeight() + 2).withHeight(13), 10, false);
         } else {
             drawWaveform(g);
-            drawText(g, juce::String::fromUTF8(u8"Glisser les marqueurs ou r\u00e9gler le fondu"),
-                     waveArea.translated(0, waveArea.getHeight() + 2).withHeight(14), 10, false);
+            // Reuse the existing 14px hint line, so there is no new
+            // component or text overlap in the compact loop editor.
+            const auto timing = loopTiming();
+            const auto hint = timing.valid
+                ? (juce::String("BOUCLE ") + juce::String(timing.durationFrames)
+                   + " frames | " + juce::String(timing.durationMs, 2) + " ms")
+                : juce::String::fromUTF8(
+                    u8"Glisser les marqueurs ou r\u00e9gler le fondu");
+            drawText(g, hint,
+                     waveArea.translated(0, waveArea.getHeight() + 2).withHeight(14),
+                     10, false);
         }
     }
 
@@ -515,8 +525,17 @@ private:
     double lastAppliedZoom = 1.0;
     liberty::loop_v027::ViewHistory viewHistory;
     double loadedSeconds = 0.0;
+    double loadedSampleRate = 0.0;
     bool showLoops = false, loading = false, dirty = false;
 
+    liberty::loop_v030::Timing loopTiming() const noexcept {
+        if (!showLoops || !currentRow() || !loopEnabled.getToggleState())
+            return {};
+        return liberty::loop_v030::describe(
+            sampleFrames,
+            (int)sliders[4].getValue(), (int)sliders[5].getValue(),
+            (int)sliders[6].getValue(), loadedSampleRate);
+    }
     liberty::loop_v027::View currentViewport() const noexcept {
         return {sampleFrames, viewStart, viewSpan, lastAppliedZoom};
     }
@@ -667,6 +686,7 @@ private:
         thumbnail.clear();
         sampleFrames = 0;
         loadedSeconds = 0.0;
+        loadedSampleRate = 0.0;
         viewStart = viewSpan = 0;
         zoomSlider.setValue(1.0, juce::dontSendNotification);
         positionSlider.setValue(0.0, juce::dontSendNotification);
@@ -675,7 +695,10 @@ private:
             if (f.existsAsFile()) {
                 if (auto reader = std::unique_ptr<juce::AudioFormatReader>(formats.createReaderFor(f))) {
                     sampleFrames = liberty::samplezones::loadedFrames(reader->lengthInSamples, reader->sampleRate);
-                    if (reader->sampleRate > 0) loadedSeconds = (double)sampleFrames / reader->sampleRate;
+                    if (reader->sampleRate > 0) {
+                        loadedSampleRate = reader->sampleRate;
+                        loadedSeconds = (double)sampleFrames / reader->sampleRate;
+                    }
                 }
                 thumbnail.setSource(new juce::FileInputSource(f));
             }
@@ -1160,6 +1183,18 @@ private:
             : (dirty ? pendingMessage : juce::String("Session DAW / banques intactes"));
         feedback.setText(message, juce::dontSendNotification);
         feedback.setTooltip(message);
+        // Full frame and crossfade timing belongs in a tooltip so the
+        // existing single-line UI and all previous labels remain intact.
+        const auto timing = loopTiming();
+        if (timing.valid)
+            loopEnabled.setTooltip(juce::String("BOUCLE ")
+                + juce::String(timing.durationFrames) + " frames | "
+                + juce::String(timing.durationMs, 3) + " ms"
+                + " | FONDU " + juce::String(timing.fadeFrames)
+                + " frames | " + juce::String(timing.fadeMs, 3) + " ms");
+        else
+            loopEnabled.setTooltip(juce::String::fromUTF8(
+                u8"Dur\u00e9e de boucle indisponible"));
     }
     void updateLayout() {
         const auto b = getLocalBounds().reduced(12, 10);
