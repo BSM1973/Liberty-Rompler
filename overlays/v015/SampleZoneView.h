@@ -40,7 +40,8 @@ public:
         mappingMode.setButtonText("MAPPING");
         loopMode.setButtonText("BOUCLES");
         loopMode.setTooltip(juce::String::fromUTF8(
-            u8"Maj + glisser : d\u00e9placer la boucle. Option + double-clic : cadrer la boucle."));
+            u8"Maj + glisser la zone color\u00e9e pour d\u00e9placer toute la boucle."
+            u8" Option + double-clic : cadrer la boucle."));
         apply.setButtonText("APPLIQUER");
         reset.setButtonText("RESTAURER");
         snapStartButton.setButtonText(juce::String::fromUTF8(u8"Z\u00c9RO D\u00c9BUT"));
