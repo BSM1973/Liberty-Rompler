@@ -1,5 +1,5 @@
 #pragma once
-// Liberty ROMpler v0.40 — opt-in long sample streaming, real-time side only.
+// Liberty ROMpler v0.40 - opt-in long sample streaming, real-time side only.
 // JUCE decoder and disk I/O run exclusively in ReadAheadWorker's background thread.
 // One worker per streamed zone in this first integration; a shared bank pool is a
 // subsequent performance optimization, not a capability of this implementation.
