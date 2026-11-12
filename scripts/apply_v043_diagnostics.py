@@ -19,29 +19,44 @@ def patch(file, replacements):
     path.write_text(content, encoding="utf-8")
 
 
+patch("SampleEngine.h", [
+    ('#include "StreamedZoneV040.h"',
+     '#include "StreamedZoneV040.h"\n#include "StreamingDiagnosticsV043.h"'),
+    ('    void resetPerformanceSelectors() {\n'
+     '        const juce::ScopedLock guard(lock);\n'
+     '        robin.reset();\n'
+     '        activeArticulation.store(1, std::memory_order_relaxed);\n'
+     '    }',
+     '    void resetPerformanceSelectors() {\n'
+     '        const juce::ScopedLock guard(lock);\n'
+     '        robin.reset();\n'
+     '        activeArticulation.store(1, std::memory_order_relaxed);\n'
+     '    }\n'
+     '    void appendStreamingDiagnostics(liberty::stream_v043::Diagnostics& out) {\n'
+     '        const juce::ScopedLock guard(lock);\n'
+     '        for (auto* sound : sounds) {\n'
+     '            auto* mapped = dynamic_cast<MappedSampleSound*>(sound);\n'
+     '            if (mapped && mapped->isStreamed()) out.add(mapped->streamingHealth());\n'
+     '        }\n'
+     '    }'),
+])
+
 patch("PluginProcessor.h", [
     ('#include "CreativeHarmonyMidiV038.h"',
      '#include "CreativeHarmonyMidiV038.h"\n#include "StreamingDiagnosticsV043.h"'),
     ('    liberty::PerformanceControls& getControls() { return controls; }',
      '    liberty::PerformanceControls& getControls() { return controls; }\n'
-     '    liberty::stream_v043::Diagnostics getStreamingDiagnostics() const;'),
+     '    liberty::stream_v043::Diagnostics getStreamingDiagnostics();'),
 ])
 
 patch("PluginProcessor.cpp", [
     ('void LibertyRomplerAudioProcessor::prepareToPlay(double rate, int maximumExpectedSamplesPerBlock) {',
-     '''liberty::stream_v043::Diagnostics LibertyRomplerAudioProcessor::getStreamingDiagnostics() const {
+     '''liberty::stream_v043::Diagnostics LibertyRomplerAudioProcessor::getStreamingDiagnostics() {
     liberty::stream_v043::Diagnostics result;
-    // JUCE sound references remain alive for the snapshot even across preset reloads.
-    // Called by the editor's timer, NEVER in processBlock() or a voice callback.
-    for (const auto& synth : synths) {
-        const auto count = synth.getNumSounds();
-        for (int i = 0; i < count; ++i) {
-            auto sound = synth.getSound(i);
-            auto* mapped = dynamic_cast<liberty::MappedSampleSound*>(sound.get());
-            if (mapped && mapped->isStreamed())
-                result.add(mapped->streamingHealth());
-        }
-    }
+    // Read-side snapshot takes the existing synth sound lock briefly.
+    // Called by editor timer ONLY, not from processBlock() or audio voices.
+    for (auto& synth : synths)
+        synth.appendStreamingDiagnostics(result);
     return result;
 }
 
