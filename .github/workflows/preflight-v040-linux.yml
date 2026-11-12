@@ -7,6 +7,9 @@ on:
     branches: [feature/v040-long-wav-streaming]
     paths:
       - '.github/workflows/preflight-v040-linux.yml'
+      - 'Source/StreamedZoneV040.h'
+      - 'scripts/apply_v040_long_wav.py'
+      - 'tests/test_v040_streamed_audio.py'
   workflow_dispatch:
 
 permissions:
