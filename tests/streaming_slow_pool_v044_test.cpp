@@ -31,6 +31,10 @@ int main() {
     std::array<Zone,64> zones;
     for(auto& z:zones) assert(pool.registerZone(&z));
     assert(pool.registeredZones()==64);
+    // Old bank (64) + fully prepared next bank (64), still bounded.
+    std::array<Zone,64> staged;
+    for(auto& z:staged) assert(pool.registerZone(&z));
+    assert(pool.registeredZones()==128);
     Zone extra;
     assert(!pool.registerZone(&extra));
     for(auto& z:zones) { z.ordinary.store(400); z.urgent.store(1); }
@@ -49,6 +53,7 @@ int main() {
     // continuous backlog can starve the administrative unregister lock.
     for(auto& z:zones) z.ordinary.store(0,std::memory_order_relaxed);
     for(auto& z:zones) pool.unregisterZone(&z);
+    for(auto& z:staged) pool.unregisterZone(&z);
     assert(pool.registeredZones()==0);
     std::cout<<"v0.44 64-zone artificial 2ms slow worker priority OK\n";
 }
