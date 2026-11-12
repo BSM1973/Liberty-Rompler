@@ -1,3 +1,11 @@
+# Liberty ROMpler v0.41 - Workers de streaming mutualisés
+
+Le nouveau pool permet de lire les WAV longs de 64 zones en répartissant les décodages sur **quatre threads partagés** au lieu de créer un thread par zone. Les voix audio continuent d'utiliser un cache stéréo préalloué sans bloquer. Les échantillons de 20 secondes ou moins conservent leur moteur RAM. Le code reste sur une branche de développement jusqu'aux validations, notamment macOS AU/VST3/Standalone.
+
+Documentation : \`docs/STREAMING_WORKERS_V041.md\`, tests C++17 et suite de non-régression.
+
+---
+
 # Liberty ROMpler v0.40 — Premier raccordement du streaming disque
 
 Version expérimentale en branche de travail : les échantillons WAV longs (>20 secondes) sont routés vers le cache PCM v0.39 et son lecteur asynchrone. Les petits WAV restent lus en mémoire selon la voie historique de v0.38, sans changement de rendu.
