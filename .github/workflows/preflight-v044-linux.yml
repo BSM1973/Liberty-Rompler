@@ -30,6 +30,7 @@ on:
       - 'tools/generate_streaming_stress_v044.py'
       - 'tools/verify_stress_v044.py'
       - 'scripts/apply_v044_stress.py'
+      - 'scripts/apply_v044_pool_headroom.py'
       - 'tests/rompler_audio_stress_v044.cpp'
       - 'tests/streaming_slow_pool_v044_test.cpp'
       - 'tests/test_v044_stress.py'
@@ -186,6 +187,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 scripts/apply_v044_pool_headroom.py
+          grep -q 'zonesPerLane = 32' Source/StreamingPoolV041.h
           python3 scripts/apply_v044_stress.py
           grep -q 'LIBERTY_BUILD_STRESS_V044' CMakeLists.txt
           test -s tests/rompler_audio_stress_v044.cpp
