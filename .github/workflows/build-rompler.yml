@@ -270,6 +270,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # The original v0.39 source must remain pristine until v0.42 is applied.
+          # Do not let a prior preflight commit its generated cache overlay.
+          echo 'c1274b3dc39b1a2459ac5249acad3b80e71e6bc1e356005c538646b0a3beb27f  Source/StreamingPageCacheV039.h' | shasum -a 256 --check
           python3 scripts/apply_v039_streaming.py
           python3 scripts/apply_v040_long_wav.py
           python3 scripts/apply_v041_shared_pool.py
