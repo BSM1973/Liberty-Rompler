@@ -11,6 +11,7 @@ on:
       - 'Source/StreamingHealthV042.h'
       - 'scripts/apply_v042_streaming_health.py'
       - 'tests/test_v042_priority_health.py'
+      - 'tests/test_v041_shared_pool.py'
       - 'tests/streaming_priority_v042_test.cpp'
       - 'Source/StreamingPoolV041.h'
       - 'Source/StreamedZoneV040.h'
