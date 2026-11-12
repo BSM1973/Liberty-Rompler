@@ -53,7 +53,7 @@ class LongWavStreamingV040(unittest.TestCase):
         self.assertIn("streamGain+1.0f/64.0f",engine)
         self.assertIn("streamGain-1.0f/64.0f",engine)
         self.assertIn("left=lastStreamLeft; right=lastStreamRight;",engine)
-        self.assertIn("lastStreamLeft=lastStreamRight = 0.0f;",engine)
+        self.assertIn("lastStreamLeft = lastStreamRight = 0.0f;",engine)
 
     def test_reject_oversized_wav_without_silent_truncation(self):
         engine=(ROOT/"Source/SampleEngine.cpp").read_text("utf-8")
