@@ -144,6 +144,7 @@ edit("StreamedZoneV040.h", [
 ])
 
 edit("SampleEngine.h", [
+    ("#include <cstdint>", "#include <cstdint>\n#include <cmath>"),
     (
         "    void requestStreamAhead(double pos) const noexcept {",
         """    // Front-of-queue demand, available even during nonzero SLICE seeks.
