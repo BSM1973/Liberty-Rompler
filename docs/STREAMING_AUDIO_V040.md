@@ -18,7 +18,7 @@ Premier raccordement réel du lecteur anticipé v0.39 aux voix audio JUCE. Les W
 - Un worker par **zone** longue : architecture pilote, à mutualiser en pool pour les banques très importantes.
 - Maximum de 64 zones dans les quatre couches et 32 zones par preset, hérité des banques v1.
 - Au plus \`INT_MAX-2\` frames par source longue ; refus explicite plutôt que troncation silencieuse.
-- Affichage et édition des formes d'onde, édition des boucles et Smart Import utilisent encore les anciens chemins bornés à 20 s.
+- L'affichage et l'édition graphique des formes d'onde et boucles utilisent encore les anciens chemins bornés à 20 s. Le validateur et Smart Import du paquet v0.40 acceptent les WAV longs jusqu'à la limite int32 du moteur.
 - Le préchargement de l'attaque est synchrone sur le thread de chargement de preset ; à déporter plus tard dans une tâche asynchrone.
 - Pas de métrologie GUI des défauts de cache, ni d'assurance 64 voix à la fois en situation de disque lent.
 - **Ne pas commercialiser ou promettre le streaming professionnel sans validation en DAW.**
