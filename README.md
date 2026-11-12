@@ -1,10 +1,10 @@
-# Liberty ROMpler v0.42 - Priorites de streaming et diagnostics
+# Liberty ROMpler v0.42 — Priorités de streaming et diagnostics
 
-La v0.42 conserve les quatre workers partages de la v0.41, mais donne la priorite aux **pages indispensables a la lecture immediate**, y compris les positions de SLICE et les retours de boucles. Les workers privilegient ces demandes avant les pages anticipatives. Des compteurs audio atomiques permettent egalement de mesurer les pages lues, les pages manquantes, les demandes perdues et les blocs reellement sous-alimentes, sans changer l'interface existante.
+La v0.42 conserve les quatre workers partagés de la v0.41, mais donne la priorité aux **pages indispensables à la lecture immédiate**, y compris les positions de SLICE et les retours de boucles. Les workers privilégient ces demandes avant les pages anticipatives. Des compteurs audio atomiques permettent également de mesurer les lectures réussies, pages manquantes, demandes perdues et blocs réellement sous-alimentés, sans changer l'interface existante.
 
-**Etat : en validation sur la branche de fonctionnalite.** La v0.41 est la derniere compilation macOS verte. Les fonctionnalites doivent encore passer la prevalidation et le build macOS. L'ecoute sur disque lent et a forte polyphonie n'est pas encore verifiee.
+**Statut : 180 tests automatisés verts et compilation macOS Apple Silicon AU/VST3/Standalone réussie.** [Build GitHub v0.42 n° 43181190637](https://github.com/BSM1973/Liberty-Rompler/actions/runs/43181190637). L'écoute sur disques lents et à forte polyphonie reste à valider en conditions réelles avant toute revendication de streaming professionnel.
 
-Documentation : `docs/STREAMING_PRIORITY_V042.md`, test manuel `docs/GUIDE_TEST_STREAMING_V042.md`.
+Documentation : `docs/STREAMING_PRIORITY_V042.md`, protocole manuel `docs/GUIDE_TEST_STREAMING_V042.md`.
 
 ---
 
