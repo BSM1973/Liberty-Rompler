@@ -12,6 +12,7 @@ if(LIBERTY_BUILD_STRESS_V044)
     juce_add_console_app(LibertyStressV044 PRODUCT_NAME "Liberty Stress v0.44")
     juce_generate_juce_header(LibertyStressV044)
     target_sources(LibertyStressV044 PRIVATE tests/rompler_audio_stress_v044.cpp)
+    set_target_properties(LibertyStressV044 PROPERTIES OUTPUT_NAME "liberty-stress-v044")
     target_include_directories(LibertyStressV044 PRIVATE Source)
     target_compile_definitions(LibertyStressV044 PRIVATE
         JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0)
