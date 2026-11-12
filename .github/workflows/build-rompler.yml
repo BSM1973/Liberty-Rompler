@@ -304,6 +304,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 scripts/apply_v044_pool_headroom.py
+          grep -q 'zonesPerLane = 32' Source/StreamingPoolV041.h
           python3 scripts/apply_v044_stress.py
           grep -q 'LIBERTY_BUILD_STRESS_V044' CMakeLists.txt
 
