@@ -270,4 +270,29 @@ for test in ("tests/test_v038_creative.py", "tests/test_samples_v011.py"):
         raise SystemExit(f"v0.40 cannot migrate old test anchor: {test}")
     p.write_text(data.replace(old,new,1),encoding="utf-8")
 
+# Long WAVs are now accepted by the offline manifest validator and the
+# standalone Smart Import used by the v0.40 release.  The int32 voice loop
+# implementation rejects >2,147,483,645 frames rather than truncating.
+validator=ROOT/"tools/validate_banks.py"
+code=validator.read_text(encoding="utf-8")
+a="if frames < 2 or frames > wav.getframerate() * 20:"
+b="if frames < 2 or frames > 2147483645:"
+if code.count(a)!=1: raise SystemExit("v0.40: validator length anchor changed")
+validator.write_text(code.replace(a,b,1),encoding="utf-8")
+
+importer=ROOT/"tools/smart_import_v037.py"
+code=importer.read_text(encoding="utf-8")
+a="""    # The v0.36 engine retains its 20-second per-zone memory cap.
+    # Never silently truncate long sounds and call it disk streaming.
+    if frames > rate * 20:
+        raise ImportErrorWithContext(
+            "WAV longer than 20 s: dedicated disk streaming not active yet")"""
+b="""    # v0.40: long WAV pilot uses a streaming reader; source sample offsets
+    # remain int32 for loop edit compatibility. Never silently truncate.
+    if frames > 2147483645:
+        raise ImportErrorWithContext(
+            "WAV longer than supported int32 frame limit (2,147,483,645)")"""
+if code.count(a)!=1: raise SystemExit("v0.40: smart importer length anchor changed")
+importer.write_text(code.replace(a,b,1),encoding="utf-8")
+
 print("v0.40: real long-WAV streaming connected; RAM legacy unchanged.")

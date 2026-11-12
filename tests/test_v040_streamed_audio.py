@@ -68,6 +68,34 @@ class LongWavStreamingV040(unittest.TestCase):
             self.assertIn("std::move(reader)",code)
             self.assertNotIn("MappedSampleSound(zone, *reader",code)
 
+    def test_offline_long_wav_bank_import_and_validation(self):
+        import importlib.util
+        import json
+        import tempfile
+        import wave
+        with tempfile.TemporaryDirectory(prefix="liberty-v040-long-") as folder:
+            base=Path(folder)
+            bank=base/"LongPiano"
+            bank.mkdir()
+            wavfile=bank/"LongPiano_C4.wav"
+            frames=22050*21
+            with wave.open(str(wavfile),"wb") as wav:
+                wav.setnchannels(1)
+                wav.setsampwidth(2)
+                wav.setframerate(22050)
+                wav.writeframes(b"\x00\x00" * frames)
+            spec=importlib.util.spec_from_file_location(
+                "smart_import_v040",ROOT/"tools/smart_import_v037.py")
+            importer=importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(importer)
+            manifest=importer.create_manifest(bank,"long_piano","Long Piano")
+            self.assertEqual(manifest["presets"][0]["zones"][0]["root_note"],60)
+            (bank/"manifest.json").write_text(json.dumps(manifest),encoding="utf-8")
+            from tools.validate_banks import check_root
+            errors,n_banks,n_presets=check_root(base)
+            self.assertEqual(errors,[])
+            self.assertEqual((n_banks,n_presets),(1,1))
+
     def test_utf8_and_ui_unchanged(self):
         for path in ("Source/StreamedZoneV040.h","Source/SampleEngine.cpp",
                      "Source/SampleEngine.h","Source/PluginProcessor.cpp"):
