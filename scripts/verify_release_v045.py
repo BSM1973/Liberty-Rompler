@@ -65,6 +65,7 @@ def verify() -> None:
         "GENERATE_STREAMING_STRESS_V043.py",
         "SMART_IMPORT_V040.py",
         "SMART_IMPORT_V037.py",
+        "SMART_IMPORT_V045.py",
         "SMART_IMPORT_GUIDE_V037.md",
         "Banks/Factory-Starter/manifest.json",
         "Banks/Expansion-Demo/manifest.json",
