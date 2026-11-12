@@ -14,6 +14,10 @@ Les rapports JSON fournissent CPU de processus (workers compris), temps de rendu
 
 **Précision des mesures :** la CPU mesurée est celle du processus pendant le banc, et les temps de callback sont des durées murales de `processBlock`, pas une mesure de latence du DAC. Les « blocs sous-alimentés » proviennent de la télémétrie v0.43, pas de l'écoute directe. Une compilation et des tests unitaires verts ne démontrent pas une absence de clics en situation musicale.
 
+## Capacité transitoire sûre lors des changements de presets
+
+Le pool partagé conserve 4 workers, mais dispose désormais de 32 emplacements d'inscription par worker (128 au total). Il peut ainsi préparer un prochain preset de 64 zones alors qu'un précédent preset de 64 zones est encore présent. La limite de 64 zones actives **par preset** reste inchangée. Cette capacité est globale à l'ensemble des instances du module : plusieurs instances et la saturation du pool doivent toujours être testées. Ce correctif n'augmente pas la polyphonie nominale.
+
 ## Résistance aux disques lents
 Le test C++17 indépendant `streaming_slow_pool_v044_test.cpp` simule 64 zones et des lectures de 2 ms par demande pour vérifier la priorité des pages urgentes face aux pages anticipées. **Il ne simule pas un disque physique dans le moteur JUCE.**
 À vérifier manuellement sur macOS Apple Silicon avec SSD interne puis SSD externe/USB lent :
