@@ -1,3 +1,17 @@
+# Liberty ROMpler v0.45 — Sampling Studio
+
+**Version compilée macOS Apple Silicon : AU, VST3, Standalone — build GitHub vert** : https://github.com/BSM1973/Liberty-Rompler/actions/runs/43273487959
+
+**192 tests automatisés et intégration source validés** : https://github.com/BSM1973/Liberty-Rompler/actions/runs/43272992573. PR [#32](https://github.com/BSM1973/Liberty-Rompler/pull/32) fusionnée.
+
+**Sampling Studio** apporte : 128 zones par preset source (contre 32 auparavant), plafond de 128 zones actives entre quatre couches (contre 64), éditeur graphique **Key/Velocity** dans SAMPLES, menus Round Robin / articulations / keyswitch / fondu de vélocité, et sauvegarde non destructive dans l'état du DAW. Le bouton d'importation accepte les **banques Liberty v1 avec manifest.json et WAV**. L'importation automatique de WAV bruts directement dans le plug-in et la copie asynchrone de grosses banques restent à développer : [jalon B2 #33](https://github.com/BSM1973/Liberty-Rompler/issues/33).
+
+**Attention, qualification audio non achevée :** le banc macOS v0.45 (sans DAC) a enregistré 5 dépassements du budget de calcul et 11 sous-alimentations à 64 voix, et 1757 sous-alimentations en SLICE. Ces résultats de machines CI ne démontrent ni amélioration ni régression définitive par rapport à v0.44. Essais musicaux et disques lents indispensables. Voir [chantier streaming #25](https://github.com/BSM1973/Liberty-Rompler/issues/25). Ne pas qualifier le streaming de « professionnel » sans ces validations.
+
+Documentation : `docs/SAMPLING_STUDIO_V045.md`.
+
+---
+
 # Liberty ROMpler v0.44 — Banc de qualification audio natif
 
 **Prévalidation Linux verte** : 187 tests automatisés et contrats de régression intégrés.
