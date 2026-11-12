@@ -1,5 +1,5 @@
 #pragma once
-// Liberty ROMpler v0.41: four background streaming lanes shared by all zones.
+// Liberty ROMpler v0.42: prioritized critical-page reads across four shared lanes.
 // Registration and destruction happen OFF audio. The callback only uses
 // the existing v0.39 lock-free page cache. No disk operation under audio.
 #include <algorithm>
@@ -13,6 +13,7 @@
 namespace liberty::stream_v041 {
 class ZoneService {
 public:
+    virtual bool serviceUrgentRequest() noexcept { return false; }
     virtual bool serviceOneRequest() noexcept = 0;
 protected:
     virtual ~ZoneService() = default;
@@ -111,12 +112,20 @@ private:
                 const std::lock_guard<std::mutex> guard(lane.mutex);
                 if (lane.count > 0) {
                     const auto first = lane.cursor % lane.count;
-                    for (std::size_t i = 0; i < lane.count; ++i) {
-                        const auto slot = (first + i) % lane.count;
-                        if (lane.zones[slot] && lane.zones[slot]->serviceOneRequest()) {
-                            lane.cursor = (slot + 1) % lane.count;
-                            processed = true;
-                            break;
+                    // Critical playback pages from all zones take priority
+                    // over queued speculative read-ahead. Both passes execute
+                    // exclusively on a background decoder lane.
+                    for (std::size_t pass = 0; pass != 2 && !processed; ++pass) {
+                        for (std::size_t i = 0; i < lane.count; ++i) {
+                            const auto slot = (first + i) % lane.count;
+                            auto* zone = lane.zones[slot];
+                            if (zone && (pass == 0
+                                ? zone->serviceUrgentRequest()
+                                : zone->serviceOneRequest())) {
+                                lane.cursor = (slot + 1) % lane.count;
+                                processed = true;
+                                break;
+                            }
                         }
                     }
                 }
