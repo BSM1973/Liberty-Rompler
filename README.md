@@ -1,3 +1,16 @@
+# Liberty ROMpler v0.44 — Banc de qualification audio natif
+
+**Prévalidation Linux verte** : 187 tests automatisés et contrats de régression intégrés.
+**Compilation macOS AU/VST3/Standalone** : [suivi du build v0.44](https://github.com/BSM1973/Liberty-Rompler/actions/runs/43234911470) (résultat non confirmé à la rédaction).
+
+La v0.44 conserve le DSP v0.43 et ajoute un banc natif qui appelle réellement `processBlock` avec quatre couches et jusqu'à 64 voix. Un rapport JSON mesure la CPU du processus, le temps de rendu audio, les dépassements de budget, la mémoire RSS maximale, les erreurs et les sous-alimentations. Les scénarios couvrent aussi SLICE et les changements de presets **entre** callbacks. Le pool de quatre workers accepte jusqu'à 128 **inscriptions temporaires** afin de préparer 64 nouvelles zones pendant que 64 anciennes existent encore ; la limite par preset reste de 64 zones.
+
+**Limites de qualification :** les lectures ralenties de 2 ms sont simulées dans un test C++ séparé, et le test natif JUCE fonctionne sans DAC. Les résultats ne remplacent pas l'écoute en DAW ni un essai sur un véritable disque lent. Les performances de la v0.44 ne seront pas annoncées comme qualifiées avant lecture du rapport et tests musicaux réels.
+
+Documentation : `docs/GUIDE_STRESS_V044.md` · PR [#31](https://github.com/BSM1973/Liberty-Rompler/pull/31).
+
+---
+
 # Liberty ROMpler v0.42 — Priorités de streaming et diagnostics
 
 La v0.42 conserve les quatre workers partagés de la v0.41, mais donne la priorité aux **pages indispensables à la lecture immédiate**, y compris les positions de SLICE et les retours de boucles. Les workers privilégient ces demandes avant les pages anticipatives. Des compteurs audio atomiques permettent également de mesurer les lectures réussies, pages manquantes, demandes perdues et blocs réellement sous-alimentés, sans changer l'interface existante.
