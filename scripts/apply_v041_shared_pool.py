@@ -15,4 +15,17 @@ new="""        if (!streamed->start(attackFrames)) {
 if text.count(old)!=1:
     raise SystemExit(f"v0.41: expected one streamed start site, got {text.count(old)}")
 engine.write_text(text.replace(old,new,1),encoding="utf-8")
+# v0.40 test originally forbade all decoder calls inside StreamedZoneV040.
+# v0.41 deliberately puts decoding inside serviceOneRequest/loadPage, which
+# ONLY a worker lane invokes. Constrain the assertion to the callback API.
+legacy=ROOT/"tests/test_v040_streamed_audio.py"
+code=legacy.read_text(encoding="utf-8")
+old='self.assertNotIn("reader.readFrames(",source)'
+new=('self.assertNotIn("reader.readFrames(", source.split('
+     '"// Audio callback operations:",1)[1].split('
+     '"// Called from the single assigned pool lane",1)[0])')
+if code.count(old)!=1:
+    raise SystemExit("v0.41: unexpected legacy streaming callback safety test")
+legacy.write_text(code.replace(old,new,1),encoding="utf-8")
+
 print("v0.41: 4 shared streaming workers connected, missing slot is explicit failure.")
