@@ -1,3 +1,17 @@
+# Liberty ROMpler v0.40 — Premier raccordement du streaming disque
+
+Version expérimentale en branche de travail : les échantillons WAV longs (>20 secondes) sont routés vers le cache PCM v0.39 et son lecteur asynchrone. Les petits WAV restent lus en mémoire selon la voie historique de v0.38, sans changement de rendu.
+
+Chaque son long précharge 0,75 seconde d'attaque (hors thread audio), puis joue via les pages stéréo 4096 frames décodées sur un thread séparé. Les voix ne demandent les pages que par opérations atomiques ; en cas de retard, elles effectuent un fondu de 64 échantillons vers le silence et rétablissent progressivement le niveau.
+
+**Limites de ce pilote** : un thread par zone longue (non adapté à de gigantesques banques), maximum 64 zones au total sur quatre couches, tranches et marqueurs encore en int32, source >2^31 frames rejetée, affichage de forme d'onde et Smart Import toujours soumis à l'ancienne limite, préchargement d'attaque exécuté sur l'appelant. Les grands fichiers ne doivent pas être annoncés comme pleinement pris en charge tant que les tests audio/macOS ne sont pas terminés.
+
+Compatibilité : AU/VST3/Standalone macOS à compiler, état des anciens projets inchangé, MORPH et CRÉATIF conservés, deux règles UI inchangées : aucun chevauchement, caractères français corrects.
+
+Le pilote est raccordé par `scripts/apply_v040_long_wav.py` **après** les patchs v0.38 et l'extraction des sources v0.39. Ce travail n'est pas encore livré. Voir `docs/STREAMING_AUDIO_V040.md`.
+
+---
+
 # Liberty ROMpler v0.39 — Hybrid Workstation, streaming disque A1
 
 Premier jalon de **streaming disque professionnel** : cache PCM stéréo préalloué, demandes multi-producteurs non bloquantes, lecteur anticipé hors thread audio, index de frames en 64 bits, et adaptateur JUCE pour la lecture par pages. Les tests stress couvrent les publications stéréo concurrentes, les positions virtuelles supérieures à deux heures et les débordements de file.
