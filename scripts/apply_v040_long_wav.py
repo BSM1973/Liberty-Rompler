@@ -259,4 +259,15 @@ patch("PluginProcessor.cpp", [
     ('new liberty::MappedSampleSound(zone, *reader, controls.layers[(size_t)i], i,',
      'new liberty::MappedSampleSound(zone, std::move(reader), controls.layers[(size_t)i], i,'),
 ])
+# Two pre-existing historical tests check the exact old constructor syntax,
+# not playback behavior. Their assertions are updated to the move-owned reader.
+for test in ("tests/test_v038_creative.py", "tests/test_samples_v011.py"):
+    p=ROOT/test
+    data=p.read_text(encoding="utf-8")
+    old='new liberty::MappedSampleSound(zone, *reader'
+    new='new liberty::MappedSampleSound(zone, std::move(reader)'
+    if data.count(old)!=1:
+        raise SystemExit(f"v0.40 cannot migrate old test anchor: {test}")
+    p.write_text(data.replace(old,new,1),encoding="utf-8")
+
 print("v0.40: real long-WAV streaming connected; RAM legacy unchanged.")
