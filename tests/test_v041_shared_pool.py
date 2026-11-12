@@ -50,7 +50,8 @@ class SharedPoolV041(unittest.TestCase):
         self.assertIn("zonesPerLane = 16",pool)
         self.assertIn("if (best == lanesCount) return false",pool)
         self.assertIn("lane.zones[--lane.count] = nullptr;",pool)
-        self.assertIn("lane.zones[slot]->serviceOneRequest()",pool)
+        self.assertIn("zone->serviceOneRequest()",pool)
+        self.assertIn("zone->serviceUrgentRequest()",pool)
         self.assertIn("const std::lock_guard<std::mutex> guard(lane.mutex)",pool)
 
     def test_old_presets_and_utf8_untouched(self):
