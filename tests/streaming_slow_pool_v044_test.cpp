@@ -45,6 +45,9 @@ int main() {
     assert(ready);
     assert(steady_clock::now()-start<seconds(2));
     for(auto& z:zones) assert(z.ordinary.load(std::memory_order_relaxed)>0);
+    // Stop synthetic slow work before draining registrations; otherwise a
+    // continuous backlog can starve the administrative unregister lock.
+    for(auto& z:zones) z.ordinary.store(0,std::memory_order_relaxed);
     for(auto& z:zones) pool.unregisterZone(&z);
     assert(pool.registeredZones()==0);
     std::cout<<"v0.44 64-zone artificial 2ms slow worker priority OK\n";
