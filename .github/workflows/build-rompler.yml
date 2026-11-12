@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build-macos:
-    name: macOS Apple Silicon - UI v0.46 / AU + VST3 + Standalone
+    name: macOS Apple Silicon - UI v0.47 / AU + VST3 + Standalone
     runs-on: macos-15
     timeout-minutes: 50
 
@@ -199,13 +199,13 @@ jobs:
           set -euo pipefail
           git show HEAD:scripts/install_mac.command > scripts/install_mac.command
           git show HEAD:scripts/DIAGNOSTIC_MAC.command > scripts/DIAGNOSTIC_MAC.command
-          git show HEAD:scripts/verify_release_v046.py > scripts/verify_release_v046.py
+          git show HEAD:scripts/verify_release_v047.py > scripts/verify_release_v047.py
           git show HEAD:docs/GUIDE_TEST_BOUCLES_V014.md > docs/GUIDE_TEST_BOUCLES_V014.md
           bash -n scripts/install_mac.command
           bash -n scripts/DIAGNOSTIC_MAC.command
-          python3 -m py_compile scripts/verify_release_v046.py
+          python3 -m py_compile scripts/verify_release_v047.py
 
-      - name: Apply reviewed v0.46 SAMPLES loop editor, preview audio and fade markers
+      - name: Apply reviewed v0.47 SAMPLES loop editor, preview audio and fade markers
         shell: bash
         run: |
           set -euo pipefail
@@ -216,7 +216,7 @@ jobs:
           test -f Source/SampleZoneView.h
           test -f Source/PluginProcessor.cpp
 
-      - name: Apply v0.46 limited-memory sample preview and A/B analysis
+      - name: Apply v0.47 limited-memory sample preview and A/B analysis
         shell: bash
         run: |
           set -euo pipefail
@@ -225,7 +225,7 @@ jobs:
           grep -q 'measureRawSeamDifference' Source/PluginProcessor.cpp
           ! grep -q 'AudioBuffer<float> decoded(channels, total)' Source/PluginProcessor.cpp
 
-      - name: Apply v0.46 long/short seam audition and precise controls
+      - name: Apply v0.47 long/short seam audition and precise controls
         shell: bash
         run: |
           set -euo pipefail
@@ -234,7 +234,7 @@ jobs:
           grep -q 'planAudition(' Source/PluginProcessor.cpp
           grep -q 'Option + clic = 10 frames' Source/SampleZoneView.h
 
-      - name: Integrate Liberty MORPH v0.46 engine and XY page
+      - name: Integrate Liberty MORPH v0.47 engine and XY page
         shell: bash
         run: |
           set -euo pipefail
@@ -244,7 +244,7 @@ jobs:
           grep -q 'morphLayerGain' Source/PluginProcessor.cpp
           grep -q 'morphPad.setBounds' Source/PluginEditor.cpp
 
-      - name: Integrate v0.46 Round Robin Keyswitch and velocity crossfades
+      - name: Integrate v0.47 Round Robin Keyswitch and velocity crossfades
         shell: bash
         run: |
           set -euo pipefail
@@ -266,7 +266,7 @@ jobs:
           grep -q 'harmonyMidi.process(midi,' Source/PluginProcessor.cpp
           grep -q 'makeTab(creativeTab' Source/PluginEditor.cpp
 
-      - name: Prepare and connect v0.39 / v0.46 long WAV streaming
+      - name: Prepare and connect v0.39 / v0.47 long WAV streaming
         shell: bash
         run: |
           set -euo pipefail
@@ -288,7 +288,7 @@ jobs:
           grep -q '2147483645' tools/smart_import_v037.py
           grep -q '2147483645' tools/validate_banks.py
 
-      - name: Integrate v0.46 read-only diagnostics into REGLAGES
+      - name: Integrate v0.47 read-only diagnostics into REGLAGES
         shell: bash
         run: |
           set -euo pipefail
@@ -300,7 +300,7 @@ jobs:
           grep -q 'streamingDiagnostics.setBounds' Source/PluginEditor.cpp
           grep -q 'streamingDiagnostics.setVisible' Source/PluginEditor.cpp
 
-      - name: Add v0.46 native engine stress application (no plugin DSP changes)
+      - name: Add v0.47 native engine stress application (no plugin DSP changes)
         shell: bash
         run: |
           set -euo pipefail
@@ -309,7 +309,7 @@ jobs:
           python3 scripts/apply_v044_stress.py
           grep -q 'LIBERTY_BUILD_STRESS_V044' CMakeLists.txt
 
-      - name: Apply verified v0.46 Sampling Studio engine, editing and import
+      - name: Apply verified v0.47 Sampling Studio engine, editing and import
         shell: bash
         run: |
           set -euo pipefail
@@ -327,7 +327,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Integrate checksum-verified v0.46 Hybrid Engine (opt-in)
+      - name: Integrate checksum-verified v0.47 Hybrid Engine (opt-in)
         shell: bash
         run: |
           set -euo pipefail
@@ -335,6 +335,15 @@ jobs:
           grep -q 'HybridEngineV046.h' Source/PluginProcessor.h
           grep -q 'hybrid.render(left,right,pos,at-pos,hybridParams)' Source/PluginProcessor.cpp
           grep -q 'LIBERTY_BUILD_HYBRID_TEST_V046' CMakeLists.txt
+
+      - name: Integrate checked v0.47 per-layer granular and native JUCE bench fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/apply_v047_bundle.py
+          grep -q 'libertyLayerGrainWet' Source/PluginProcessor.cpp
+          grep -q 'LIBERTY_BUILD_GRAIN_TEST_V047' CMakeLists.txt
+          grep -q 'GranularBlendV047.h' Source/SampleEngine.cpp
 
       - name: Validate bank files, Unicode and no-overlap geometry
         shell: bash
@@ -365,7 +374,8 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
             -DLIBERTY_BUILD_STRESS_V044=ON \
-            -DLIBERTY_BUILD_HYBRID_TEST_V046=ON
+            -DLIBERTY_BUILD_HYBRID_TEST_V046=ON \
+            -DLIBERTY_BUILD_GRAIN_TEST_V047=ON
 
       - name: Compile AU, VST3 and standalone
         shell: bash
@@ -401,11 +411,11 @@ jobs:
             v044-reports/slice.json --output v044-reports/qualification.json
           cat v044-reports/qualification.json >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Preserve native v0.46 stress telemetry
+      - name: Preserve native v0.47 stress telemetry
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-v0.46-native-stress-results
+          name: Liberty-Rompler-v0.47-native-stress-results
           path: v044-reports/*.json
           if-no-files-found: ignore
           retention-days: 30
@@ -432,26 +442,61 @@ jobs:
           assert d["voices_started"]==64 and d["state_recall"]
           assert d["nonfinite_samples"]==0 and d["signal_peak"]>0
           assert math.isfinite(d["process_cpu_pct"]) and d["peak_rss_mb"]>0
-          print("Hybrid v0.46 native stress metrics:",d)
+          print("Hybrid v0.47 native stress metrics:",d)
           if d["callback_over_budget"]!=0:
               print("Warning: hybrid callback budget exceeded. Further optimization needed.")
           PY
           cat v046-reports/hybrid-64.json >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Preserve native v0.46 hybrid report
+      - name: Preserve native v0.47 hybrid report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-v0.46-native-hybrid-results
+          name: Liberty-Rompler-v0.47-native-hybrid-results
           path: v046-reports/hybrid-64.json
           if-no-files-found: ignore
           retention-days: 30
 
-      - name: Package UI v0.46, installer, diagnostic and both demo banks
+      - name: Compile native JUCE granular bank-render and project recall test
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.46"
+          cmake --build build --config Release --target LibertyGranularV047 --parallel 2
+          test -n "$(find build -type f -name liberty-granular-v047 -print -quit)"
+
+      - name: Verify actual granular audio against factory samples and JSON report
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p v047-grain-reports
+          exe="$(find build -type f -name liberty-granular-v047 -print -quit)"
+          test -n "$exe"
+          "$exe" "$GITHUB_WORKSPACE/Banks" v047-grain-reports/native-granular.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("v047-grain-reports/native-granular.json").read_text())
+          assert d["project_recall"] and d["nonfinite_samples"]==0
+          assert d["sum_difference"]>0.1 and d["dry_energy"]>1
+          assert d["wet_energy"]>1 and d["peak"]<4
+          print("Native granular sample validation:",d)
+          PY
+          cat v047-grain-reports/native-granular.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve native v0.47 granular bank-render report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Liberty-Rompler-v0.47-native-granular-results
+          path: v047-grain-reports/*.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Package UI v0.47, installer, diagnostic and both demo banks
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.47"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -499,6 +544,7 @@ jobs:
           cp tools/generate_streaming_stress_v044.py "$target/GENERATE_STREAMING_STRESS_V044.py"
           cp docs/SAMPLING_STUDIO_V045.md "$target/SAMPLING_STUDIO_V045.md"
           cp docs/HYBRID_ENGINE_V046.md "$target/HYBRID_ENGINE_V046.md"
+          cp docs/HYBRID_GRANULAR_V047.md "$target/HYBRID_GRANULAR_V047.md"
           cp tools/smart_import_v037.py "$target/SMART_IMPORT_V045.py"
           cp docs/GUIDE_STRESS_V044.md "$target/GUIDE_STRESS_V044.md"
           cp tools/smart_import_v037.py "$target/SMART_IMPORT_V040.py"
@@ -509,33 +555,33 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.46 Liberty-Rompler-macOS-arm64-UI-v0.46.zip)
-          hdiutil create -volname "Liberty Rompler UI v0.46" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.47 Liberty-Rompler-macOS-arm64-UI-v0.47.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.47" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.46.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.46.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.46.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.47.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.47.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.47.dmg
 
-      - name: Preserve editable v0.46 source in the same artifact
+      - name: Preserve editable v0.47 source in the same artifact
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf dist/Liberty-Rompler-source-v0.46.tar.gz Source tests tools docs scripts overlays assets/v038 assets/v039 assets/v045 assets/v046 CMakeLists.txt
-          test -s dist/Liberty-Rompler-source-v0.46.tar.gz
+          tar -czf dist/Liberty-Rompler-source-v0.47.tar.gz Source tests tools docs scripts overlays assets/v038 assets/v039 assets/v045 assets/v046 assets/v047 CMakeLists.txt
+          test -s dist/Liberty-Rompler-source-v0.47.tar.gz
 
       - name: Verify AU VST3 Standalone and full release archives
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/verify_release_v046.py
+          python3 scripts/verify_release_v047.py
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-UI-v0.46-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.47-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.46.zip
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.46.dmg
-            dist/Liberty-Rompler-source-v0.46.tar.gz
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.47.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.47.dmg
+            dist/Liberty-Rompler-source-v0.47.tar.gz
           if-no-files-found: error
           retention-days: 30
