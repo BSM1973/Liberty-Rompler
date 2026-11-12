@@ -182,6 +182,7 @@ def verify() -> None:
                      "scripts/apply_v042_streaming_health.py",
                      "scripts/apply_v043_diagnostics.py",
                      "scripts/apply_v044_stress.py",
+                     "scripts/apply_v044_pool_headroom.py",
                      "tests/test_v044_slow_pool.py",
                      "tests/test_v044_stress.py",
                      "tests/test_v043_diagnostics.py",
