@@ -66,20 +66,6 @@ public:
         return false;
     }
 
-    // Approximate residency check: atomic metadata only, no buffer access.
-    // A concurrent eviction can invalidate the result immediately, which is
-    // acceptable for scheduling, never for reading sample data.
-    bool isPageResident(std::int64_t pageIndex) const noexcept {
-        if (pageIndex < 0) return false;
-        for (std::size_t i = 0; i < PageSlots; ++i) {
-            const auto& slot = pages[i];
-            if (slot.state.load(std::memory_order_seq_cst) == 2 &&
-                slot.page.load(std::memory_order_seq_cst) == pageIndex)
-                return true;
-        }
-        return false;
-    }
-
     // Real-time safe MPSC request mailbox. If full, the caller must keep playing
     // its prefetched attack or use a controlled underflow, never block for disk.
     bool requestPage(std::int64_t pageIndex) noexcept {
