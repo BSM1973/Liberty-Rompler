@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build-macos:
-    name: macOS Apple Silicon - UI v0.41 / AU + VST3 + Standalone
+    name: macOS Apple Silicon - UI v0.42 / AU + VST3 + Standalone
     runs-on: macos-15
     timeout-minutes: 50
 
@@ -199,13 +199,13 @@ jobs:
           set -euo pipefail
           git show HEAD:scripts/install_mac.command > scripts/install_mac.command
           git show HEAD:scripts/DIAGNOSTIC_MAC.command > scripts/DIAGNOSTIC_MAC.command
-          git show HEAD:scripts/verify_release_v041.py > scripts/verify_release_v041.py
+          git show HEAD:scripts/verify_release_v042.py > scripts/verify_release_v042.py
           git show HEAD:docs/GUIDE_TEST_BOUCLES_V014.md > docs/GUIDE_TEST_BOUCLES_V014.md
           bash -n scripts/install_mac.command
           bash -n scripts/DIAGNOSTIC_MAC.command
-          python3 -m py_compile scripts/verify_release_v041.py
+          python3 -m py_compile scripts/verify_release_v042.py
 
-      - name: Apply reviewed v0.41 SAMPLES loop editor, preview audio and fade markers
+      - name: Apply reviewed v0.42 SAMPLES loop editor, preview audio and fade markers
         shell: bash
         run: |
           set -euo pipefail
@@ -216,7 +216,7 @@ jobs:
           test -f Source/SampleZoneView.h
           test -f Source/PluginProcessor.cpp
 
-      - name: Apply v0.41 limited-memory sample preview and A/B analysis
+      - name: Apply v0.42 limited-memory sample preview and A/B analysis
         shell: bash
         run: |
           set -euo pipefail
@@ -225,7 +225,7 @@ jobs:
           grep -q 'measureRawSeamDifference' Source/PluginProcessor.cpp
           ! grep -q 'AudioBuffer<float> decoded(channels, total)' Source/PluginProcessor.cpp
 
-      - name: Apply v0.41 long/short seam audition and precise controls
+      - name: Apply v0.42 long/short seam audition and precise controls
         shell: bash
         run: |
           set -euo pipefail
@@ -234,7 +234,7 @@ jobs:
           grep -q 'planAudition(' Source/PluginProcessor.cpp
           grep -q 'Option + clic = 10 frames' Source/SampleZoneView.h
 
-      - name: Integrate Liberty MORPH v0.41 engine and XY page
+      - name: Integrate Liberty MORPH v0.42 engine and XY page
         shell: bash
         run: |
           set -euo pipefail
@@ -244,7 +244,7 @@ jobs:
           grep -q 'morphLayerGain' Source/PluginProcessor.cpp
           grep -q 'morphPad.setBounds' Source/PluginEditor.cpp
 
-      - name: Integrate v0.41 Round Robin Keyswitch and velocity crossfades
+      - name: Integrate v0.42 Round Robin Keyswitch and velocity crossfades
         shell: bash
         run: |
           set -euo pipefail
@@ -266,13 +266,17 @@ jobs:
           grep -q 'harmonyMidi.process(midi,' Source/PluginProcessor.cpp
           grep -q 'makeTab(creativeTab' Source/PluginEditor.cpp
 
-      - name: Prepare and connect v0.39 / v0.41 long WAV streaming
+      - name: Prepare and connect v0.39 / v0.42 long WAV streaming
         shell: bash
         run: |
           set -euo pipefail
           python3 scripts/apply_v039_streaming.py
           python3 scripts/apply_v040_long_wav.py
           python3 scripts/apply_v041_shared_pool.py
+          python3 scripts/apply_v042_streaming_health.py
+          test -s Source/StreamingHealthV042.h
+          grep -q 'requestStreamCritical(position)' Source/SampleEngine.cpp
+          grep -q 'serviceUrgentRequest()' Source/StreamingPoolV041.h
           test -s Source/StreamingPoolV041.h
           grep -q "if (!streamed->start(attackFrames))" Source/SampleEngine.cpp
           test -s Source/StreamedZoneV040.h
@@ -323,11 +327,11 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
-      - name: Package UI v0.41, installer, diagnostic and both demo banks
+      - name: Package UI v0.42, installer, diagnostic and both demo banks
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.41"
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.42"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -368,6 +372,8 @@ jobs:
           cp docs/STREAMING_AUDIO_V040.md "$target/STREAMING_AUDIO_V040.md"
           cp docs/STREAMING_WORKERS_V041.md "$target/STREAMING_WORKERS_V041.md"
           cp docs/GUIDE_TEST_WORKERS_V041.md "$target/GUIDE_TEST_WORKERS_V041.md"
+          cp docs/STREAMING_PRIORITY_V042.md "$target/STREAMING_PRIORITY_V042.md"
+          cp docs/GUIDE_TEST_STREAMING_V042.md "$target/GUIDE_TEST_STREAMING_V042.md"
           cp tools/smart_import_v037.py "$target/SMART_IMPORT_V040.py"
           cp tools/smart_import_v037.py "$target/SMART_IMPORT_V037.py"
           cp docs/MULTISAMPLE_V037.md "$target/SMART_IMPORT_GUIDE_V037.md"
@@ -376,33 +382,33 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.41 Liberty-Rompler-macOS-arm64-UI-v0.41.zip)
-          hdiutil create -volname "Liberty Rompler UI v0.41" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.42 Liberty-Rompler-macOS-arm64-UI-v0.42.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.42" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.41.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.41.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.41.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.42.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.42.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.42.dmg
 
-      - name: Preserve editable v0.41 source in the same artifact
+      - name: Preserve editable v0.42 source in the same artifact
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf dist/Liberty-Rompler-source-v0.41.tar.gz Source tests tools docs scripts overlays assets/v038 assets/v039 CMakeLists.txt
-          test -s dist/Liberty-Rompler-source-v0.41.tar.gz
+          tar -czf dist/Liberty-Rompler-source-v0.42.tar.gz Source tests tools docs scripts overlays assets/v038 assets/v039 CMakeLists.txt
+          test -s dist/Liberty-Rompler-source-v0.42.tar.gz
 
       - name: Verify AU VST3 Standalone and full release archives
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/verify_release_v041.py
+          python3 scripts/verify_release_v042.py
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-UI-v0.41-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.42-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.41.zip
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.41.dmg
-            dist/Liberty-Rompler-source-v0.41.tar.gz
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.42.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.42.dmg
+            dist/Liberty-Rompler-source-v0.42.tar.gz
           if-no-files-found: error
           retention-days: 30
