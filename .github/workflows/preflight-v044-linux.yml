@@ -7,6 +7,7 @@ on:
     branches: [feature/v044-native-stress-qualification]
     paths:
       - '.github/workflows/preflight-v044-linux.yml'
+      - '.github/workflows/build-rompler.yml'
       - 'Source/StreamingPoolV041.h'
       - 'Source/StreamingHealthV042.h'
       - 'scripts/apply_v042_streaming_health.py'
