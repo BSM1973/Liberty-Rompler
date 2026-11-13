@@ -200,11 +200,12 @@ jobs:
           set -euo pipefail
           git show HEAD:scripts/install_mac.command > scripts/install_mac.command
           git show HEAD:scripts/DIAGNOSTIC_MAC.command > scripts/DIAGNOSTIC_MAC.command
-          git show HEAD:scripts/verify_release_v047.py > scripts/verify_release_v047.py
+          git show HEAD:scripts/verify_release_v048.py > scripts/verify_release_v048.py
           git show HEAD:docs/GUIDE_TEST_BOUCLES_V014.md > docs/GUIDE_TEST_BOUCLES_V014.md
           bash -n scripts/install_mac.command
           bash -n scripts/DIAGNOSTIC_MAC.command
-          python3 -m py_compile scripts/verify_release_v047.py
+          python3 -m py_compile scripts/verify_release_v048.py
+          grep -Fq 'BASE = "Liberty-Rompler-macOS-arm64-UI-v0.48"' scripts/verify_release_v048.py
 
       - name: Apply reviewed v0.48 SAMPLES loop editor, preview audio and fade markers
         shell: bash
@@ -615,7 +616,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/verify_release_v047.py
+          python3 scripts/verify_release_v048.py
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
