@@ -4,13 +4,14 @@ name: Liberty ROMpler v0.48 - Linux preflight (no macOS build)
 
 on:
   push:
-    branches: [feature/v048-spectral-fft-resynthesis, feature/v048-clang-portability-fix, feature/v048-spectral-native-bench-fix]
+    branches: [feature/v048-spectral-fft-resynthesis, feature/v048-clang-portability-fix, feature/v048-spectral-native-bench-fix, fix/v048-release-verifier]
     paths:
       - '.github/workflows/preflight-v048-linux.yml'
       - 'assets/v048/bundle.b64'
       - 'scripts/apply_v048_bundle.py'
       - 'scripts/fix_v048_native_bench.py'
       - 'scripts/verify_release_v048.py'
+      - 'tests/test_v048_release_workflow.py'
       - '.github/workflows/build-rompler.yml'
       - 'scripts/apply_v046_bundle.py'
       - 'assets/v046/source-patch.b64'
@@ -587,7 +588,7 @@ jobs:
           set -euo pipefail
           mkdir -p v048-preflight
           {
-            echo "Liberty ROMpler v0.46 Linux preflight"
+            echo "Liberty ROMpler v0.48 Linux preflight"
             echo "Reconstruction: $RECONSTRUCT"
             echo "Integration: $INTEGRATE"
             echo "Windowed preview patch: $OPTIMIZE"
