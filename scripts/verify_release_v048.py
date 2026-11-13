@@ -206,6 +206,7 @@ def verify() -> None:
                      "assets/v045/source-patch.b64",
                      "assets/v048/bundle.b64",
                      "scripts/apply_v048_bundle.py",
+                     "scripts/fix_v048_native_bench.py",
                      "scripts/apply_v048_spectral.py",
                      "tools/verify_spectral_v048.py",
                       "assets/v046/source-patch.b64",

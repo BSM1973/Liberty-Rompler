@@ -4,11 +4,12 @@ name: Liberty ROMpler v0.48 - Linux preflight (no macOS build)
 
 on:
   push:
-    branches: [feature/v048-spectral-fft-resynthesis, feature/v048-clang-portability-fix]
+    branches: [feature/v048-spectral-fft-resynthesis, feature/v048-clang-portability-fix, feature/v048-spectral-native-bench-fix]
     paths:
       - '.github/workflows/preflight-v048-linux.yml'
       - 'assets/v048/bundle.b64'
       - 'scripts/apply_v048_bundle.py'
+      - 'scripts/fix_v048_native_bench.py'
       - 'scripts/verify_release_v048.py'
       - '.github/workflows/build-rompler.yml'
       - 'scripts/apply_v046_bundle.py'
@@ -262,6 +263,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/apply_v048_bundle.py
+          python3 scripts/fix_v048_native_bench.py
+          grep -Fq 'peak=std::max(peak,std::max(std::abs(double(a)),std::abs(double(c))));' tests/spectral_native_v048.cpp
           test -s Source/SpectralEngineV048.h
           test -s tests/spectral_engine_v048_test.cpp
           test -s tests/spectral_native_v048.cpp

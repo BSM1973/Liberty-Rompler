@@ -351,6 +351,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/apply_v048_bundle.py
+          python3 scripts/fix_v048_native_bench.py
+          grep -Fq 'peak=std::max(peak,std::max(std::abs(double(a)),std::abs(double(c))));' tests/spectral_native_v048.cpp
           test -s Source/SpectralEngineV048.h
           grep -q 'libertySpectralEnabled' Source/PluginProcessor.cpp
           grep -q 'spectral.render(left,right' Source/PluginProcessor.cpp
