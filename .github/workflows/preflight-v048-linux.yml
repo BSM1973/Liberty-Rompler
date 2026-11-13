@@ -588,7 +588,7 @@ jobs:
           set -euo pipefail
           mkdir -p v048-preflight
           {
-            echo "Liberty ROMpler v0.46 Linux preflight"
+            echo "Liberty ROMpler v0.48 Linux preflight"
             echo "Reconstruction: $RECONSTRUCT"
             echo "Integration: $INTEGRATE"
             echo "Windowed preview patch: $OPTIMIZE"
