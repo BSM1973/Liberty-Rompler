@@ -15,8 +15,8 @@ import tarfile
 
 ROOT=Path(__file__).resolve().parents[1]
 ARCHIVE=ROOT/"assets/v048/bundle.b64"
-EXPECTED_SIZE=14952
-EXPECTED_SHA="76dfdd5f2063e11e43bd63c22184180d06369b93dbfd3c2fa0801578d9d9d614"
+EXPECTED_SIZE=14932
+EXPECTED_SHA="21bede894a97152420eddfb8ae3cd473ccbe2569d421d141768c72d2a092e1a1"
 FILES={
     "Source/SpectralEngineV048.h",
     "tests/spectral_engine_v048_test.cpp",

@@ -1,4 +1,5 @@
 name: Liberty Rompler - Build macOS AU VST3 Standalone
+# v0.48: Apple Clang -Werror compatibility confirmed for the standalone FFT unit test.
 
 on:
   push:

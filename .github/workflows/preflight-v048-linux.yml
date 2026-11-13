@@ -4,7 +4,7 @@ name: Liberty ROMpler v0.48 - Linux preflight (no macOS build)
 
 on:
   push:
-    branches: [feature/v048-spectral-fft-resynthesis]
+    branches: [feature/v048-spectral-fft-resynthesis, feature/v048-clang-portability-fix]
     paths:
       - '.github/workflows/preflight-v048-linux.yml'
       - 'assets/v048/bundle.b64'
