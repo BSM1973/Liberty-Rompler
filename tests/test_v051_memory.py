@@ -19,11 +19,11 @@ class V051MemoryTest(unittest.TestCase):
             self.assertEqual(r.returncode,0,r.stderr)
             self.assertIn('unchanged-layer reuse policy',r.stdout)
 
-    def test_cache_halved_no_change_to_streaming_workers(self):
+    def test_cache_preserved_for_slice_reliability(self):
         zone=(ROOT/'Source/StreamedZoneV040.h').read_text('utf-8')
         policy=(ROOT/'Source/ResourcePolicyV051.h').read_text('utf-8')
         self.assertIn('resource_v051::streamCachePages',zone)
-        self.assertIn('streamCachePages = 16',policy)
+        self.assertIn('streamCachePages = 32',policy)
         self.assertIn('PageCache<pageFrames, cachePages, 96>',zone)
         self.assertIn('static constexpr std::size_t pageFrames = 4096',zone)
         self.assertIn('requestCritical',zone)

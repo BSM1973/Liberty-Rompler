@@ -2,7 +2,7 @@
 // Liberty v0.51: pure, bounded memory policy; no JUCE / allocation required.
 #include <cstddef>
 namespace liberty::resource_v051 {
-constexpr std::size_t streamCachePages = 16;
+constexpr std::size_t streamCachePages = 32;
 constexpr std::size_t framesPerCachePage = 4096;
 constexpr std::size_t maxPresetZones = 128;
 // Only reuse identical source names with the same full zone count.
