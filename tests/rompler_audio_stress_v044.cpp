@@ -13,6 +13,8 @@
 #include <stdexcept>
 #include <sys/resource.h>
 #include <thread>
+#include <utility>
+#include <vector>
 using Clock = std::chrono::steady_clock;
 static double secs(Clock::duration x) { return std::chrono::duration<double>(x).count(); }
 static double usedCpu(const rusage& r) {
@@ -60,6 +62,9 @@ int main(int argc, char** argv) {
         getrusage(RUSAGE_SELF,&rStart);
         const int blocks=int(std::ceil(duration*rate/frames));
         std::uint64_t overBudget=0, nonFinite=0, silentSustain=0;
+        std::uint64_t lastMeasuredUnderflow=0;
+        std::vector<std::pair<double,std::uint64_t>> underflowTimeline;
+        underflowTimeline.reserve(32);
         double callbackSeconds=0.,maxCallback=0.,peakSignal=0.;
         for(int block=0;block<blocks;++block) {
             midi.clear();
@@ -100,6 +105,14 @@ int main(int argc, char** argv) {
                 }
             }
             peakSignal=std::max(peakSignal,peak);
+            // Read counters outside processBlock every ~186 ms. Keep only changes.
+            if(block%16==0 || block==blocks-1) {
+                const auto snapshot=processor.getStreamingDiagnostics();
+                if(snapshot.totals.underflowBlocks>lastMeasuredUnderflow) {
+                    lastMeasuredUnderflow=snapshot.totals.underflowBlocks;
+                    underflowTimeline.emplace_back(nominal,lastMeasuredUnderflow);
+                }
+            }
             if(mode=="poly64" && nominal>.5 && nominal<duration-.25 && peak<1.e-7)
                 ++silentSustain;
             // Pace against real wall time so background disk workers can operate.
@@ -112,6 +125,15 @@ int main(int argc, char** argv) {
         const double cpu=std::max(0.,usedCpu(rEnd)-usedCpu(rStart));
         const auto health=processor.getStreamingDiagnostics();
         const auto& c=health.totals;
+        std::ostringstream timeline;
+        timeline << "[";
+        for(std::size_t i=0;i<underflowTimeline.size();++i) {
+            if(i) timeline << ",";
+            timeline << "{\"at_sec\":" << std::fixed << std::setprecision(3)
+                     << underflowTimeline[i].first << ",\"cumulative\":"
+                     << underflowTimeline[i].second << "}";
+        }
+        timeline << "]";
         std::ostringstream j;
         j<<std::fixed<<std::setprecision(4)
          <<"{\n"
@@ -135,7 +157,8 @@ int main(int argc, char** argv) {
          <<"\"dropped_pages\":"<<c.droppedPages<<",\n"
          <<"\"urgent_dropped\":"<<c.urgentDropped<<",\n"
          <<"\"decoder_errors\":"<<c.decoderErrors<<",\n"
-         <<"\"underflow_blocks\":"<<c.underflowBlocks<<"\n}\n";
+         <<"\"underflow_blocks\":"<<c.underflowBlocks<<",\n"
+         <<"\"underflow_timeline\":"<<timeline.str()<<"\n}\n";
         const auto path=juce::File(juce::String::fromUTF8(argv[4]));
         insist(path.replaceWithText(juce::String::fromUTF8(j.str().c_str())),
                "Impossible de sauvegarder le rapport JSON");

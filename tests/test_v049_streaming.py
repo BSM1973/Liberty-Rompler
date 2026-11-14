@@ -50,4 +50,5 @@ class StreamingV049(unittest.TestCase):
         self.assertNotIn('PluginEditor',script)
         wf=(ROOT/'.github/workflows/build-rompler.yml').read_text('utf-8')
         self.assertIn('python3 scripts/apply_v049_streaming.py',wf)
-        self.assertIn('scripts/verify_release_v049.py',wf)
+        self.assertTrue('scripts/verify_release_v049.py' in wf or
+                        'scripts/verify_release_v050.py' in wf)
