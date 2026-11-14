@@ -509,6 +509,7 @@ jobs:
           cat v044-reports/slice-repeat-summary-v053.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve native v0.54 stress telemetry
+        continue-on-error: true
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -546,6 +547,7 @@ jobs:
           cat v046-reports/hybrid-64.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve native v0.54 hybrid report
+        continue-on-error: true
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -581,6 +583,7 @@ jobs:
           cat v047-grain-reports/native-granular.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve native v0.54 granular bank-render report
+        continue-on-error: true
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -608,6 +611,7 @@ jobs:
           cat v048-spectral-reports/native-spectral.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve spectral measurements and issues for later comparison
+        continue-on-error: true
         if: always()
         uses: actions/upload-artifact@v4
         with:
