@@ -4,7 +4,7 @@ name: Liberty ROMpler v0.51 - Linux preflight (no macOS build)
 
 on:
   push:
-    branches: [feature/v051-cpu-memory-presets]
+    branches: [feature/v051-cpu-memory-presets, fix/v051-preserve-slice-cache]
     paths:
       - '.github/workflows/preflight-v051-linux.yml'
       - 'assets/v051/source-patch.b64'
@@ -329,6 +329,7 @@ jobs:
           python3 scripts/apply_v051_bundle.py
           test -s Source/ResourcePolicyV051.h
           grep -q 'streamCachePages' Source/StreamedZoneV040.h
+          grep -q 'streamCachePages = 32' Source/ResourcePolicyV051.h
           grep -q 'resource_v051::canReuseLayer' Source/PluginProcessor.cpp
           grep -q 'forceReload' Source/PluginProcessor.h
           test -s tests/test_v051_memory.py

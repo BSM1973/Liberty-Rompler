@@ -387,6 +387,7 @@ jobs:
           python3 scripts/apply_v051_bundle.py
           grep -q 'resource_v051::canReuseLayer' Source/PluginProcessor.cpp
           grep -q 'streamCachePages' Source/StreamedZoneV040.h
+          grep -q 'streamCachePages = 32' Source/ResourcePolicyV051.h
           grep -q 'reloadLayerSounds(layerSources, true)' Source/PluginProcessor.cpp
           test -s Source/ResourcePolicyV051.h
           test -s tests/test_v051_memory.py
