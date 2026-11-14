@@ -35,7 +35,7 @@ class OrbitV054(unittest.TestCase):
         self.assertIn('false);\n    addParameter(orbitGravityParam);',p)
     def test_french_and_non_overlapping_morph_controls(self):
         ui=(ROOT/'Source/LibertyMorphPadV036.h').read_text('utf8')
-        for needle in ('ORBIT','INFINITY','CONSTELLATION','GRAVITÉ MIDI',
+        for needle in ('ORBIT','INFINITY','CONSTELLATION','GRAVIT\\u00c9 MIDI',
                        'MOUVEMENT','VITESSE','AMPLITUDE','GRAINE',
                        'const int colWidth=(width-3*colGap)/4',
                        'getOrbitMode()','getOrbitDepth()'):

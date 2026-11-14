@@ -17,6 +17,21 @@ if hashlib.sha256(data).hexdigest()!=EXPECTED:
 if not (ROOT/'Source/OrbitEngineV054.h').is_file():
     raise SystemExit('Missing independently editable ORBIT audio engine')
 subprocess.run(['patch','--batch','--forward','-p1'],input=data,cwd=ROOT,check=True)
+# Legacy v0.36 checks require ASCII-only JUCE source, while runtime French
+# accents must remain visible. Encode É in u8 escapes after applying the patch.
+ui=ROOT/'Source/LibertyMorphPadV036.h'
+text=ui.read_text('utf8')
+old_a='juce::TextButton gravityButton {"GRAVITÉ MIDI OFF"};'
+new_a='juce::TextButton gravityButton {juce::String::fromUTF8(u8"GRAVIT\\u00c9 MIDI OFF")};'
+old_b='"GRAVITÉ MIDI ON" : "GRAVITÉ MIDI OFF"'
+new_b='juce::String::fromUTF8(u8"GRAVIT\\u00c9 MIDI ON") : juce::String::fromUTF8(u8"GRAVIT\\u00c9 MIDI OFF")'
+if text.count(old_a)!=1 or text.count(old_b)!=1:
+    raise SystemExit('Unexpected GRAVITÉ MIDI UI text patch baseline')
+text=text.replace(old_a,new_a).replace(old_b,new_b)
+if not text.isascii():
+    raise SystemExit('v0.54 Morph UI source must remain ASCII-compatible')
+ui.write_text(text,encoding='ascii')
+
 for path in ('Source/PluginProcessor.cpp','Source/PluginProcessor.h',
              'Source/LibertyMorphPadV036.h'):
     if b'\xef\xbf\xbd' in (ROOT/path).read_bytes():
