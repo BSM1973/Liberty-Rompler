@@ -10,15 +10,16 @@ struct SliceWindow { int begin=0, frames=0; };
 
 inline SliceWindow planSliceWarmup(int totalFrames, int sliceIndex,
                                    double sourceRate) noexcept {
-    // Slice zero already has a 750 ms attack cache from the legacy loader.
+    // Slice zero receives its own bounded RAM attack during preset loading.
     if (sliceIndex <= 0 || sliceIndex >= 8 || totalFrames < 16 ||
         !std::isfinite(sourceRate) || sourceRate <= 0.0)
         return {};
     const auto region = liberty::creative_v038::slice(totalFrames-1, sliceIndex);
     if (!region.valid) return {};
-    // Max 0.30 s, 16,384 frames, per source slice head; bounded total RAM.
-    const int requested = std::max(512, std::min(16384,
-        static_cast<int>(std::min(16384.0, sourceRate*0.30))));
+    // Max 3.25 s or 147,456 frames including interpolation, per head.
+    // Four leading layers need at most about 34 MiB for 44.1-kHz slice heads.
+    const int requested = std::max(511, std::min(147455,
+        static_cast<int>(std::min(147455.0, sourceRate*3.25))));
     // The extra interpolator frame is included, without crossing the region.
     const int available = std::min(totalFrames-region.begin,
                                    region.end-region.begin);

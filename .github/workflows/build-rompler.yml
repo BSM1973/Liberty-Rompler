@@ -364,6 +364,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/apply_v049_streaming.py
+          grep -q 'reader.sampleRate\*3.25' Source/SampleEngine.cpp
           test -s Source/SliceWarmupV049.h
           grep -q 'hitSlotHint' Source/StreamingPageCacheV039.h
           grep -q 'if (longSample && leader)' Source/SampleEngine.cpp
