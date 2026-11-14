@@ -1,0 +1,28 @@
+name: Liberty ROMpler v0.55 - SPECTRAL DNA foundation preflight
+on:
+  push:
+    branches: [feature/v055-spectral-dna]
+    paths:
+      - 'Source/SpectralDNAV055.h'
+      - 'tests/spectral_dna_v055_test.cpp'
+      - '.github/workflows/preflight-v055-spectral-dna.yml'
+      - 'docs/SPECTRAL_DNA_V055.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  spectral-foundation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and execute C++17 deterministic spectral tests
+        run: |
+          set -euo pipefail
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_v055_test.cpp -o /tmp/spectral-dna-test
+          /tmp/spectral-dna-test
+      - name: Enforce no changes to existing processor or v0.54 release pipeline
+        run: |
+          set -euo pipefail
+          grep -q 'enabled=false' Source/SpectralDNAV055.h
+          grep -q 'constexpr std::size_t kBins = 128' Source/SpectralDNAV055.h
