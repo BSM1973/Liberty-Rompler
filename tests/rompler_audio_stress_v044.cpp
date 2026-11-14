@@ -15,6 +15,9 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#ifdef __APPLE__
+#include <mach/mach.h>
+#endif
 using Clock = std::chrono::steady_clock;
 static double secs(Clock::duration x) { return std::chrono::duration<double>(x).count(); }
 static double usedCpu(const rusage& r) {
@@ -27,6 +30,17 @@ static double peakRssMb(const rusage& r) {
 #else
     return double(r.ru_maxrss)/1.e3; // kB on Linux
 #endif
+}
+static double currentRssMb() noexcept {
+#ifdef __APPLE__
+    // Current (not peak) resident memory; used only by the native benchmark.
+    mach_task_basic_info_data_t stats {};
+    mach_msg_type_number_t count=MACH_TASK_BASIC_INFO_COUNT;
+    if (task_info(mach_task_self(),MACH_TASK_BASIC_INFO,
+                  (task_info_t)&stats,&count)==KERN_SUCCESS)
+        return double(stats.resident_size)/1.e6;
+#endif
+    return -1.;
 }
 static void insist(bool ok, const juce::String& msg) {
     if (!ok) throw std::runtime_error(msg.toStdString());
@@ -65,6 +79,13 @@ int main(int argc, char** argv) {
         std::uint64_t lastMeasuredUnderflow=0;
         std::vector<std::pair<double,std::uint64_t>> underflowTimeline;
         underflowTimeline.reserve(32);
+        std::vector<std::pair<double,double>> callbackSpikes;
+        callbackSpikes.reserve(64);
+        std::vector<double> callbackDurations;
+        callbackDurations.reserve((size_t)blocks);
+        struct RssSwitch { double sec, rssMb; bool fourLayers; };
+        std::vector<RssSwitch> switchRss;
+        switchRss.reserve(180);
         double callbackSeconds=0.,maxCallback=0.,peakSignal=0.;
         for(int block=0;block<blocks;++block) {
             midi.clear();
@@ -80,6 +101,7 @@ int main(int argc, char** argv) {
                     result=processor.selectPreset("liberty-stress-v044",
                              four?"stress-4-layers":"stress-layer-1");
                     insist(result.wasOk(),"Changement preset impossible: "+result.getErrorMessage());
+                    switchRss.push_back({nominal,currentRssMb(),four});
                     for(int note=48;note<=63;++note)
                         midi.addEvent(juce::MidiMessage::noteOn(1,note,(juce::uint8)105),0);
                 }
@@ -95,7 +117,11 @@ int main(int argc, char** argv) {
             const double t=secs(Clock::now()-t0);
             callbackSeconds+=t;
             maxCallback=std::max(maxCallback,t);
-            if(t>frames/rate) ++overBudget;
+            callbackDurations.push_back(1000.*t);
+            if(t>frames/rate) {
+                ++overBudget;
+                if(callbackSpikes.size()<64) callbackSpikes.emplace_back(nominal,1000.*t);
+            }
             double peak=0.;
             for(int channel=0;channel<2;++channel) {
                 const auto* samples=audio.getReadPointer(channel);
@@ -125,6 +151,29 @@ int main(int argc, char** argv) {
         const double cpu=std::max(0.,usedCpu(rEnd)-usedCpu(rStart));
         const auto health=processor.getStreamingDiagnostics();
         const auto& c=health.totals;
+        const auto p99idx=(size_t)std::floor(.99 * (callbackDurations.size()-1));
+        std::nth_element(callbackDurations.begin(),callbackDurations.begin()+p99idx,
+                         callbackDurations.end());
+        const double callbackP99Ms=callbackDurations[p99idx];
+        std::ostringstream spikeJson;
+        spikeJson << "[";
+        for(size_t i=0;i<callbackSpikes.size();++i) {
+            if(i) spikeJson << ",";
+            spikeJson << "{\"at_sec\":" << std::fixed << std::setprecision(3)
+                      << callbackSpikes[i].first << ",\"callback_ms\":"
+                      << callbackSpikes[i].second << "}";
+        }
+        spikeJson << "]";
+        std::ostringstream rssJson;
+        rssJson << "[";
+        for(size_t i=0;i<switchRss.size();++i) {
+            if(i) rssJson << ",";
+            rssJson << "{\"at_sec\":" << std::fixed << std::setprecision(3)
+                    << switchRss[i].sec << ",\"layers\":"
+                    << (switchRss[i].fourLayers?4:1) << ",\"rss_mb\":"
+                    << switchRss[i].rssMb << "}";
+        }
+        rssJson << "]";
         std::ostringstream timeline;
         timeline << "[";
         for(std::size_t i=0;i<underflowTimeline.size();++i) {
@@ -147,6 +196,9 @@ int main(int argc, char** argv) {
          <<"\"process_cpu_pct\":"<<(100.*cpu/wall)<<",\n"
          <<"\"callback_budget_avg_pct\":"<<(100.*callbackSeconds/(blocks*frames/rate))<<",\n"
          <<"\"callback_peak_ms\":"<<(1000.*maxCallback)<<",\n"
+         <<"\"callback_p99_ms\":"<<callbackP99Ms<<",\n"
+         <<"\"callback_spikes\":"<<spikeJson.str()<<",\n"
+         <<"\"switch_rss_trace\":"<<rssJson.str()<<",\n"
          <<"\"callback_over_budget\":"<<overBudget<<",\n"
          <<"\"peak_rss_mb\":"<<peakRssMb(rEnd)<<",\n"
          <<"\"signal_peak\":"<<peakSignal<<",\n"

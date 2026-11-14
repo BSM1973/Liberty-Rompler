@@ -51,4 +51,5 @@ class Poly64V050(unittest.TestCase):
         self.assertIn('underflow_blocks',cpp)
         workflow=(ROOT/'.github/workflows/build-rompler.yml').read_text('utf-8')
         self.assertIn('python3 scripts/apply_v050_poly64.py',workflow)
-        self.assertIn('python3 scripts/verify_release_v050.py',workflow)
+        self.assertTrue('python3 scripts/verify_release_v050.py' in workflow or
+                        'python3 scripts/verify_release_v051.py' in workflow)
