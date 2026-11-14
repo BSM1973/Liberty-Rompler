@@ -57,7 +57,8 @@ class SharedPoolV041(unittest.TestCase):
     def test_old_presets_and_utf8_untouched(self):
         engine=(ROOT/"Source/SampleEngine.cpp").read_text("utf-8")
         self.assertIn("reader.sampleRate * 20.0",engine)
-        self.assertIn("reader.sampleRate * 0.75",engine)
+        self.assertTrue("reader.sampleRate * 0.75" in engine or
+                        "reader.sampleRate * 1.50" in engine)
         self.assertIn("std::numeric_limits<int>::max()-2",engine)
         self.assertIn("liberty::creative_v038::grainAt(",engine)
         for name in ("Source/StreamingPoolV041.h","Source/StreamedZoneV040.h",

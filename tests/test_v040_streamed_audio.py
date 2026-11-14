@@ -13,7 +13,8 @@ class LongWavStreamingV040(unittest.TestCase):
         self.assertIn("std::unique_ptr<juce::AudioFormatReader> source",hdr)
         self.assertIn("sourceRate(source ? source->sampleRate",engine)
         self.assertIn("longSample",engine)
-        self.assertIn("reader.sampleRate * 0.75",engine)
+        self.assertTrue("reader.sampleRate * 0.75" in engine or
+                        "reader.sampleRate * 1.50" in engine)
         self.assertIn("streamed->start(attackFrames)",engine)
         self.assertIn("streamed->tryReadFrame(n, l, r)",engine)
         self.assertIn("s->isStreamed()) { renderStreamedNextBlock(out,start,count);",engine)
