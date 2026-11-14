@@ -4,7 +4,7 @@ name: Liberty ROMpler v0.49 - Linux preflight (no macOS build)
 
 on:
   push:
-    branches: [feature/v049-realtime-slice-stability]
+    branches: [feature/v049-realtime-slice-stability, fix/v049-longer-slice-warmup]
     paths:
       - '.github/workflows/preflight-v049-linux.yml'
       - 'Source/SliceWarmupV049.h'

@@ -58,10 +58,25 @@ edit('SampleEngine.h', [
     std::array<juce::AudioBuffer<float>, 8> sliceWarmups;
     std::array<int,8> sliceWarmupStarts {};
     std::unique_ptr<liberty::stream_v040::StreamedZone> streamed;'''),
+    ('    int getTotalFrames() const noexcept { return totalFrames; }',
+     '''    int getTotalFrames() const noexcept { return totalFrames; }
+    int getSliceWarmupEnd(int chosenSlice) const noexcept {
+        if (chosenSlice == 0) return attackFrames;
+        if (chosenSlice >= 1 && chosenSlice < 8) {
+            const auto idx = (size_t)chosenSlice;
+            if (sliceWarmups[idx].getNumSamples() > 0)
+                return sliceWarmupStarts[idx] + sliceWarmups[idx].getNumSamples();
+        }
+        return 0;
+    }'''),
     ('    bool sliceVoice = false;', '    bool sliceVoice = false;\n    int sliceIndex = -1;')
 ])
 
 edit('SampleEngine.cpp', [
+    ('    // Large WAVs preload 0.75 seconds to cover seek and thread scheduling.',
+     '    // Long WAVs preload 0.75 seconds, or a bounded 3.25 seconds for SLICE leaders.'),
+    ('        ? (int)juce::jmin(reader.lengthInSamples,\n                         (juce::int64)(reader.sampleRate * 0.75))',
+     '        ? (int)juce::jmin(reader.lengthInSamples,\n                         (juce::int64)(leader ? std::min(147456.0, reader.sampleRate*3.25)\n                                               : reader.sampleRate*0.75))'),
     ('    attackFrames = count;\n    if (longSample) {',
      '''    attackFrames = count;
     // Bounded 7 distant SLICE attacks, decoded on the preset-loading thread.
@@ -98,6 +113,20 @@ edit('SampleEngine.cpp', [
             }
         }
         if (n < attackFrames) {'''),
+    ('    if (s->isStreamed()) {\n        s->requestStreamCritical(position);\n        s->requestStreamAhead(position);\n        s->requestStreamAhead(s->getTotalFrames()>0 ? (double)s->getAudio().getNumSamples()-1.0 : 0.0);\n    }',
+     '''    if (s->isStreamed()) {
+        const int warmedEnd = sliceVoice ? s->getSliceWarmupEnd(sliceIndex) : 0;
+        if (warmedEnd > position) {
+            const double seek = std::max(position, (double)warmedEnd - 4096.0);
+            s->requestStreamCritical(seek);
+            s->requestStreamAhead(seek);
+        } else {
+            s->requestStreamCritical(position);
+            s->requestStreamAhead(position);
+            s->requestStreamAhead(s->getTotalFrames()>0 ?
+                (double)s->getAudio().getNumSamples()-1.0 : 0.0);
+        }
+    }'''),
     ('    sliceVoice = s->isSliceMode();\n    sliceBegin = 0;',
      '''    sliceVoice = s->isSliceMode();
     sliceIndex = -1;
@@ -107,6 +136,13 @@ edit('SampleEngine.cpp', [
         sliceIndex=midiNoteNumber-36;'''),
     ('                return s->readStereoAt(readPos,l,r);',
      '                return s->readStereoAt(readPos,l,r,sliceIndex);'),
+    ('    s->requestStreamCritical(position);\n    s->requestStreamAhead(position);\n    s->requestStreamAhead(position+count*timeRatio+grainFrames*ratio);',
+     '''    const int warmedEnd = sliceVoice ? s->getSliceWarmupEnd(sliceIndex) : 0;
+    const double wanted = warmedEnd > position ?
+        std::max(position, (double)warmedEnd-8192.0) : position;
+    s->requestStreamCritical(wanted);
+    s->requestStreamAhead(wanted);
+    s->requestStreamAhead(std::max(wanted, position+count*timeRatio+grainFrames*ratio));'''),
     ('            ok=s->readStereoAt(position,left,right);',
      '            ok=s->readStereoAt(position,left,right,sliceIndex);'),
     ('                if (s->readStereoAt(blend.headPosition,hL,hR)) {',
