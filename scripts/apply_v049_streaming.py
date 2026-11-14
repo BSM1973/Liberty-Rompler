@@ -76,7 +76,7 @@ edit('SampleEngine.cpp', [
     ('    // Large WAVs preload 0.75 seconds to cover seek and thread scheduling.',
      '    // Long WAVs preload 0.75 seconds, or a bounded 3.25 seconds for SLICE leaders.'),
     ('        ? (int)juce::jmin(reader.lengthInSamples,\n                         (juce::int64)(reader.sampleRate * 0.75))',
-     '        ? (int)juce::jmin(reader.lengthInSamples,\n                         (juce::int64)(leader ? std::min(147456.0, reader.sampleRate*3.25)\n                                               : reader.sampleRate*0.75))'),
+     '        ? (int)juce::jmin(reader.lengthInSamples,\n                         (juce::int64)(leader ? std::min(147456.0, reader.sampleRate*3.25)\n                                               : reader.sampleRate * 0.75))'),
     ('    attackFrames = count;\n    if (longSample) {',
      '''    attackFrames = count;
     // Bounded 7 distant SLICE attacks, decoded on the preset-loading thread.
