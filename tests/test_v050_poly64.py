@@ -53,4 +53,5 @@ class Poly64V050(unittest.TestCase):
         self.assertIn('python3 scripts/apply_v050_poly64.py',workflow)
         self.assertTrue('python3 scripts/verify_release_v050.py' in workflow or
                         'python3 scripts/verify_release_v051.py' in workflow or
-                        'python3 scripts/verify_release_v052.py' in workflow)
+                        'python3 scripts/verify_release_v052.py' in workflow or
+                        'python3 scripts/verify_release_v053.py' in workflow)

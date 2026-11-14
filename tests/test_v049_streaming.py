@@ -53,4 +53,5 @@ class StreamingV049(unittest.TestCase):
         self.assertTrue('scripts/verify_release_v049.py' in wf or
                         'scripts/verify_release_v050.py' in wf or
                         'scripts/verify_release_v051.py' in wf or
-                        'scripts/verify_release_v052.py' in wf)
+                        'scripts/verify_release_v052.py' in wf or
+                        'scripts/verify_release_v053.py' in wf)
