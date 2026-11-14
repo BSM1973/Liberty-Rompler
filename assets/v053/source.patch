@@ -1,0 +1,50 @@
+--- a/Source/SampleEngine.h
++++ b/Source/SampleEngine.h
+@@ -4,6 +4,7 @@
+ #include "CreativeEngineV038.h"
+ #include "SliceWarmupV049.h"
+ #include "LoopTransitionV050.h"
++#include "SlicePrefetchCadenceV053.h"
+ #include "StreamedZoneV040.h"
+ #include "StreamingDiagnosticsV043.h"
+ #include <cstdint>
+@@ -222,6 +223,7 @@
+     float previousCutoff = -1.0f;
+     void updatePitch();
+     void renderStreamedNextBlock(juce::AudioBuffer<float>& out, int start, int count);
++    liberty::slice_v053::PrefetchCadence slicePrefetch;
+     float lastStreamLeft=0.0f, lastStreamRight=0.0f, streamGain=1.0f;
+ };
+ } // namespace liberty
+--- a/Source/SampleEngine.cpp
++++ b/Source/SampleEngine.cpp
+@@ -270,6 +270,7 @@
+     position = 0;
+     grainElapsed = 0;
+     grainWetState = 0.f;
++    slicePrefetch.reset();
+     sliceVoice = s->isSliceMode();
+     sliceIndex = -1;
+     sliceBegin = 0;
+@@ -472,9 +473,18 @@
+         std::max(position, (double)warmedEnd-8192.0) :
+         (loopWarmedEnd > position && position >= s->getLoopStart()
+             ? std::max(position, (double)loopWarmedEnd-8192.0) : position);
+-    s->requestStreamCritical(wanted);
+-    s->requestStreamAhead(wanted);
+-    s->requestStreamAhead(std::max(wanted, position+count*timeRatio+grainFrames*ratio));
++    // v0.53: an active SLICE plays primarily from immutable RAM windows.
++    // Refresh disk requests ~75 ms while safely inside that window, then
++    // return to every-block requests near its end. On cache-only playback,
++    // or a zero-length window, the original v0.52 path is unchanged.
++    const double projectedEnd=position+count*timeRatio+grainFrames*ratio;
++    const bool prefetchNow = !sliceVoice || slicePrefetch.shouldRequest(
++        warmedEnd, position, projectedEnd, count, getSampleRate());
++    if (prefetchNow) {
++        s->requestStreamCritical(wanted);
++        s->requestStreamAhead(wanted);
++        s->requestStreamAhead(std::max(wanted, projectedEnd));
++    }
+     if (s->getLoopStart()>=0) {
+         // The immutable v0.50 loop head supplies crossfades without
+         // a seek. Preserve v0.49 requests only if preparation failed.
