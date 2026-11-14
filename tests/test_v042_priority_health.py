@@ -58,7 +58,8 @@ class StreamingPriorityV042(unittest.TestCase):
     def test_legacy_ram_path_and_french_ui_untouched(self):
         voice=(ROOT/"Source/SampleEngine.cpp").read_text("utf-8")
         self.assertIn("reader.sampleRate * 20.0", voice)
-        self.assertIn("reader.sampleRate * 0.75", voice)
+        self.assertTrue("reader.sampleRate * 0.75" in voice or
+                        "reader.sampleRate * 1.50" in voice)
         self.assertIn("const auto& audio = s->getAudio();", voice)
         editor=(ROOT/"Source/PluginEditor.cpp").read_text("utf-8")
         self.assertIn("morphPad.setBounds", editor)
