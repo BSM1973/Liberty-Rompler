@@ -1,5 +1,5 @@
 name: Liberty Rompler - Build macOS AU VST3 Standalone
-# v0.48: Apple Clang -Werror compatibility confirmed for the standalone FFT unit test.
+# v0.49: Apple Clang -Werror compatibility confirmed for the standalone FFT unit test.
 
 on:
   push:
@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build-macos:
-    name: macOS Apple Silicon - UI v0.48 / AU + VST3 + Standalone
+    name: macOS Apple Silicon - UI v0.49 / AU + VST3 + Standalone
     runs-on: macos-15
     timeout-minutes: 50
 
@@ -200,14 +200,14 @@ jobs:
           set -euo pipefail
           git show HEAD:scripts/install_mac.command > scripts/install_mac.command
           git show HEAD:scripts/DIAGNOSTIC_MAC.command > scripts/DIAGNOSTIC_MAC.command
-          git show HEAD:scripts/verify_release_v048.py > scripts/verify_release_v048.py
+          git show HEAD:scripts/verify_release_v049.py > scripts/verify_release_v049.py
           git show HEAD:docs/GUIDE_TEST_BOUCLES_V014.md > docs/GUIDE_TEST_BOUCLES_V014.md
           bash -n scripts/install_mac.command
           bash -n scripts/DIAGNOSTIC_MAC.command
-          python3 -m py_compile scripts/verify_release_v048.py
-          grep -Fq 'BASE = "Liberty-Rompler-macOS-arm64-UI-v0.48"' scripts/verify_release_v048.py
+          python3 -m py_compile scripts/verify_release_v049.py
+          grep -Fq 'BASE = "Liberty-Rompler-macOS-arm64-UI-v0.49"' scripts/verify_release_v049.py
 
-      - name: Apply reviewed v0.48 SAMPLES loop editor, preview audio and fade markers
+      - name: Apply reviewed v0.49 SAMPLES loop editor, preview audio and fade markers
         shell: bash
         run: |
           set -euo pipefail
@@ -218,7 +218,7 @@ jobs:
           test -f Source/SampleZoneView.h
           test -f Source/PluginProcessor.cpp
 
-      - name: Apply v0.48 limited-memory sample preview and A/B analysis
+      - name: Apply v0.49 limited-memory sample preview and A/B analysis
         shell: bash
         run: |
           set -euo pipefail
@@ -227,7 +227,7 @@ jobs:
           grep -q 'measureRawSeamDifference' Source/PluginProcessor.cpp
           ! grep -q 'AudioBuffer<float> decoded(channels, total)' Source/PluginProcessor.cpp
 
-      - name: Apply v0.48 long/short seam audition and precise controls
+      - name: Apply v0.49 long/short seam audition and precise controls
         shell: bash
         run: |
           set -euo pipefail
@@ -236,7 +236,7 @@ jobs:
           grep -q 'planAudition(' Source/PluginProcessor.cpp
           grep -q 'Option + clic = 10 frames' Source/SampleZoneView.h
 
-      - name: Integrate Liberty MORPH v0.48 engine and XY page
+      - name: Integrate Liberty MORPH v0.49 engine and XY page
         shell: bash
         run: |
           set -euo pipefail
@@ -246,7 +246,7 @@ jobs:
           grep -q 'morphLayerGain' Source/PluginProcessor.cpp
           grep -q 'morphPad.setBounds' Source/PluginEditor.cpp
 
-      - name: Integrate v0.48 Round Robin Keyswitch and velocity crossfades
+      - name: Integrate v0.49 Round Robin Keyswitch and velocity crossfades
         shell: bash
         run: |
           set -euo pipefail
@@ -268,7 +268,7 @@ jobs:
           grep -q 'harmonyMidi.process(midi,' Source/PluginProcessor.cpp
           grep -q 'makeTab(creativeTab' Source/PluginEditor.cpp
 
-      - name: Prepare and connect v0.39 / v0.48 long WAV streaming
+      - name: Prepare and connect v0.39 / v0.49 long WAV streaming
         shell: bash
         run: |
           set -euo pipefail
@@ -290,7 +290,7 @@ jobs:
           grep -q '2147483645' tools/smart_import_v037.py
           grep -q '2147483645' tools/validate_banks.py
 
-      - name: Integrate v0.48 read-only diagnostics into REGLAGES
+      - name: Integrate v0.49 read-only diagnostics into REGLAGES
         shell: bash
         run: |
           set -euo pipefail
@@ -302,7 +302,7 @@ jobs:
           grep -q 'streamingDiagnostics.setBounds' Source/PluginEditor.cpp
           grep -q 'streamingDiagnostics.setVisible' Source/PluginEditor.cpp
 
-      - name: Add v0.48 native engine stress application (no plugin DSP changes)
+      - name: Add v0.49 native engine stress application (no plugin DSP changes)
         shell: bash
         run: |
           set -euo pipefail
@@ -311,7 +311,7 @@ jobs:
           python3 scripts/apply_v044_stress.py
           grep -q 'LIBERTY_BUILD_STRESS_V044' CMakeLists.txt
 
-      - name: Apply verified v0.48 Sampling Studio engine, editing and import
+      - name: Apply verified v0.49 Sampling Studio engine, editing and import
         shell: bash
         run: |
           set -euo pipefail
@@ -329,7 +329,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Integrate checksum-verified v0.48 Hybrid Engine (opt-in)
+      - name: Integrate checksum-verified v0.49 Hybrid Engine (opt-in)
         shell: bash
         run: |
           set -euo pipefail
@@ -338,7 +338,7 @@ jobs:
           grep -q 'hybrid.render(left,right,pos,at-pos,hybridParams)' Source/PluginProcessor.cpp
           grep -q 'LIBERTY_BUILD_HYBRID_TEST_V046' CMakeLists.txt
 
-      - name: Integrate checked v0.48 per-layer granular and native JUCE bench fix
+      - name: Integrate checked v0.49 per-layer granular and native JUCE bench fix
         shell: bash
         run: |
           set -euo pipefail
@@ -347,7 +347,7 @@ jobs:
           grep -q 'LIBERTY_BUILD_GRAIN_TEST_V047' CMakeLists.txt
           grep -q 'GranularBlendV047.h' Source/SampleEngine.cpp
 
-      - name: Integrate checksum-verified v0.48 offline FFT and spectral layer resynthesis
+      - name: Integrate checksum-verified v0.49 offline FFT and spectral layer resynthesis
         shell: bash
         run: |
           set -euo pipefail
@@ -358,6 +358,15 @@ jobs:
           grep -q 'libertySpectralEnabled' Source/PluginProcessor.cpp
           grep -q 'spectral.render(left,right' Source/PluginProcessor.cpp
           grep -q 'LIBERTY_BUILD_SPECTRAL_TEST_V048' CMakeLists.txt
+
+      - name: Integrate v0.49 bounded SLICE attack warming and fast RT cache reads
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/apply_v049_streaming.py
+          test -s Source/SliceWarmupV049.h
+          grep -q 'hitSlotHint' Source/StreamingPageCacheV039.h
+          grep -q 'if (longSample && leader)' Source/SampleEngine.cpp
 
       - name: Validate bank files, Unicode and no-overlap geometry
         shell: bash
@@ -426,11 +435,11 @@ jobs:
             v044-reports/slice.json --output v044-reports/qualification.json
           cat v044-reports/qualification.json >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Preserve native v0.48 stress telemetry
+      - name: Preserve native v0.49 stress telemetry
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-v0.48-native-stress-results
+          name: Liberty-Rompler-v0.49-native-stress-results
           path: v044-reports/*.json
           if-no-files-found: ignore
           retention-days: 30
@@ -457,17 +466,17 @@ jobs:
           assert d["voices_started"]==64 and d["state_recall"]
           assert d["nonfinite_samples"]==0 and d["signal_peak"]>0
           assert math.isfinite(d["process_cpu_pct"]) and d["peak_rss_mb"]>0
-          print("Hybrid v0.48 native stress metrics:",d)
+          print("Hybrid v0.49 native stress metrics:",d)
           if d["callback_over_budget"]!=0:
               print("Warning: hybrid callback budget exceeded. Further optimization needed.")
           PY
           cat v046-reports/hybrid-64.json >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Preserve native v0.48 hybrid report
+      - name: Preserve native v0.49 hybrid report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-v0.48-native-hybrid-results
+          name: Liberty-Rompler-v0.49-native-hybrid-results
           path: v046-reports/hybrid-64.json
           if-no-files-found: ignore
           retention-days: 30
@@ -498,11 +507,11 @@ jobs:
           PY
           cat v047-grain-reports/native-granular.json >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Preserve native v0.48 granular bank-render report
+      - name: Preserve native v0.49 granular bank-render report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-v0.48-native-granular-results
+          name: Liberty-Rompler-v0.49-native-granular-results
           path: v047-grain-reports/*.json
           if-no-files-found: ignore
           retention-days: 30
@@ -529,16 +538,16 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-v0.48-native-spectral-results
+          name: Liberty-Rompler-v0.49-native-spectral-results
           path: v048-spectral-reports/*.json
           if-no-files-found: ignore
           retention-days: 30
 
-      - name: Package UI v0.48, installer, diagnostic and both demo banks
+      - name: Package UI v0.49, installer, diagnostic and both demo banks
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.48"
+          target="dist/Liberty-Rompler-macOS-arm64-UI-v0.49"
           mkdir -p "$target"
           app="$(find build/LibertyRompler_artefacts -type d -name '*.app' -print -quit)"
           vst="$(find build/LibertyRompler_artefacts -type d -name '*.vst3' -print -quit)"
@@ -588,6 +597,7 @@ jobs:
           cp docs/HYBRID_ENGINE_V046.md "$target/HYBRID_ENGINE_V046.md"
           cp docs/HYBRID_GRANULAR_V047.md "$target/HYBRID_GRANULAR_V047.md"
           cp docs/SPECTRAL_ENGINE_V048.md "$target/SPECTRAL_ENGINE_V048.md"
+          cp docs/STREAMING_SLICE_V049.md "$target/STREAMING_SLICE_V049.md"
           cp tools/smart_import_v037.py "$target/SMART_IMPORT_V045.py"
           cp docs/GUIDE_STRESS_V044.md "$target/GUIDE_STRESS_V044.md"
           cp tools/smart_import_v037.py "$target/SMART_IMPORT_V040.py"
@@ -598,33 +608,33 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.48 Liberty-Rompler-macOS-arm64-UI-v0.48.zip)
-          hdiutil create -volname "Liberty Rompler UI v0.48" \
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-macOS-arm64-UI-v0.49 Liberty-Rompler-macOS-arm64-UI-v0.49.zip)
+          hdiutil create -volname "Liberty Rompler UI v0.49" \
             -srcfolder "$target" -ov -format UDZO \
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.48.dmg
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.48.zip
-          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.48.dmg
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.49.dmg
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.49.zip
+          test -s dist/Liberty-Rompler-macOS-arm64-UI-v0.49.dmg
 
-      - name: Preserve editable v0.48 source in the same artifact
+      - name: Preserve editable v0.49 source in the same artifact
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf dist/Liberty-Rompler-source-v0.48.tar.gz Source tests tools docs scripts overlays assets/v038 assets/v039 assets/v045 assets/v046 assets/v047 assets/v048 CMakeLists.txt
-          test -s dist/Liberty-Rompler-source-v0.48.tar.gz
+          tar -czf dist/Liberty-Rompler-source-v0.49.tar.gz Source tests tools docs scripts overlays assets/v038 assets/v039 assets/v045 assets/v046 assets/v047 assets/v048 CMakeLists.txt
+          test -s dist/Liberty-Rompler-source-v0.49.tar.gz
 
       - name: Verify AU VST3 Standalone and full release archives
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/verify_release_v048.py
+          python3 scripts/verify_release_v049.py
 
       - name: Upload downloadable macOS builds
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-macOS-arm64-UI-v0.48-AU-VST3-Standalone
+          name: Liberty-Rompler-macOS-arm64-UI-v0.49-AU-VST3-Standalone
           path: |
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.48.zip
-            dist/Liberty-Rompler-macOS-arm64-UI-v0.48.dmg
-            dist/Liberty-Rompler-source-v0.48.tar.gz
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.49.zip
+            dist/Liberty-Rompler-macOS-arm64-UI-v0.49.dmg
+            dist/Liberty-Rompler-source-v0.49.tar.gz
           if-no-files-found: error
           retention-days: 30
