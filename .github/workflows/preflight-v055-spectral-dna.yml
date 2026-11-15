@@ -33,6 +33,7 @@ on:
       - 'scripts/apply_v055_dna_ui.py'
       - 'scripts/apply_v055_formants.py'
       - 'tests/spectral_dna_native_formants_v055_test.cpp'
+      - 'tests/spectral_dna_64voice_v055_bench.cpp'
       - 'scripts/inspect_slice_underflow_v055.py'
       - 'Source/SlicePrefetchCadenceV053.h'
       - 'tests/slice_prefetch_v055_test.cpp'
@@ -117,6 +118,8 @@ jobs:
           grep -q 'formantSlider.setBounds' Source/LibertyMorphPadV036.h
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_native_formants_v055_test.cpp -o /tmp/dna-native-formants-v055
           /tmp/dna-native-formants-v055
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_64voice_v055_bench.cpp -o /tmp/dna-64voice-v055-bench
+          /tmp/dna-64voice-v055-bench
           python3 scripts/inspect_slice_underflow_v055.py
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/slice_prefetch_v053_test.cpp -o /tmp/slice-prefetch-legacy-test
           /tmp/slice-prefetch-legacy-test
