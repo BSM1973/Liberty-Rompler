@@ -10,6 +10,8 @@ on:
       - 'scripts/apply_v055_dna_ui.py'
       - 'Source/SpectralDNAMixV055.h'
       - 'tests/spectral_dna_native_ab_v055_test.cpp'
+      - 'Source/SlicePrefetchCadenceV053.h'
+      - 'tests/slice_prefetch_v055_test.cpp'
   workflow_dispatch:
 
 permissions:
@@ -440,6 +442,8 @@ jobs:
           grep -q 'SPECTRAL DNA ON' Source/LibertyMorphPadV036.h
           clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_native_ab_v055_test.cpp -o /tmp/spectral-dna-native-ab
           /tmp/spectral-dna-native-ab
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/slice_prefetch_v055_test.cpp -o /tmp/slice-prefetch-v055-test
+          /tmp/slice-prefetch-v055-test
           grep -q 'libertySpectralDNAEnabled' Source/PluginProcessor.cpp
           grep -q 'spectralMixForLayer(' Source/PluginProcessor.cpp
           grep -q 'spectral.render(left,right' Source/PluginProcessor.cpp
