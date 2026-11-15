@@ -42,8 +42,8 @@ one('''        std::ostringstream timeline;
         finalTrace << "]";
         std::ostringstream timeline;
         timeline << "[";''')
-one('''         <<"\"underflow_timeline\":"<<timeline.str()<<"\\n}\\n";''',
-'''         <<"\"underflow_timeline\":"<<timeline.str()<<",\\n"
+one(r'''         <<"\"underflow_timeline\":"<<timeline.str()<<"\\n}\\n";''',
+r'''         <<"\"underflow_timeline\":"<<timeline.str()<<",\\n"
          <<"\"slice_last_second_diagnostics\":"<<finalTrace.str()<<"\\n}\\n";''')
 p.write_text(s,encoding="utf-8")
 print("v0.55 native SLICE: full-resolution last-second telemetry enabled; qualification unchanged.")
