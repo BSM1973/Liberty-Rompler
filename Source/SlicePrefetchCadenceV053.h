@@ -21,9 +21,9 @@ public:
         const double playbackSpeed = std::clamp(
             (nextBlockEnd-position)/(double)blockFrames, 0.5, 4.0);
         // Demand aggressively before the warm window is exhausted, including
-        // pitched or time-stretched notes. At 44.1 kHz this starts >= 0.38s
-        // before the edge, unlike a hard switch at the last 4096 samples.
-        const double lead = std::clamp(sampleRate*.38*playbackSpeed,
+        // pitched or time-stretched notes. At 44.1 kHz this starts >= 0.65s
+        // before the edge, unlike a hard switch at the last 4096 samples.\n        // v0.55: expand the prefetch safety window for delayed cache workers.
+        const double lead = std::clamp(sampleRate*.65*playbackSpeed,
                                        8192.0, 65536.0);
         if (nextBlockEnd + lead >= warmEnd) {
             framesUntilRefresh=0;
@@ -31,7 +31,7 @@ public:
         }
         if (framesUntilRefresh <= 0) {
             framesUntilRefresh = std::clamp(
-                (int)(sampleRate*.075), 512, 8192);
+                (int)(sampleRate*.040), 512, 8192);
             return true;
         }
         framesUntilRefresh -= blockFrames;
