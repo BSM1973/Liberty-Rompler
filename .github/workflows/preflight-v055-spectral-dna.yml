@@ -20,6 +20,7 @@ on:
       - 'tests/spectral_dna_rt_benchmark_v055.cpp'
       - '.github/workflows/preflight-v055-spectral-dna.yml'
       - 'docs/SPECTRAL_DNA_V055.md'
+      - 'scripts/inspect_v048_api_v055.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -51,6 +52,8 @@ jobs:
           set -euo pipefail
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_rt_benchmark_v055.cpp -o /tmp/spectral-dna-rt-bench
           /tmp/spectral-dna-rt-bench
+      - name: Inspect baseline v0.48 spectral host interface
+        run: python3 scripts/inspect_v048_api_v055.py
       - name: Enforce no changes to existing processor or v0.54 release pipeline
         run: |
           set -euo pipefail
