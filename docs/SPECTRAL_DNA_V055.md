@@ -83,3 +83,13 @@ Le script `scripts/apply_v055_juce_spectral_dna.py`, appliqué **après v0.54** 
 - Le morphing audible actuel module les niveaux de quatre resynthèses harmoniques, pas les formants/partiels d'une voix vers un piano. Le vrai morphing timbral profond exige une banque de tables hybrides ou la fusion de profils avant resynthèse.
 - Les contrôles existent en paramètres hôte AU/VST3 ; une UI MORPH dédiée, les tests audio A/B sous DAW et la validation macOS sont encore nécessaires.
 - Aucun test du banc natif v0.48 existant ne remplace un test A/B ciblant les nouveaux paramètres SPECTRAL DNA.
+
+## Lot H — Commandes MORPH, tests A/B natifs, fondation formants
+`scripts/apply_v055_dna_ui.py` insere sur la page MORPH un bouton SPECTRAL DNA ON/OFF et un curseur de 0 a 100 %, tous deux connectes aux parametres hote AU/VST3. Un panneau bleu nuit compact est reserve dans le bas de l'interface, avec espace conserve au-dessus des textes de pied et sous le pad XY. Aucun nouveau panneau flottant n'est cree.
+
+`Source/SpectralDNAMixV055.h` centralise le calcul du melange DNA utilise en production dans `PluginProcessor.cpp` et dans les tests. Quand DNA=OFF, le niveau spectral v0.48 est renvoye a l'identique. `tests/spectral_dna_native_ab_v055_test.cpp` utilise le vrai moteur v0.48 avec signal test et compare DNA OFF et ON numeriquement; cela atteste une modification de la resynthese, pas une appreciation auditive.
+
+`Source/SpectralDNAFormantsV055.h` introduit un prototype hors ligne de deplacement et interpolation d'enveloppes spectrales, teste sur des pics synthetiques a l'aide de `tests/spectral_dna_formants_v055_test.cpp`. Il n'est pas relie aux tables harmoniques JUCE v0.48: aucun detecteur de formants, aucune correction de hauteur ni transformation voix/piano complete n'est revendique. Son raccordement devra intervenir sur la preparation des frames hors audio thread.
+
+## Validation manuelle obligatoire
+Tester AU et VST3 dans Ableton Live, Logic Pro et Bitwig, a 44,1/48/96 kHz et blocs 64/128/512. Auditionner les quatre coins du pad, le centre, ORBIT et CONSTELLATION; comparer DNA OFF/ON a niveau compense, demarrages et arrets de notes, changement rapide de presets, sauvegarde et rappel de projet. Mesurer clics, pics CPU, voix et differences spectrales; reproduire a 64 voix. Les tests CI de resynthese ne sont pas une ecoute humaine, et un build vert ne la remplace pas.
