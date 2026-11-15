@@ -45,6 +45,7 @@ on:
       - 'tests/spectral_dna_64voice_v055_bench.cpp'
       - 'tests/spectral_dna_preset_stress_v055.cpp'
       - 'scripts/inspect_slice_underflow_v055.py'
+      - 'scripts/apply_v055_slice_tail_telemetry.py'
       - 'Source/SlicePrefetchCadenceV053.h'
       - 'tests/slice_prefetch_v055_test.cpp'
       - 'tests/slice_prefetch_v053_test.cpp'
@@ -146,6 +147,8 @@ jobs:
           /tmp/dna-64voice-v055-bench
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_preset_stress_v055.cpp -o /tmp/dna-preset-stress-v055
           /tmp/dna-preset-stress-v055
+          python3 scripts/apply_v055_slice_tail_telemetry.py
+          grep -q 'slice_last_second_diagnostics' tests/rompler_audio_stress_v044.cpp
           python3 scripts/inspect_slice_underflow_v055.py
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/slice_prefetch_v053_test.cpp -o /tmp/slice-prefetch-legacy-test
           /tmp/slice-prefetch-legacy-test
