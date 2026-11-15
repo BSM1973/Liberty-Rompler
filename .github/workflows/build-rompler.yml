@@ -8,6 +8,8 @@ on:
       - '.github/workflows/build-rompler.yml'
       - 'scripts/apply_v055_juce_spectral_dna.py'
       - 'scripts/apply_v055_dna_ui.py'
+      - 'scripts/apply_v055_formants.py'
+      - 'tests/spectral_dna_native_formants_v055_test.cpp'
       - 'Source/SpectralDNAMixV055.h'
       - 'tests/spectral_dna_native_ab_v055_test.cpp'
       - 'Source/SlicePrefetchCadenceV053.h'
@@ -440,6 +442,9 @@ jobs:
           set -euo pipefail
           python3 scripts/apply_v055_juce_spectral_dna.py
           python3 scripts/apply_v055_dna_ui.py
+          python3 scripts/apply_v055_formants.py
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_native_formants_v055_test.cpp -o /tmp/dna-native-formants-v055
+          /tmp/dna-native-formants-v055
           grep -q 'SPECTRAL DNA ON' Source/LibertyMorphPadV036.h
           clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_native_ab_v055_test.cpp -o /tmp/spectral-dna-native-ab
           /tmp/spectral-dna-native-ab
