@@ -98,7 +98,7 @@ int main() {
     std::printf("v0.55 repeated preset stress: switches=%zu, 64 voices, "
                 "render_p99_us=%.3f, render_max_us=%.3f, over_budget=%zu, "
                 "prepare_p99_ms=%.3f, max_step=%.5f, switch_step=%.5f, "
-                "peak=%.5f, ru_maxrss=%ld (platform units), nonfinite=%llu\\n",
+                "peak=%.5f, ru_maxrss=%ld (platform units), nonfinite=%llu\n",
                 swaps,renderTimes[std::size_t(totalBlocks*99/100)],
                 renderTimes.back(),std::size_t(over),prepareTimes.back(),
                 maxStep,maxSwapStep,maxLevel,usage.ru_maxrss,
