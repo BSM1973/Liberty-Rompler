@@ -10,6 +10,7 @@ on:
       - 'Source/SpectralDNARealtimeV055.h'
       - 'Source/SpectralDNAMixV055.h'
       - 'Source/SpectralDNAFormantsV055.h'
+      - 'Source/SpectralDNAFormantSlewV055.h'
       - 'Source/SpectralDNAPcmQueueV055.h'
       - 'Source/SpectralDNASessionV055.h'
       - 'tests/spectral_dna_v055_test.cpp'
@@ -22,6 +23,7 @@ on:
       - 'tests/spectral_dna_ab_mix_v055_test.cpp'
       - 'tests/spectral_dna_native_ab_v055_test.cpp'
       - 'tests/spectral_dna_formants_v055_test.cpp'
+      - 'tests/spectral_dna_formant_slew_v055_test.cpp'
       - 'tests/spectral_dna_rt_benchmark_v055.cpp'
       - '.github/workflows/preflight-v055-spectral-dna.yml'
       - 'docs/SPECTRAL_DNA_V055.md'
@@ -65,6 +67,8 @@ jobs:
           /tmp/spectral-dna-ab-mix-test
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_formants_v055_test.cpp -o /tmp/spectral-dna-formants-test
           /tmp/spectral-dna-formants-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_formant_slew_v055_test.cpp -o /tmp/spectral-dna-formant-slew-test
+          /tmp/spectral-dna-formant-slew-test
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/slice_prefetch_v055_test.cpp -o /tmp/slice-prefetch-v055-test
           /tmp/slice-prefetch-v055-test
       - name: Report 64-voice output-stage CPU benchmark (informational only)
@@ -109,6 +113,7 @@ jobs:
           python3 scripts/apply_v055_formants.py
           grep -q 'libertySpectralDNAFormant' Source/PluginProcessor.cpp
           grep -q 'formantShift' Source/SpectralEngineV048.h
+          grep -q 'currentFormant=formantSlew.next(formant)' Source/SpectralEngineV048.h
           grep -q 'formantSlider.setBounds' Source/LibertyMorphPadV036.h
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_native_formants_v055_test.cpp -o /tmp/dna-native-formants-v055
           /tmp/dna-native-formants-v055
