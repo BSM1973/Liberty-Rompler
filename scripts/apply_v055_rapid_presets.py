@@ -25,8 +25,8 @@ once('''        if(frame) {
 once('''            if(transition) {
                 next->previousTables=owned->tables;
                 next->previousDown=owned->formantDown;
-                next->previousUp=owned->formantUp;
-                next->hasPrevious=true;
+                    next->previousUp=owned->formantUp;
+                    next->hasPrevious=true;
             }''',
 '''            if(transition) {
                 // An earlier 256-frame transition may still be audible.
