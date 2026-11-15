@@ -34,3 +34,14 @@ L'extraction FFT des profils et leur publication dans un cache immuable devront 
 `tests/spectral_dna_resynthesis_v055_test.cpp` vérifie la modification effective des échantillons d'un mélange de deux sinusoïdes, le bypass exact, un réglage intermédiaire et la symétrie complexe. La CI Linux intègre ce test avec UBSan.
 
 **Limite importante :** ce prototype est exécuté hors thread audio. Le flux temps réel n'est pas raccordé. Il manque la reconstruction overlap-add (WOLA/COLA), la compensation de latence, le cache de frames préparés, l'adaptation à l'API de resynthèse v0.48 reconstruite en CI, la modulation ORBIT continue et les contrôles AU/VST3. Le profil FFT de 256 points n'autorise pas encore un véritable morphing piano → voix si le signal d'origine ne contient pas les harmoniques visées. Ne pas prétendre que l'effet est audible *dans le plugin* à ce stade.
+
+## Lot D — Flux audio overlap-add et modulation ORBIT (prototype hors ligne)
+`Source/SpectralDNAWolaV055.h` ajoute un moteur de référence à fenêtre Hann périodique, FFT 256, saut de 64 échantillons et reconstruction overlap-add normalisée par la somme des fenêtres au carré (WOLA). Les trames sont positionnées sur une grille temporelle cohérente; leur signal traité est aligné avec le signal d'entrée hors ligne. Le bypass OFF ou Wet=0 copie exactement le signal sans FFT. La trajectoire ORBIT/INFINITY/CONSTELLATION de `OrbitEngineV054.h` est calculée une fois par saut de 64 échantillons pour faire évoluer les poids des profils A/B/C/D.
+
+`tests/spectral_dna_wola_v055_test.cpp` vérifie l'identité du bypass, la fidélité de l'overlap-add sur une combinaison de deux sinusoïdes (profil uniforme), un mouvement ORBIT sur plusieurs trames, les valeurs finies et un flux vide. Le workflow Linux précompile le test avec UBSan et `-Werror`.
+
+### Ce qui n'est PAS encore intégré
+- `renderOffline` utilise des `std::vector` et effectue les FFT pendant la reconstruction, et n'est donc PAS utilisable directement dans `processBlock`.
+- Le report de latence en temps réel, la gestion de la queue de travail (sous-alimentation, dépassements, synchronisation), les transitions sans clic lors des changements de banque et la publication lock-free de profils ne sont PAS implémentés.
+- Le pipeline natif v0.48 extrait par `scripts/apply_v048_bundle.py` doit être audité et exploité sans créer de deuxième moteur spectral dans le plugin. Aucun raccordement JUCE, aucun nouveau AU/VST3 et aucun build macOS ne sont revendiqués.
+- Les tests CI doivent être confirmés verts et l'écoute sur l'interface physique validée avant la fusion de PR #49.
