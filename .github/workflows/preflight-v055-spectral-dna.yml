@@ -37,6 +37,8 @@ on:
       - 'scripts/apply_v055_formants.py'
       - 'scripts/apply_v055_preset_crossfade.py'
       - 'scripts/harden_v055_preset_publication.py'
+      - 'scripts/apply_v055_rapid_presets.py'
+      - 'tests/spectral_dna_rapid_presets_v055_test.cpp'
       - 'tests/spectral_dna_publication_concurrency_v055_test.cpp'
       - 'tests/spectral_dna_native_formants_v055_test.cpp'
       - 'tests/spectral_dna_64voice_v055_bench.cpp'
@@ -123,6 +125,9 @@ jobs:
           python3 scripts/apply_v055_formants.py
           python3 scripts/apply_v055_preset_crossfade.py
           python3 scripts/harden_v055_preset_publication.py
+          python3 scripts/apply_v055_rapid_presets.py
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_rapid_presets_v055_test.cpp -o /tmp/dna-rapid-v055
+          /tmp/dna-rapid-v055
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -pthread -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_publication_concurrency_v055_test.cpp -o /tmp/dna-pub-thread-test
           /tmp/dna-pub-thread-test
           grep -q 'presetFade.mix(oldRaw,raw,tableCrossfade)' Source/SpectralEngineV048.h
