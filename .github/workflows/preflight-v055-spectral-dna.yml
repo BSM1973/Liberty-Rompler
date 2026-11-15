@@ -13,6 +13,7 @@ on:
       - 'tests/spectral_dna_resynthesis_v055_test.cpp'
       - 'tests/spectral_dna_wola_v055_test.cpp'
       - 'tests/spectral_dna_realtime_v055_test.cpp'
+      - 'tests/spectral_dna_rt_benchmark_v055.cpp'
       - '.github/workflows/preflight-v055-spectral-dna.yml'
       - 'docs/SPECTRAL_DNA_V055.md'
   workflow_dispatch:
@@ -37,6 +38,11 @@ jobs:
           /tmp/spectral-dna-wola-test
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_realtime_v055_test.cpp -o /tmp/spectral-dna-rt-test
           /tmp/spectral-dna-rt-test
+      - name: Report 64-voice output-stage CPU benchmark (informational only)
+        run: |
+          set -euo pipefail
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_rt_benchmark_v055.cpp -o /tmp/spectral-dna-rt-bench
+          /tmp/spectral-dna-rt-bench
       - name: Enforce no changes to existing processor or v0.54 release pipeline
         run: |
           set -euo pipefail
