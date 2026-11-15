@@ -32,6 +32,7 @@ on:
       - 'scripts/inspect_slice_underflow_v055.py'
       - 'Source/SlicePrefetchCadenceV053.h'
       - 'tests/slice_prefetch_v055_test.cpp'
+      - 'tests/slice_prefetch_v053_test.cpp'
   workflow_dispatch:
 permissions:
   contents: read
@@ -104,6 +105,9 @@ jobs:
           python3 scripts/apply_v055_juce_spectral_dna.py
           python3 scripts/apply_v055_dna_ui.py
           python3 scripts/inspect_slice_underflow_v055.py
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/slice_prefetch_v053_test.cpp -o /tmp/slice-prefetch-legacy-test
+          /tmp/slice-prefetch-legacy-test
+          python3 -m unittest discover -s tests -p 'test_v053_slice_rt.py' -v
           grep -q 'SPECTRAL DNA ON' Source/LibertyMorphPadV036.h
           grep -q 'getSpectralDNAMix()' Source/LibertyMorphPadV036.h
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_native_ab_v055_test.cpp -o /tmp/spectral-dna-native-ab-test
