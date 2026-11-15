@@ -17,6 +17,7 @@ def once(s, old, new, name):
     return s.replace(old,new,1)
 
 s=spectral.read_text("utf-8")
+s=once(s,'#include <vector>','#include <vector>\n#include "SpectralDNAFormantSlewV055.h"',"formant slew include")
 s=once(s,
 '    std::array<std::array<float, tableSize>, bands> tables {};',
 '    std::array<std::array<float, tableSize>, bands> tables {};'
@@ -94,6 +95,18 @@ s=once(s,
 '    float mix=0.f,transient=0.5f;',
 '    float mix=0.f,transient=0.5f,formantShift=0.f;', "parameters")
 s=once(s,
+'        wetState=0.f;\n        activeGeneration=0;',
+'        wetState=0.f;\n        formantSlew.reset();\n        activeGeneration=0;', "prepare reset")
+s=once(s,
+'            wetState=0.f;',
+'            wetState=0.f;\n            formantSlew.reset();', "generation reset")
+s=once(s,
+'private:\n    void syncGeneration() noexcept {',
+'private:\n    liberty::spectral_dna_v055::FormantSlew formantSlew;\n    void syncGeneration() noexcept {', "engine state")
+s=once(s,
+'            wetState+=(target-wetState)*.004f;',
+'            wetState+=(target-wetState)*.004f;\n            const float currentFormant=formantSlew.next(formant);', "sample rate slew")
+s=once(s,
 '        const float transient=limit(p.transient,0.f,1.f);',
 '        const float transient=limit(p.transient,0.f,1.f);\n'
 '        const float formant=limit(std::isfinite(p.formantShift)?p.formantShift:0.f,-1.f,1.f);',
@@ -101,12 +114,12 @@ s=once(s,
 s=once(s,
 '                const float raw=wave[(size_t)a]*(1.f-f)+wave[(size_t)b]*f;',
 '''                float raw=wave[(size_t)a]*(1.f-f)+wave[(size_t)b]*f;
-                if(formant!=0.f) {
-                    const auto& shifted=formant<0.f
+                if(currentFormant!=0.f) {
+                    const auto& shifted=currentFormant<0.f
                         ? frame->formantDown[(size_t)v.band]
                         : frame->formantUp[(size_t)v.band];
                     const float variant=shifted[(size_t)a]*(1.f-f)+shifted[(size_t)b]*f;
-                    raw+=(variant-raw)*std::abs(formant);
+                    raw+=(variant-raw)*std::abs(currentFormant);
                 }''',"render sample")
 spectral.write_text(s,"utf-8")
 
