@@ -21,3 +21,8 @@ for name,terms in tokens.items():
                 if j not in shown:
                     print(f"{j+1:04d} {lines[j]}")
                     shown.add(j)
+
+for name,a,b in (("Source/SampleEngine.cpp",433,568),("tests/rompler_audio_stress_v044.cpp",70,155)):
+    lines=Path(name).read_text("utf-8").splitlines()
+    print("==== FULL RANGE",name,a,b,"====")
+    for i in range(a-1,min(b,len(lines))): print(f"{i+1:04d} {lines[i]}")
