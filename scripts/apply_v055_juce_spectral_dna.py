@@ -16,6 +16,9 @@ def once(s,old,new):
 
 h=header.read_text(encoding="utf-8")
 h=once(h,
+    '#include "SpectralEngineV048.h"',
+    '#include "SpectralEngineV048.h"\n#include "SpectralDNAMixV055.h"')
+h=once(h,
     '    juce::AudioParameterBool& getSpectralEnabled(int i) noexcept',
     '    juce::AudioParameterBool& getSpectralDNAEnabled() noexcept { return *spectralDNAEnabled; }\n'
     '    juce::AudioParameterFloat& getSpectralDNAMix() noexcept { return *spectralDNAMix; }\n'
@@ -54,10 +57,8 @@ p=once(p,
     '            && hybridParams.enabled;\n'
     '        const float legacySpectralMix=spectralMixes[(size_t)layer]->get();\n'
     '        const float layerDNAWeight=morphOn ? morphWeights[(size_t)layer] : .25f;\n'
-    '        const float layerDNA=juce::jlimit(0.f,1.f,4.f*layerDNAWeight*spectralDNAWet);\n'
-    '        spectralParams.mix=spectralDNAOn\n'
-    '            ? legacySpectralMix+(1.f-legacySpectralMix)*layerDNA\n'
-    '            : legacySpectralMix;')
+    '        spectralParams.mix=liberty::spectral_dna_v055::spectralMixForLayer(\n'
+    '            legacySpectralMix,layerDNAWeight,spectralDNAWet,spectralDNAOn);')
 for name,value in [(header,h),(source,p)]:
     if '\ufffd' in value: raise SystemExit("Invalid replacement character in "+str(name))
     name.write_text(value,encoding="utf-8")
