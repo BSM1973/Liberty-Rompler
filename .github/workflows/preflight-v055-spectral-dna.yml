@@ -5,8 +5,10 @@ on:
     paths:
       - 'Source/SpectralDNAV055.h'
       - 'Source/SpectralDNAAnalysisV055.h'
+      - 'Source/SpectralDNAResynthesisV055.h'
       - 'tests/spectral_dna_v055_test.cpp'
       - 'tests/spectral_dna_analysis_v055_test.cpp'
+      - 'tests/spectral_dna_resynthesis_v055_test.cpp'
       - '.github/workflows/preflight-v055-spectral-dna.yml'
       - 'docs/SPECTRAL_DNA_V055.md'
   workflow_dispatch:
@@ -25,6 +27,8 @@ jobs:
           /tmp/spectral-dna-test
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_analysis_v055_test.cpp -o /tmp/spectral-dna-analysis-test
           /tmp/spectral-dna-analysis-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_resynthesis_v055_test.cpp -o /tmp/spectral-dna-resynthesis-test
+          /tmp/spectral-dna-resynthesis-test
       - name: Enforce no changes to existing processor or v0.54 release pipeline
         run: |
           set -euo pipefail
