@@ -11,6 +11,7 @@ on:
       - 'Source/SpectralDNAMixV055.h'
       - 'Source/SpectralDNAFormantsV055.h'
       - 'Source/SpectralDNAFormantSlewV055.h'
+      - 'Source/SpectralDNAPresetFadeV055.h'
       - 'Source/SpectralDNAPcmQueueV055.h'
       - 'Source/SpectralDNASessionV055.h'
       - 'tests/spectral_dna_v055_test.cpp'
@@ -24,6 +25,8 @@ on:
       - 'tests/spectral_dna_native_ab_v055_test.cpp'
       - 'tests/spectral_dna_formants_v055_test.cpp'
       - 'tests/spectral_dna_formant_slew_v055_test.cpp'
+      - 'tests/spectral_dna_preset_fade_v055_test.cpp'
+      - 'tests/spectral_dna_preset_crossfade_v055_test.cpp'
       - 'tests/spectral_dna_rt_benchmark_v055.cpp'
       - '.github/workflows/preflight-v055-spectral-dna.yml'
       - 'docs/SPECTRAL_DNA_V055.md'
@@ -32,6 +35,7 @@ on:
       - 'scripts/apply_v055_juce_spectral_dna.py'
       - 'scripts/apply_v055_dna_ui.py'
       - 'scripts/apply_v055_formants.py'
+      - 'scripts/apply_v055_preset_crossfade.py'
       - 'tests/spectral_dna_native_formants_v055_test.cpp'
       - 'tests/spectral_dna_64voice_v055_bench.cpp'
       - 'tests/spectral_dna_preset_stress_v055.cpp'
@@ -71,6 +75,8 @@ jobs:
           /tmp/spectral-dna-formants-test
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_formant_slew_v055_test.cpp -o /tmp/spectral-dna-formant-slew-test
           /tmp/spectral-dna-formant-slew-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_preset_fade_v055_test.cpp -o /tmp/dna-preset-fade-v055
+          /tmp/dna-preset-fade-v055
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/slice_prefetch_v055_test.cpp -o /tmp/slice-prefetch-v055-test
           /tmp/slice-prefetch-v055-test
       - name: Report 64-voice output-stage CPU benchmark (informational only)
@@ -113,6 +119,10 @@ jobs:
           python3 scripts/apply_v055_juce_spectral_dna.py
           python3 scripts/apply_v055_dna_ui.py
           python3 scripts/apply_v055_formants.py
+          python3 scripts/apply_v055_preset_crossfade.py
+          grep -q 'presetFade.mix(oldRaw,raw,tableCrossfade)' Source/SpectralEngineV048.h
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_preset_crossfade_v055_test.cpp -o /tmp/dna-preset-crossfade-v055
+          /tmp/dna-preset-crossfade-v055
           grep -q 'libertySpectralDNAFormant' Source/PluginProcessor.cpp
           grep -q 'formantShift' Source/SpectralEngineV048.h
           grep -q 'currentFormant=formantSlew.next(formant)' Source/SpectralEngineV048.h
