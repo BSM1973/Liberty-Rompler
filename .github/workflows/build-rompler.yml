@@ -18,6 +18,7 @@ on:
       - 'scripts/apply_v055_slice_tail_telemetry.py'
       - 'tools/analyze_v055_switch_memory.py'
       - 'tools/enforce_v055_native_qualification.py'
+      - 'tools/analyze_v055_callback_spikes.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
       - 'tests/spectral_dna_preset_crossfade_v055_test.cpp'
@@ -588,6 +589,15 @@ jobs:
           path: v044-reports/*.json
           if-no-files-found: ignore
           retention-days: 30
+
+      - name: Diagnose callback wall versus thread CPU overruns
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_v055_callback_spikes.py \
+            v044-reports/qualification.json \
+            --output v044-reports/callback-spikes-v055.json
+          cat v044-reports/callback-spikes-v055.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Gate v0.55 native JUCE callback and streaming qualification strictly
         shell: bash
