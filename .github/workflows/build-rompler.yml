@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/build-rompler.yml'
       - 'scripts/apply_v055_juce_spectral_dna.py'
+      - 'scripts/apply_v055_dna_ui.py'
   workflow_dispatch:
 
 permissions:
@@ -433,6 +434,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/apply_v055_juce_spectral_dna.py
+          python3 scripts/apply_v055_dna_ui.py
+          grep -q 'SPECTRAL DNA ON' Source/LibertyMorphPadV036.h
           grep -q 'libertySpectralDNAEnabled' Source/PluginProcessor.cpp
           grep -q 'spectralParams.mix=spectralDNAOn' Source/PluginProcessor.cpp
           grep -q 'spectral.render(left,right' Source/PluginProcessor.cpp
