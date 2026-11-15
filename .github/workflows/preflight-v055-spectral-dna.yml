@@ -29,6 +29,7 @@ on:
       - 'scripts/inspect_v055_generated.py'
       - 'scripts/apply_v055_juce_spectral_dna.py'
       - 'scripts/apply_v055_dna_ui.py'
+      - 'scripts/inspect_slice_underflow_v055.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -98,6 +99,7 @@ jobs:
           python3 scripts/inspect_v055_generated.py
           python3 scripts/apply_v055_juce_spectral_dna.py
           python3 scripts/apply_v055_dna_ui.py
+          python3 scripts/inspect_slice_underflow_v055.py
           grep -q 'SPECTRAL DNA ON' Source/LibertyMorphPadV036.h
           grep -q 'getSpectralDNAMix()' Source/LibertyMorphPadV036.h
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_native_ab_v055_test.cpp -o /tmp/spectral-dna-native-ab-test
