@@ -11,6 +11,8 @@ on:
       - 'scripts/apply_v055_formants.py'
       - 'scripts/apply_v055_preset_crossfade.py'
       - 'scripts/harden_v055_preset_publication.py'
+      - 'scripts/apply_v055_rapid_presets.py'
+      - 'tests/spectral_dna_rapid_presets_v055_test.cpp'
       - 'tests/spectral_dna_publication_concurrency_v055_test.cpp'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
@@ -454,6 +456,9 @@ jobs:
           python3 scripts/apply_v055_formants.py
           python3 scripts/apply_v055_preset_crossfade.py
           python3 scripts/harden_v055_preset_publication.py
+          python3 scripts/apply_v055_rapid_presets.py
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_rapid_presets_v055_test.cpp -o /tmp/dna-rapid-presets-v055
+          /tmp/dna-rapid-presets-v055
           clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -pthread tests/spectral_dna_publication_concurrency_v055_test.cpp -o /tmp/dna-pub-thread-v055
           /tmp/dna-pub-thread-v055
           clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_preset_fade_v055_test.cpp -o /tmp/dna-preset-fade-v055
