@@ -16,3 +16,8 @@ for label,source,terms in [
                 if i not in seen:
                     print(f"{i+1:04d} {lines[i]}")
                     seen.add(i)
+
+ui=Path('Source/LibertyMorphPadV036.h').read_text().splitlines()
+print('=== GENERATED MORPH UI ===')
+for index,line in enumerate(ui,1):
+    if index<=330: print(f'{index:03d} {line}')
