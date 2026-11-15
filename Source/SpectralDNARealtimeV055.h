@@ -25,6 +25,7 @@ public:
         dryHistory.fill(0.f);
         writePosition=0;
         appliedWet=0.f;
+        lastWet=0.f;
         stats={};
     }
     int getLatencySamples() const noexcept { return latency; }
@@ -36,8 +37,8 @@ public:
     float process(float drySample,float wetSample,bool wetAvailable,
                   float requestedWet,bool enabled) noexcept {
         const float cleanDry=std::isfinite(drySample) ? drySample : 0.f;
-        const float delayedDry=dryHistory[(writePosition+kCapacity-
-                                 std::size_t(latency))%kCapacity];
+        const float delayedDry=latency==0 ? cleanDry :
+            dryHistory[(writePosition+kCapacity-std::size_t(latency))%kCapacity];
         dryHistory[writePosition]=cleanDry;
         writePosition=(writePosition+1)%kCapacity;
         ++stats.rendered;
@@ -47,15 +48,16 @@ public:
         }
         const bool wetReady=wetAvailable && std::isfinite(wetSample);
         if(!wetReady) ++stats.wetMissing;
+        if(wetReady) lastWet=wetSample;
         const float target=wetReady && std::isfinite(requestedWet)
             ? std::clamp(requestedWet,0.f,1.f):0.f;
         const float step=1.f/float(kRampSamples);
         appliedWet += std::clamp(target-appliedWet,-step,step);
         appliedWet=std::clamp(appliedWet,0.f,1.f);
-        // Missing wet data immediately substitutes delayed dry into BOTH sides
-        // rather than blending old/stale wet content. The envelope still ramps
-        // toward bypass; underflow cannot generate a non-finite output.
-        const float wet=wetReady?wetSample:delayedDry;
+        // Underflow holds only the last finite wet sample while appliedWet
+        // fades out over kRampSamples, avoiding a one-sample wet->dry jump.
+        // This is a bounded emergency fallback, not high-quality concealment.
+        const float wet=wetReady?wetSample:lastWet;
         return delayedDry+(wet-delayedDry)*appliedWet;
     }
 private:
@@ -63,6 +65,7 @@ private:
     std::size_t writePosition=0;
     int latency=kRecommendedLatency;
     float appliedWet=0.f;
+    float lastWet=0.f;
     Diagnostics stats{};
 };
 } // namespace liberty::spectral_dna_v055
