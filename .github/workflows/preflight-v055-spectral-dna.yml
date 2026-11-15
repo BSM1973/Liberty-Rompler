@@ -46,6 +46,8 @@ on:
       - 'tests/spectral_dna_preset_stress_v055.cpp'
       - 'scripts/inspect_slice_underflow_v055.py'
       - 'scripts/apply_v055_slice_tail_telemetry.py'
+      - 'tools/analyze_v055_switch_memory.py'
+      - 'tests/test_v055_switch_memory.py'
       - 'Source/SlicePrefetchCadenceV053.h'
       - 'tests/slice_prefetch_v055_test.cpp'
       - 'tests/slice_prefetch_v053_test.cpp'
@@ -90,6 +92,8 @@ jobs:
           set -euo pipefail
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_rt_benchmark_v055.cpp -o /tmp/spectral-dna-rt-bench
           /tmp/spectral-dna-rt-bench
+      - name: Validate extended preset RSS report semantics
+        run: python3 -m unittest discover -s tests -p 'test_v055_switch_memory.py' -v
       - name: Inspect baseline v0.48 spectral host interface
         run: python3 scripts/inspect_v048_api_v055.py
       - name: Reconstruct v0.54 JUCE integration for spectral DNA anchor inspection
