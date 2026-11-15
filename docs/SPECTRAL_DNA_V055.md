@@ -45,3 +45,15 @@ L'extraction FFT des profils et leur publication dans un cache immuable devront 
 - Le report de latence en temps réel, la gestion de la queue de travail (sous-alimentation, dépassements, synchronisation), les transitions sans clic lors des changements de banque et la publication lock-free de profils ne sont PAS implémentés.
 - Le pipeline natif v0.48 extrait par `scripts/apply_v048_bundle.py` doit être audité et exploité sans créer de deuxième moteur spectral dans le plugin. Aucun raccordement JUCE, aucun nouveau AU/VST3 et aucun build macOS ne sont revendiqués.
 - Les tests CI doivent être confirmés verts et l'écoute sur l'interface physique validée avant la fusion de PR #49.
+
+## Lot E — Etage de sortie temps réel, retard dry/wet et banc 64 voix (code publié)
+`Source/SpectralDNARealtimeV055.h` introduit un étage de sortie mono indépendant par voix avec un tampon circulaire fixe de 4096 échantillons. Il aligne le dry sur un wet **déjà rendu et déjà aligné** par la chaîne spectrale, avec une latence configurable avant lecture. La valeur initialement suggérée est 256 échantillons mais ce n'est PAS une latence validée ou reportée au DAW. Le bypass OFF retourne l'entrée à l'identique; pendant le mode actif, les variations du taux wet sont limitées à 1/128 par échantillon. Si les échantillons wet manquent, un fondu de secours ramène le dernier échantillon wet valide vers le dry retardé sur au plus 128 échantillons. Ce mode de secours évite un saut instantané mais **ne remplace pas une stratégie de concealment testée à l'écoute**.
+
+`tests/spectral_dna_realtime_v055_test.cpp` simule 64 instances indépendantes, vérifie la mémoire fixe, l'absence de NaN, le bypass exact, l'alignement d'un impulse dry avec 256 samples de latence, les fondus Wet, un manque de données et les bornes de latence. `tests/spectral_dna_rt_benchmark_v055.cpp` mesure le p99 et le maximum de calcul de **cet étage de sortie seulement** à 64 voix / 48 kHz / 128 frames. Le test chronométré est informatif, sans seuil CI instable. Tout le code de ce lot est ajouté à la prévalidation Linux, sans modifier le workflow macOS de la v0.54.
+
+### Limites de certification
+- L'étage de sortie n'est pas encore appelé depuis `PluginProcessor::processBlock`, et aucun résultat AU/VST3 n'est revendiqué.
+- Le tampon dry n'est PAS un transport de trames entre threads : la file audio wet, le réveil des workers, la propriété des buffers, la compensation du délai moteur et le report JUCE `setLatencySamples` restent à construire.
+- Un bypass sans délai sur un flux qui était actif peut provoquer une discontinuité et ne doit pas être présenté comme commutation sans clic, même si le bypass historique est exact à l'arrêt.
+- La transformation piano -> voix réelle nécessite un modèle de sources/excitations, un suivi de la fondamentale, un traitement des formants et des transitoires; une enveloppe spectrale de 128 bins seule ne suffit pas.
+- Les résultats du workflow Linux, un audit du moteur v0.48 et les essais sur interface audio réelle restent des conditions préalables à la fusion de la PR #49.
