@@ -61,8 +61,7 @@ once('''            if(transition) {
 once('''            const float tableCrossfade=presetFade.advance();''',
 '''            const float tableCrossfade=presetFade.advance();
             if(frame && frame->hasPrevious) {
-                const auto samplesDone=std::uint64_t(
-                    std::clamp(int(std::lround(tableCrossfade*256.f)),0,256));
+                const auto samplesDone=std::uint64_t(presetFade.completedSamples());
                 audibleFade.store((frame->publicationId<<16)|samplesDone,
                                   std::memory_order_release);
             }''',"audio progress")
