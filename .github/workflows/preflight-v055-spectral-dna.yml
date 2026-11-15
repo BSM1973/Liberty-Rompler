@@ -50,6 +50,8 @@ on:
       - 'tests/test_v055_switch_memory.py'
       - 'tools/enforce_v055_native_qualification.py'
       - 'tests/test_v055_native_qualification.py'
+      - 'tools/analyze_v055_callback_spikes.py'
+      - 'tests/test_v055_callback_spikes.py'
       - 'Source/SlicePrefetchCadenceV053.h'
       - 'tests/slice_prefetch_v055_test.cpp'
       - 'tests/slice_prefetch_v053_test.cpp'
@@ -94,6 +96,8 @@ jobs:
           set -euo pipefail
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_rt_benchmark_v055.cpp -o /tmp/spectral-dna-rt-bench
           /tmp/spectral-dna-rt-bench
+      - name: Validate diagnostic wall versus thread CPU classification
+        run: python3 -m unittest discover -s tests -p 'test_v055_callback_spikes.py' -v
       - name: Validate strict v0.55 JUCE qualification gate
         run: python3 -m unittest discover -s tests -p 'test_v055_native_qualification.py' -v
       - name: Validate extended preset RSS report semantics
