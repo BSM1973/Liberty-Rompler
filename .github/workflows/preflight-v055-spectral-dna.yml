@@ -9,12 +9,14 @@ on:
       - 'Source/SpectralDNAWolaV055.h'
       - 'Source/SpectralDNARealtimeV055.h'
       - 'Source/SpectralDNAPcmQueueV055.h'
+      - 'Source/SpectralDNASessionV055.h'
       - 'tests/spectral_dna_v055_test.cpp'
       - 'tests/spectral_dna_analysis_v055_test.cpp'
       - 'tests/spectral_dna_resynthesis_v055_test.cpp'
       - 'tests/spectral_dna_wola_v055_test.cpp'
       - 'tests/spectral_dna_realtime_v055_test.cpp'
       - 'tests/spectral_dna_pcm_queue_v055_test.cpp'
+      - 'tests/spectral_dna_session_v055_test.cpp'
       - 'tests/spectral_dna_rt_benchmark_v055.cpp'
       - '.github/workflows/preflight-v055-spectral-dna.yml'
       - 'docs/SPECTRAL_DNA_V055.md'
@@ -42,6 +44,8 @@ jobs:
           /tmp/spectral-dna-rt-test
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_pcm_queue_v055_test.cpp -o /tmp/spectral-dna-pcm-queue-test
           /tmp/spectral-dna-pcm-queue-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_session_v055_test.cpp -o /tmp/spectral-dna-session-test
+          /tmp/spectral-dna-session-test
       - name: Report 64-voice output-stage CPU benchmark (informational only)
         run: |
           set -euo pipefail
