@@ -72,3 +72,14 @@ L'extraction FFT des profils et leur publication dans un cache immuable devront 
 6. Ne fusionner la PR #49 et ne lancer le build macOS v0.55 qu'après confirmation de la prévalidation et de l'intégration réelle.
 
 Cette étape apporte des briques vérifiables pour le vrai temps réel mais **ne constitue pas encore un raccordement au moteur spectral v0.48** ni une version AU/VST3 opérationnelle.
+
+## Lot G — Premier raccordement JUCE réel (branche expérimentale)
+Le script `scripts/apply_v055_juce_spectral_dna.py`, appliqué **après v0.54** pendant les builds Linux et macOS, connecte des paramètres AU/VST3 `libertySpectralDNAEnabled` (OFF par défaut) et `libertySpectralDNAMix` (0 par défaut) aux **quatre véritables moteurs `spectral_v048::Engine`** déjà appelés dans `PluginProcessor::processBlock`. Les trajectoires MORPH/ORBIT existantes modulent la part du signal de resynthèse harmonique de chaque couche. Les anciennes valeurs spectrales des quatre couches sont inchangées quand DNA est OFF.
+
+**Architecture réelle vérifiée :** la v0.48 analyse par FFT 2048 hors callback, construit des tables harmoniques antialiasées et produit dans `render` un oscillateur polyphonique sans FFT ni file PCM. La voie JUCE raccordée réutilise cette architecture préexistante. Les prototypes WOLA/FFT 256, SPSC et la classe `SessionControl` v0.55 restent **inactifs** dans le plugin pour éviter une double synthèse et des changements de latence injustifiés.
+
+### Latence et limites
+- La voie directe `spectral_v048::Engine::render` n'introduit pas le lookahead WOLA de 256 frames. Les 256 samples de `SessionControl` sont une constante expérimentale inutilisée : **ne pas les déclarer au DAW dans cette voie**. Mesurer l'éventuelle latence du pipeline complet avant toute nouvelle déclaration.
+- Le morphing audible actuel module les niveaux de quatre resynthèses harmoniques, pas les formants/partiels d'une voix vers un piano. Le vrai morphing timbral profond exige une banque de tables hybrides ou la fusion de profils avant resynthèse.
+- Les contrôles existent en paramètres hôte AU/VST3 ; une UI MORPH dédiée, les tests audio A/B sous DAW et la validation macOS sont encore nécessaires.
+- Aucun test du banc natif v0.48 existant ne remplace un test A/B ciblant les nouveaux paramètres SPECTRAL DNA.
