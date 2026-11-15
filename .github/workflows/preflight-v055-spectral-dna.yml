@@ -30,6 +30,8 @@ on:
       - 'scripts/apply_v055_juce_spectral_dna.py'
       - 'scripts/apply_v055_dna_ui.py'
       - 'scripts/inspect_slice_underflow_v055.py'
+      - 'Source/SlicePrefetchCadenceV053.h'
+      - 'tests/slice_prefetch_v055_test.cpp'
   workflow_dispatch:
 permissions:
   contents: read
@@ -60,6 +62,8 @@ jobs:
           /tmp/spectral-dna-ab-mix-test
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_formants_v055_test.cpp -o /tmp/spectral-dna-formants-test
           /tmp/spectral-dna-formants-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/slice_prefetch_v055_test.cpp -o /tmp/slice-prefetch-v055-test
+          /tmp/slice-prefetch-v055-test
       - name: Report 64-voice output-stage CPU benchmark (informational only)
         run: |
           set -euo pipefail
