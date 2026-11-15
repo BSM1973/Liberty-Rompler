@@ -23,6 +23,7 @@ on:
       - 'scripts/inspect_v048_api_v055.py'
       - 'scripts/inspect_v055_generated.py'
       - 'scripts/apply_v055_juce_spectral_dna.py'
+      - 'scripts/apply_v055_dna_ui.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -87,6 +88,9 @@ jobs:
           python3 scripts/apply_v054_orbit.py
           python3 scripts/inspect_v055_generated.py
           python3 scripts/apply_v055_juce_spectral_dna.py
+          python3 scripts/apply_v055_dna_ui.py
+          grep -q 'SPECTRAL DNA ON' Source/LibertyMorphPadV036.h
+          grep -q 'getSpectralDNAMix()' Source/LibertyMorphPadV036.h
           grep -q 'libertySpectralDNAEnabled' Source/PluginProcessor.cpp
           grep -q 'spectralParams.mix=spectralDNAOn' Source/PluginProcessor.cpp
           grep -q 'spectral.render(left,right' Source/PluginProcessor.cpp
