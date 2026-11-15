@@ -17,3 +17,13 @@ L'extraction FFT des profils et leur publication dans un cache immuable devront 
 
 ## Tests de ce lot
 `tests/spectral_dna_v055_test.cpp` vérifie les quatre coins, le centre XY, le bypass, la protection des transitoires et la robustesse des entrées invalides. La CI Linux compile en C++17 avec avertissements stricts et UBSan.
+
+## Lot B — Analyse FFT hors thread audio (ajouté)
+`Source/SpectralDNAAnalysisV055.h` met en place une FFT radix-2 de 256 points avec fenêtre de Hann, production d'un profil normalisé de 128 bandes et analyse de quatre fenêtres mono. Le code exige une exécution côté chargement/worker, **jamais dans processBlock**. Les entrées nulles, les silences, NaN et Inf sont neutralisés. Les résultats sont déterministes à plateforme donnée.
+
+`tests/spectral_dna_analysis_v055_test.cpp` couvre les sinusoïdes aux bins 8 et 24, la sélection XY des couches, le silence, les nombres invalides et la protection des transitoires. La CI Linux exécute les deux tests C++17 avec UBSan et `-Werror`.
+
+### Limites actuelles
+- La FFT courte de 256 points est un prototype de profil harmonique, pas encore une analyse multirésolution adaptée aux graves.
+- Aucun branchement à la lecture WAV, aucun cache de publication thread-safe et aucune resynthèse audiblement nouvelle ne sont livrés à ce stade.
+- La prévalidation GitHub et les tests natifs en DAW doivent réussir avant la fusion. Ne pas annoncer un nouveau plugin fonctionnel tant que l'intégration JUCE reste inachevée.
