@@ -3,9 +3,10 @@ name: Liberty Rompler - Build macOS AU VST3 Standalone
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/v055-spectral-dna]
     paths:
       - '.github/workflows/build-rompler.yml'
+      - 'scripts/apply_v055_juce_spectral_dna.py'
   workflow_dispatch:
 
 permissions:
@@ -426,6 +427,15 @@ jobs:
           grep -q 'GRAVIT' Source/LibertyMorphPadV036.h
           test -s tests/orbit_engine_v054_test.cpp
           test -s tests/test_v054_orbit.py
+
+      - name: Integrate opt-in Liberty SPECTRAL DNA v0.55 into existing v0.48 JUCE resynthesis
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/apply_v055_juce_spectral_dna.py
+          grep -q 'libertySpectralDNAEnabled' Source/PluginProcessor.cpp
+          grep -q 'spectralParams.mix=spectralDNAOn' Source/PluginProcessor.cpp
+          grep -q 'spectral.render(left,right' Source/PluginProcessor.cpp
 
       - name: Validate bank files, Unicode and no-overlap geometry
         shell: bash
