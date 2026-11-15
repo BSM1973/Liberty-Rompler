@@ -14,6 +14,7 @@ on:
       - 'scripts/apply_v055_rapid_presets.py'
       - 'tests/spectral_dna_rapid_presets_v055_test.cpp'
       - 'tests/spectral_dna_publication_concurrency_v055_test.cpp'
+      - 'tests/spectral_dna_64voice_concurrent_v055.cpp'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
       - 'tests/spectral_dna_preset_crossfade_v055_test.cpp'
@@ -461,6 +462,8 @@ jobs:
           /tmp/dna-rapid-presets-v055
           clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -pthread tests/spectral_dna_publication_concurrency_v055_test.cpp -o /tmp/dna-pub-thread-v055
           /tmp/dna-pub-thread-v055
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -pthread tests/spectral_dna_64voice_concurrent_v055.cpp -o /tmp/dna-64voice-concurrent-v055
+          /tmp/dna-64voice-concurrent-v055
           clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_preset_fade_v055_test.cpp -o /tmp/dna-preset-fade-v055
           /tmp/dna-preset-fade-v055
           clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_preset_crossfade_v055_test.cpp -o /tmp/dna-preset-crossfade-v055
