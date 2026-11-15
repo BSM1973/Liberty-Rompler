@@ -93,7 +93,7 @@ int main() {
     std::printf("DNA 64 spectral voices, 4 layers, 48kHz, blocks=128: "
                 "p99=%.3fus max=%.3fus budget=%.3fus overbudget=%d "
                 "tables=%zu bytes peak=%.4f max_inter_sample_delta=%.4f "
-                "RMS=%.4f nonfinite=%llu\\n",
+                "RMS=%.4f nonfinite=%llu\n",
                 p99,maxUs,budgetMicros,overBudget,tableBytes,peak,maxDelta,
                 std::sqrt(energy/std::max<std::uint64_t>(audioSamples,1)),
                 static_cast<unsigned long long>(nonfinite));
