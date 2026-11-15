@@ -10,6 +10,8 @@ on:
       - 'scripts/apply_v055_dna_ui.py'
       - 'scripts/apply_v055_formants.py'
       - 'tests/spectral_dna_native_formants_v055_test.cpp'
+      - 'Source/SpectralDNAFormantSlewV055.h'
+      - 'tests/spectral_dna_formant_slew_v055_test.cpp'
       - 'Source/SpectralDNAMixV055.h'
       - 'tests/spectral_dna_native_ab_v055_test.cpp'
       - 'Source/SlicePrefetchCadenceV053.h'
@@ -445,6 +447,8 @@ jobs:
           python3 scripts/apply_v055_formants.py
           clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_native_formants_v055_test.cpp -o /tmp/dna-native-formants-v055
           /tmp/dna-native-formants-v055
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_formant_slew_v055_test.cpp -o /tmp/formant-slew-v055
+          /tmp/formant-slew-v055
           grep -q 'SPECTRAL DNA ON' Source/LibertyMorphPadV036.h
           clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_native_ab_v055_test.cpp -o /tmp/spectral-dna-native-ab
           /tmp/spectral-dna-native-ab
