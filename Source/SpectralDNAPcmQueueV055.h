@@ -56,10 +56,10 @@ private:
 // If one frame is missing, return false and let the dry/wet fade handle it.
 class SpectralPcmCursor final {
 public:
-    void resetBeforeStart() noexcept { offset=kFrameSamples; }
+    void resetBeforeStart() noexcept { offset=SpectralPcmQueue::kFrameSamples; }
     bool next(SpectralPcmQueue& queue,std::uint32_t activeGeneration,
               std::uint64_t expectedSample,float& output) noexcept {
-        if(offset==kFrameSamples) {
+        if(offset==SpectralPcmQueue::kFrameSamples) {
             if(!queue.pop(current)) return false;
             offset=0;
         }
@@ -67,7 +67,7 @@ public:
                          current.firstSample+offset==expectedSample;
         const float sample=current.mono[offset++];
         if(!valid || !std::isfinite(sample)) {
-            offset=kFrameSamples; // reject remainder of stale/misaligned frame
+            offset=SpectralPcmQueue::kFrameSamples; // reject remainder of stale/misaligned frame
             return false;
         }
         output=sample;
@@ -75,6 +75,6 @@ public:
     }
 private:
     SpectralPcmQueue::Frame current{};
-    std::size_t offset=kFrameSamples;
+    std::size_t offset=SpectralPcmQueue::kFrameSamples;
 };
 } // namespace liberty::spectral_dna_v055
