@@ -28,9 +28,17 @@ int main(){
         previous=y;
     }
     assert(previous>0.99f);
-    // Missing wet must immediately select properly aligned dry, not stale wet.
-    assert(engine.process(0.f,99.f,false,1.f,true)==0.f);
-    assert(engine.diagnostics().wetMissing==1);
+    // Missing wet initiates bounded fade from last good sample, not a click.
+    float firstMissing=engine.process(0.f,99.f,false,1.f,true);
+    assert(firstMissing>0.f && firstMissing<1.f);
+    float previousMissing=firstMissing;
+    for(int i=0;i<127;++i) {
+        float y=engine.process(0.f,99.f,false,1.f,true);
+        assert(y<=previousMissing+1.e-6f);
+        previousMissing=y;
+    }
+    assert(previousMissing<0.001f);
+    assert(engine.diagnostics().wetMissing==128);
     // Saturation and non-finite guard.
     engine.prepare(999999);
     assert(engine.getLatencySamples()==int(RealtimeBlend::kCapacity-1));
