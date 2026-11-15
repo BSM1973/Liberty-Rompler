@@ -57,3 +57,18 @@ L'extraction FFT des profils et leur publication dans un cache immuable devront 
 - Un bypass sans délai sur un flux qui était actif peut provoquer une discontinuité et ne doit pas être présenté comme commutation sans clic, même si le bypass historique est exact à l'arrêt.
 - La transformation piano -> voix réelle nécessite un modèle de sources/excitations, un suivi de la fondamentale, un traitement des formants et des transitoires; une enveloppe spectrale de 128 bins seule ne suffit pas.
 - Les résultats du workflow Linux, un audit du moteur v0.48 et les essais sur interface audio réelle restent des conditions préalables à la fusion de la PR #49.
+
+## Lot F — Transport PCM SPSC, générations de presets et contrat de latence
+`Source/SpectralDNAPcmQueueV055.h` définit une file mono SPSC de 32 trames de 64 échantillons : un producteur (worker) et un consommateur (audio), sans allocation, verrou ou attente dans push/pop. Les frames portent un numéro de génération et une position d'échantillon. Le curseur audio refuse les trames d'un ancien preset, les horodatages inattendus et les nombres non finis. Débordement = refus de push ; sous-alimentation = refus de pop, à gérer par le fondu de secours du lot E. Le reset de la file doit avoir lieu **uniquement avant** le démarrage ou après arrêt coordonné des deux threads. Il n'est PAS concurrent.
+
+`Source/SpectralDNASessionV055.h` définit un epoch atomique pour les changements de presets, et un contrat provisoire de 256 échantillons de latence. La méthode `configureHostLatency` est une interface à appeler depuis une phase de préparation autorisée par le DAW ; elle n'est PAS appelée automatiquement et doit être auditée avant intégration JUCE. Les deux contrats disposent de tests C++17 ajoutés à la prévalidation Linux.
+
+### Étapes restantes obligatoires
+1. Extraire et inspecter le véritable code du moteur v0.48 reconstitué en CI ; déterminer exactement où ses trames audio calculées sont disponibles.
+2. Fournir un worker réel avec horodatage source, coordination des propriétés des buffers et publication vers cette file (la file seule ne produit aucun son).
+3. Consommer les trames dans `processBlock`, par canal/voix avec stratégie temporelle définie, sans mélanger des sons de voix différentes. Le prototype de file est mono et SPSC : pour une polyphonie 64 voix, il faut une stratégie de transport et un budget mémoire/CPU précis.
+4. Mesurer la latence effective avant d'appeler `setLatencySamples` dans une phase hôte conforme; 256 est un chiffre **provisoire**, non validé.
+5. Implémenter le changement de preset sans clic (invalidation + fondu vers le dry), analyser les sous-alimentations, puis lancer les tests de charge dans les DAW.
+6. Ne fusionner la PR #49 et ne lancer le build macOS v0.55 qu'après confirmation de la prévalidation et de l'intégration réelle.
+
+Cette étape apporte des briques vérifiables pour le vrai temps réel mais **ne constitue pas encore un raccordement au moteur spectral v0.48** ni une version AU/VST3 opérationnelle.
