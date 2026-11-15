@@ -27,3 +27,10 @@ L'extraction FFT des profils et leur publication dans un cache immuable devront 
 - La FFT courte de 256 points est un prototype de profil harmonique, pas encore une analyse multirésolution adaptée aux graves.
 - Aucun branchement à la lecture WAV, aucun cache de publication thread-safe et aucune resynthèse audiblement nouvelle ne sont livrés à ce stade.
 - La prévalidation GitHub et les tests natifs en DAW doivent réussir avant la fusion. Ne pas annoncer un nouveau plugin fonctionnel tant que l'intégration JUCE reste inachevée.
+
+## Lot C — Resynthèse timbrale hors ligne et banc audible (ajouté)
+`Source/SpectralDNAResynthesisV055.h` fournit un prototype complet de rendu d'une fenêtre FFT de 256 échantillons : analyse, application d'une courbe harmonique cible au spectre complexe, conservation de la phase des bins existants, FFT inverse et production d'un bloc audio calculé. Avec Wet=0, la sortie est strictement égale à l'entrée. Les gains sont bornés, et une bande sans énergie originale ne crée pas d'harmonique par magie.
+
+`tests/spectral_dna_resynthesis_v055_test.cpp` vérifie la modification effective des échantillons d'un mélange de deux sinusoïdes, le bypass exact, un réglage intermédiaire et la symétrie complexe. La CI Linux intègre ce test avec UBSan.
+
+**Limite importante :** ce prototype est exécuté hors thread audio. Le flux temps réel n'est pas raccordé. Il manque la reconstruction overlap-add (WOLA/COLA), la compensation de latence, le cache de frames préparés, l'adaptation à l'API de resynthèse v0.48 reconstruite en CI, la modulation ORBIT continue et les contrôles AU/VST3. Le profil FFT de 256 points n'autorise pas encore un véritable morphing piano → voix si le signal d'origine ne contient pas les harmoniques visées. Ne pas prétendre que l'effet est audible *dans le plugin* à ce stade.
