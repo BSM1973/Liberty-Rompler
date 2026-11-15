@@ -10,6 +10,7 @@ public:
     void reset() noexcept { remaining=0; }
     void start() noexcept { remaining=kSamples; }
     bool active() const noexcept { return remaining>0; }
+    int completedSamples() const noexcept { return kSamples-remaining; }
     float advance() noexcept {
         if(remaining<=0) return 1.f;
         const auto weight=float(kSamples-remaining+1)/float(kSamples);
