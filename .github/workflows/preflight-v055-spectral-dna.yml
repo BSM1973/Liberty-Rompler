@@ -21,6 +21,7 @@ on:
       - '.github/workflows/preflight-v055-spectral-dna.yml'
       - 'docs/SPECTRAL_DNA_V055.md'
       - 'scripts/inspect_v048_api_v055.py'
+      - 'scripts/inspect_v055_generated.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -54,6 +55,36 @@ jobs:
           /tmp/spectral-dna-rt-bench
       - name: Inspect baseline v0.48 spectral host interface
         run: python3 scripts/inspect_v048_api_v055.py
+      - name: Reconstruct v0.54 JUCE integration for spectral DNA anchor inspection
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/reconstruct_source_v014.sh
+          bash scripts/apply_v015_overlays.sh
+          bash scripts/apply_v016_preview.sh
+          bash scripts/apply_v017_audition.sh
+          python3 scripts/apply_v036_morph.py
+          python3 scripts/apply_v037_multisample.py
+          python3 scripts/apply_v038_bundle.py
+          python3 scripts/apply_v039_streaming.py
+          python3 scripts/apply_v040_long_wav.py
+          python3 scripts/apply_v041_shared_pool.py
+          python3 scripts/apply_v042_streaming_health.py
+          python3 scripts/apply_v043_diagnostics.py
+          python3 scripts/apply_v044_pool_headroom.py
+          python3 scripts/apply_v044_stress.py
+          python3 scripts/apply_v045_bundle.py
+          python3 scripts/apply_v046_bundle.py
+          python3 scripts/apply_v047_bundle.py
+          python3 scripts/apply_v048_bundle.py
+          python3 scripts/fix_v048_native_bench.py
+          python3 scripts/apply_v049_streaming.py
+          python3 scripts/apply_v050_poly64.py
+          python3 scripts/apply_v051_bundle.py
+          python3 scripts/apply_v052_bundle.py
+          python3 scripts/apply_v053_slice.py
+          python3 scripts/apply_v054_orbit.py
+          python3 scripts/inspect_v055_generated.py
       - name: Enforce no changes to existing processor or v0.54 release pipeline
         run: |
           set -euo pipefail
