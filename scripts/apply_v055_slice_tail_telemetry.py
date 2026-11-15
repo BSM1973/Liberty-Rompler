@@ -42,8 +42,10 @@ one('''        std::ostringstream timeline;
         finalTrace << "]";
         std::ostringstream timeline;
         timeline << "[";''')
-one(r'''         <<"\"underflow_timeline\":"<<timeline.str()<<"\\n}\\n";''',
-r'''         <<"\"underflow_timeline\":"<<timeline.str()<<",\\n"
-         <<"\"slice_last_second_diagnostics\":"<<finalTrace.str()<<"\\n}\\n";''')
+# The JSON field is appended to the existing stream expression, preserving
+# its original escaped newline and closing brace.
+one(r'<<timeline.str()',
+    r'<<timeline.str()<<",\n\"slice_last_second_diagnostics\":"<<finalTrace.str()')
+
 p.write_text(s,encoding="utf-8")
 print("v0.55 native SLICE: full-resolution last-second telemetry enabled; qualification unchanged.")
