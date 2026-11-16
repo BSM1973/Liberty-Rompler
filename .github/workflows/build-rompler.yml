@@ -22,6 +22,7 @@ on:
       - 'tools/enforce_v055_extended_switch.py'
       - 'tools/analyze_v055_slice_first_fault.py'
       - 'tools/analyze_v055_long_switch_spikes.py'
+      - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
       - 'tests/spectral_dna_preset_crossfade_v055_test.cpp'
@@ -536,6 +537,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/apply_v055_slice_tail_telemetry.py
+          python3 scripts/apply_v055_stream_lifetime_diagnostics.py
+          grep -q 'live_stream_zones_after_750ms' tests/rompler_audio_stress_v044.cpp
           grep -q 'slice_last_second_diagnostics' tests/rompler_audio_stress_v044.cpp
 
       - name: Compile real JUCE offline stress runner
@@ -632,6 +635,7 @@ jobs:
           name: Liberty-Rompler-v0.55-extended-stall-diagnostics
           path: |
             v044-reports/switch-callback-interruptions-v055.json
+            v044-reports/switch-lifetime-v055.json
             v044-reports/switch-memory-summary-v055.json
             v044-reports/switch-extended-v055.json
           if-no-files-found: ignore
