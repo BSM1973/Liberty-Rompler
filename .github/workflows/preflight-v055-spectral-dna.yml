@@ -47,6 +47,8 @@ on:
       - 'scripts/inspect_slice_underflow_v055.py'
       - 'scripts/apply_v055_slice_tail_telemetry.py'
       - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
+      - 'tools/analyze_v055_stream_lifetime.py'
+      - 'tests/test_v055_stream_lifetime.py'
       - 'tools/analyze_v055_switch_memory.py'
       - 'tests/test_v055_switch_memory.py'
       - 'tools/enforce_v055_native_qualification.py'
@@ -105,6 +107,8 @@ jobs:
           /tmp/spectral-dna-rt-bench
       - name: Validate 60-second preset-switch and scheduler correlation diagnostic
         run: python3 -m unittest discover -s tests -p 'test_v055_long_switch_spikes.py' -v
+      - name: Validate StreamedZone post-unload lifecycle interpretation
+        run: python3 -m unittest discover -s tests -p 'test_v055_stream_lifetime.py' -v
       - name: Validate native SLICE first-fault timestamp analysis
         run: python3 -m unittest discover -s tests -p 'test_v055_slice_first_fault.py' -v
       - name: Validate strict extended stress gate
