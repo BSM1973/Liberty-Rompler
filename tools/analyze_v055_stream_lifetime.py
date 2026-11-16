@@ -24,10 +24,27 @@ def evaluate(d):
             value=d[key]
             if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or value<0:
                 raise ValueError(f"Invalid macOS allocator counter {key}")
+    vm_names=("vm_footprint_before_mb","vm_footprint_after_switch_mb","vm_footprint_idle_mb",
+              "vm_internal_before_mb","vm_internal_after_switch_mb","vm_internal_idle_mb",
+              "vm_compressed_before_mb","vm_compressed_after_switch_mb","vm_compressed_idle_mb")
+    vm_available=all(key in d for key in vm_names)
+    if vm_available:
+        for key in vm_names:
+            v=d[key]
+            if isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v):
+                raise ValueError(f"Invalid VM reading {key}")
+        vm_available=all(d[key]>=0 for key in vm_names)
     count=int(d["live_stream_zones_after_750ms"])
     # Stress source contains 16 streamed zones per layer, but async
     # retirement can retain old owners; report evidence, do not guess.
     return {
+      "macos_vm_measurements_available":vm_available,
+      "vm_footprint_before_mb":round(d["vm_footprint_before_mb"],3) if vm_available else None,
+      "vm_footprint_after_switch_mb":round(d["vm_footprint_after_switch_mb"],3) if vm_available else None,
+      "vm_footprint_idle_mb":round(d["vm_footprint_idle_mb"],3) if vm_available else None,
+      "vm_footprint_released_on_return_mb":round(d["vm_footprint_before_mb"]-d["vm_footprint_after_switch_mb"],3) if vm_available else None,
+      "vm_internal_released_on_return_mb":round(d["vm_internal_before_mb"]-d["vm_internal_after_switch_mb"],3) if vm_available else None,
+      "vm_compressed_idle_mb":round(d["vm_compressed_idle_mb"],3) if vm_available else None,
       "allocator_measurements_available":alloc_present,
       "malloc_in_use_released_on_return_mb":round(d["malloc_in_use_before_mb"]-d["malloc_in_use_after_switch_mb"],3) if alloc_present else None,
       "malloc_reserved_released_on_return_mb":round(d["malloc_reserved_before_mb"]-d["malloc_reserved_after_switch_mb"],3) if alloc_present else None,
