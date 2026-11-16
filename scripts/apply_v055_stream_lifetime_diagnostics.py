@@ -63,7 +63,7 @@ r'''        std::cout<<j.str();
                 <<"\"live_stream_zones_after_switch\":"<<afterSwitchZones<<","
                 <<"\"live_stream_zones_after_750ms\":"<<idleZones<<","
                 <<"\"streamed_zones_after_switch\":"<<afterDiagnostics.streamedZones<<","
-                <<"\"notes\":\"RSS retained by allocator is not proof of live StreamedZone retention\"}\\n";
+                <<"\"notes\":\"RSS retained by allocator is not proof of live StreamedZone retention\"}\n";
             const auto detail=path.getSiblingFile("switch-lifetime-v055.json");
             insist(detail.replaceWithText(juce::String::fromUTF8(lifetime.str().c_str())),
                    "Impossible d'enregistrer le diagnostic du cache");
