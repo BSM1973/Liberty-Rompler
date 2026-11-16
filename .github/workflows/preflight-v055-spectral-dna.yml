@@ -56,6 +56,8 @@ on:
       - 'tests/test_v055_extended_switch.py'
       - 'tools/analyze_v055_slice_first_fault.py'
       - 'tests/test_v055_slice_first_fault.py'
+      - 'tools/analyze_v055_long_switch_spikes.py'
+      - 'tests/test_v055_long_switch_spikes.py'
       - 'Source/SlicePrefetchCadenceV053.h'
       - 'tests/slice_prefetch_v055_test.cpp'
       - 'tests/slice_prefetch_v053_test.cpp'
@@ -100,6 +102,8 @@ jobs:
           set -euo pipefail
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_rt_benchmark_v055.cpp -o /tmp/spectral-dna-rt-bench
           /tmp/spectral-dna-rt-bench
+      - name: Validate 60-second preset-switch and scheduler correlation diagnostic
+        run: python3 -m unittest discover -s tests -p 'test_v055_long_switch_spikes.py' -v
       - name: Validate native SLICE first-fault timestamp analysis
         run: python3 -m unittest discover -s tests -p 'test_v055_slice_first_fault.py' -v
       - name: Validate strict extended stress gate
