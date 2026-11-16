@@ -556,7 +556,8 @@ jobs:
           "$exe" "$RUNNER_TEMP" poly64 23 v044-reports/poly64.json
           "$exe" "$RUNNER_TEMP" switch 6 v044-reports/switch.json
           "$exe" "$RUNNER_TEMP" slice 6 v044-reports/slice.json
-          "$exe" "$RUNNER_TEMP" switch 20 v044-reports/switch-extended-v055.json
+          # Extended repeated preset loads: observe cache warmup versus a possible plateau.
+          "$exe" "$RUNNER_TEMP" switch 60 v044-reports/switch-extended-v055.json
           python3 tools/analyze_v055_switch_memory.py \
             v044-reports/switch-extended-v055.json \
             --output v044-reports/switch-memory-summary-v055.json
