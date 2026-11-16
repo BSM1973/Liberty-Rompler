@@ -45,7 +45,8 @@ r'''#include <sys/resource.h>
 #ifdef __APPLE__
 #include <malloc/malloc.h>
 #endif''',"malloc-header")
-s=only(s,'struct VMStatsV055 {
+s=only(s,'static void insist(bool ok, const juce::String& msg) {',
+r'''struct VMStatsV055 {
     double footprintMb=-1., internalMb=-1., compressedMb=-1.;
 };
 static VMStatsV055 vmStatsV055() noexcept {
@@ -53,16 +54,14 @@ static VMStatsV055 vmStatsV055() noexcept {
     task_vm_info_data_t info{};
     mach_msg_type_number_t count=TASK_VM_INFO_COUNT;
     if(task_info(mach_task_self(),TASK_VM_INFO,
-                 reinterpret_cast<task_info_t>(&info),&count)==KERN_SUCCESS) {
+                 reinterpret_cast<task_info_t>(&info),&count)==KERN_SUCCESS)
         return {double(info.phys_footprint)/1.e6,
                 double(info.internal)/1.e6,
                 double(info.compressed)/1.e6};
-    }
 #endif
     return {};
 }
-static void insist(bool ok, const juce::String& msg) {',
-r'''struct AllocatorStatsV055 {
+struct AllocatorStatsV055 {
     double inUseMb=-1., reservedMb=-1.;
 };
 static AllocatorStatsV055 allocatorStatsV055() noexcept {
@@ -75,7 +74,7 @@ static AllocatorStatsV055 allocatorStatsV055() noexcept {
     return {};
 #endif
 }
-static void insist(bool ok, const juce::String& msg) {''',"malloc-helper")
+static void insist(bool ok, const juce::String& msg) {''',"memory-helpers")
 s=only(s,'#include "PluginProcessor.h"',
 '''#include "PluginProcessor.h"
 #include "StreamedZoneV040.h"''',"include")
@@ -114,15 +113,15 @@ r'''        std::cout<<j.str();
                 <<"\"malloc_reserved_before_mb\":"<<beforeAllocator.reservedMb<<","
                 <<"\"malloc_reserved_after_switch_mb\":"<<afterAllocator.reservedMb<<","
                 <<"\"malloc_reserved_idle_mb\":"<<idleAllocator.reservedMb<<","
-                <<\"vm_footprint_before_mb\":<<beforeVM.footprintMb<<","
-                <<\"vm_footprint_after_switch_mb\":<<afterVM.footprintMb<<","
-                <<\"vm_footprint_idle_mb\":<<idleVM.footprintMb<<","
-                <<\"vm_internal_before_mb\":<<beforeVM.internalMb<<","
-                <<\"vm_internal_after_switch_mb\":<<afterVM.internalMb<<","
-                <<\"vm_internal_idle_mb\":<<idleVM.internalMb<<","
-                <<\"vm_compressed_before_mb\":<<beforeVM.compressedMb<<","
-                <<\"vm_compressed_after_switch_mb\":<<afterVM.compressedMb<<","
-                <<\"vm_compressed_idle_mb\":<<idleVM.compressedMb<<","
+                <<"\"vm_footprint_before_mb\":"<<beforeVM.footprintMb<<","
+                <<"\"vm_footprint_after_switch_mb\":"<<afterVM.footprintMb<<","
+                <<"\"vm_footprint_idle_mb\":"<<idleVM.footprintMb<<","
+                <<"\"vm_internal_before_mb\":"<<beforeVM.internalMb<<","
+                <<"\"vm_internal_after_switch_mb\":"<<afterVM.internalMb<<","
+                <<"\"vm_internal_idle_mb\":"<<idleVM.internalMb<<","
+                <<"\"vm_compressed_before_mb\":"<<beforeVM.compressedMb<<","
+                <<"\"vm_compressed_after_switch_mb\":"<<afterVM.compressedMb<<","
+                <<"\"vm_compressed_idle_mb\":"<<idleVM.compressedMb<<","
                 <<"\"live_stream_zones_before\":"<<beforeZones<<","
                 <<"\"live_stream_zones_after_switch\":"<<afterSwitchZones<<","
                 <<"\"live_stream_zones_after_750ms\":"<<idleZones<<","
