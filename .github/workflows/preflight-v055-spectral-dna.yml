@@ -46,6 +46,7 @@ on:
       - 'tests/spectral_dna_preset_stress_v055.cpp'
       - 'scripts/inspect_slice_underflow_v055.py'
       - 'scripts/apply_v055_slice_tail_telemetry.py'
+      - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
       - 'tools/analyze_v055_switch_memory.py'
       - 'tests/test_v055_switch_memory.py'
       - 'tools/enforce_v055_native_qualification.py'
@@ -172,6 +173,9 @@ jobs:
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_preset_stress_v055.cpp -o /tmp/dna-preset-stress-v055
           /tmp/dna-preset-stress-v055
           python3 scripts/apply_v055_slice_tail_telemetry.py
+          python3 scripts/apply_v055_stream_lifetime_diagnostics.py
+          grep -q 'live_stream_zones_after_750ms' tests/rompler_audio_stress_v044.cpp
+          grep -q 'LifetimeSentinel lifetimeSentinel' Source/StreamedZoneV040.h
           grep -q 'slice_last_second_diagnostics' tests/rompler_audio_stress_v044.cpp
           python3 scripts/inspect_slice_underflow_v055.py
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/slice_prefetch_v053_test.cpp -o /tmp/slice-prefetch-legacy-test
