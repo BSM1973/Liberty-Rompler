@@ -8,6 +8,8 @@ class CallbackSpikes(unittest.TestCase):
         self.assertEqual(r["off_cpu_or_blocked"],3)
         self.assertEqual(r["cpu_bound"],0)
         self.assertFalse(r["qualification_override"])
+        self.assertAlmostEqual(r["observed_non_cpu_wall_ms"],58.8,places=2)
+        self.assertAlmostEqual(r["spikes"][0]["thread_cpu_share_pct"],2.0,places=2)
     def test_cpu_bound_and_unknown(self):
         scene={"rate_hz":44100,"block_frames":512,"callback_spikes":[
             {"callback_ms":20,"thread_cpu_ms":17},{"callback_ms":14}]}
