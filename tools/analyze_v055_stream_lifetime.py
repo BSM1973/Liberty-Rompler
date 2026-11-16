@@ -69,9 +69,21 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("path",type=Path)
     p.add_argument("--output",type=Path,required=True)
+    p.add_argument("--require-vm",action="store_true",help="macOS: reject missing or failed task VM metrics")
+    p.add_argument("--require-clean-zones",action="store_true",help="reject unexpected StreamedZone retention")
     args=p.parse_args()
     result=evaluate(json.loads(args.path.read_text("utf-8")))
+    failures=[]
+    if args.require_vm and not result["macos_vm_measurements_available"]:
+        failures.append("macOS task VM readings unavailable or invalid")
+    if args.require_clean_zones and (not result["count_matches_single_layer"] or
+                                     result["engine_reported_streamed_zones"]!=16):
+        failures.append("streamed-zone ownership did not return to the 16-zone baseline")
+    result["strict_diagnostic_pass"]=not failures
+    result["strict_diagnostic_failures"]=failures
     args.output.write_text(json.dumps(result,indent=2)+"\n",encoding="utf-8")
     print(json.dumps(result,indent=2))
+    if failures:
+        raise SystemExit(1)
 if __name__=="__main__":
     main()
