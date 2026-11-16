@@ -16,6 +16,20 @@ class LongSwitchSpikes(unittest.TestCase):
         self.assertEqual(result["off_cpu_or_blocked"],2)
         self.assertTrue(result["counter_matches_spikes"])
         self.assertFalse(result["causality_proven"])
+    def test_adjacent_overruns_cluster_without_weakening_gate(self):
+        d=self.base()
+        d["callback_over_budget"]=3
+        d["callback_spikes"]=[
+            {"at_sec":50.10,"callback_ms":20.0,"thread_cpu_ms":0.5},
+            {"at_sec":50.25,"callback_ms":25.0,"thread_cpu_ms":0.5},
+            {"at_sec":52.20,"callback_ms":19.0,"thread_cpu_ms":0.4}]
+        r=analyze(d)
+        self.assertEqual(r["largest_burst_overruns"],2)
+        self.assertEqual(len(r["callback_overrun_bursts_500ms"]),2)
+        self.assertEqual(r["overruns_in_final_10s"],3)
+        self.assertTrue(r["counter_matches_spikes"])
+        self.assertFalse(r["causality_proven"])
+
     def test_missing_timestamps_report_uncertainty(self):
         data=self.base()
         data["switch_rss_trace"]=[]
