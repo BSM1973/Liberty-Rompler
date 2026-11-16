@@ -20,6 +20,7 @@ on:
       - 'tools/enforce_v055_native_qualification.py'
       - 'tools/analyze_v055_callback_spikes.py'
       - 'tools/enforce_v055_extended_switch.py'
+      - 'tools/analyze_v055_slice_first_fault.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
       - 'tests/spectral_dna_preset_crossfade_v055_test.cpp'
@@ -569,6 +570,7 @@ jobs:
           cat v044-reports/qualification.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Repeat native SLICE three times with CPU-thread diagnostics
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -581,6 +583,17 @@ jobs:
             v044-reports/slice-repeat-1.json v044-reports/slice-repeat-2.json \
             v044-reports/slice-repeat-3.json --output v044-reports/slice-repeat-summary-v053.json
           cat v044-reports/slice-repeat-summary-v053.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Extract first SLICE cache-miss/underflow windows
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_v055_slice_first_fault.py \
+            v044-reports/slice-repeat-1.json v044-reports/slice-repeat-2.json \
+            v044-reports/slice-repeat-3.json \
+            --output v044-reports/slice-first-fault-v055.json
+          cat v044-reports/slice-first-fault-v055.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve native v0.54 stress telemetry
         continue-on-error: true
@@ -600,6 +613,14 @@ jobs:
             v044-reports/qualification.json \
             --output v044-reports/callback-spikes-v055.json
           cat v044-reports/callback-spikes-v055.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Strictly gate three repeat SLICE captures after preserving telemetry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_slice_repeat_v053.py \
+            v044-reports/slice-repeat-1.json v044-reports/slice-repeat-2.json \
+            v044-reports/slice-repeat-3.json --output v044-reports/slice-repeat-summary-v053.json
 
       - name: Gate 60-second repeated preset stress with strict callback budget
         shell: bash
