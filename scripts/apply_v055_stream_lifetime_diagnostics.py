@@ -10,26 +10,30 @@ def only(txt,old,new,label):
     n=txt.count(old)
     if n!=1:raise SystemExit(f"v0.55 lifetime anchor {label}: {n}")
     return txt.replace(old,new,1)
-s=only(s,'    explicit StreamedZone(std::unique_ptr<juce::AudioFormatReader> source)\n        : reader(std::move(source), static_cast<int>(pageFrames)) {}',
-'''    explicit StreamedZone(std::unique_ptr<juce::AudioFormatReader> source)
-        : reader(std::move(source), static_cast<int>(pageFrames)) {
-        liveInstances.fetch_add(1,std::memory_order_relaxed);
-    }
+# Constructor and destructor signatures are modified by v0.52/v0.54. Instead
+# track the lifetime of a member RAII sentinel. This needs no knowledge of
+# the constructor's initializer list, and cannot miss an early destructor.
+import re
+match=re.search(r'class\s+StreamedZone\s+final\s*:\s*public\s+[^{]+\{\s*public:',s)
+if not match:
+    raise SystemExit("v0.55 cannot locate reconstructed StreamedZone class")
+sentinel=r'''public:
     static int liveCount() noexcept {
         return liveInstances.load(std::memory_order_relaxed);
-    }''',"constructor")
-s=only(s,'    ~StreamedZone() override {\n        // Off the audio thread;',
-'''    ~StreamedZone() override {
-        // Off the audio thread;''',"destructor")
-s=only(s,'        if (registered)\n            liberty::stream_v041::StreamingPool::instance().unregisterZone(this);\n    }',
-'''        if (registered)
-            liberty::stream_v041::StreamingPool::instance().unregisterZone(this);
-        liveInstances.fetch_sub(1,std::memory_order_relaxed);
-    }''',"decrement")
-s=only(s,'private:\n    bool loadPage',
-'''private:
+    }
+private:
     inline static std::atomic<int> liveInstances{0};
-    bool loadPage''',"counter")
+    struct LifetimeSentinel {
+        LifetimeSentinel() noexcept {
+            liveInstances.fetch_add(1,std::memory_order_relaxed);
+        }
+        ~LifetimeSentinel() noexcept {
+            liveInstances.fetch_sub(1,std::memory_order_relaxed);
+        }
+    };
+    LifetimeSentinel lifetimeSentinel;
+public:'''
+s=s[:match.start()]+s[match.start():match.end()].replace('public:',sentinel,1)+s[match.end():]
 h.write_text(s,"utf-8")
 p=Path("tests/rompler_audio_stress_v044.cpp")
 s=p.read_text("utf-8")
