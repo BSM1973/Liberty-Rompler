@@ -9,6 +9,17 @@ class FirstFault(unittest.TestCase):
         report=summarize(r)
         self.assertAlmostEqual(report["first_observed"]["at_sec"],5.4116)
         self.assertEqual(report["events_before_trace_or_unobserved"]["underflows"],0)
+    def test_fault_before_first_sample_has_no_fabricated_time(self):
+        r={"scenario":"slice","underflow_blocks":3,"cache_misses":3,
+           "slice_last_second_diagnostics":[
+              {"at_sec":5.0039,"underflows":3,"cache_misses":3,
+               "dropped_pages":0,"urgent_dropped":0},
+              {"at_sec":5.0155,"underflows":3,"cache_misses":3,
+               "dropped_pages":0,"urgent_dropped":0}]}
+        report=summarize(r)
+        self.assertIsNone(report["first_observed"])
+        self.assertEqual(report["events_before_trace_or_unobserved"]["underflows"],3)
+
     def test_prior_fault_not_given_invented_time(self):
         r={"scenario":"slice","underflow_blocks":2,"cache_misses":2,
            "slice_last_second_diagnostics":[]}
