@@ -37,7 +37,7 @@ s=only(s,'#include "PluginProcessor.h"',
 '''#include "PluginProcessor.h"
 #include "StreamedZoneV040.h"''',"include")
 s=only(s,'        std::cout<<j.str();\n        processor.releaseResources();',
-'''        std::cout<<j.str();
+r'''        std::cout<<j.str();
         if(mode=="switch" && duration>=55.) {
             // Diagnostics are AFTER all timing/underflow measurements and the
             // original strict report. No impact on callback qualifications.
@@ -55,15 +55,15 @@ s=only(s,'        std::cout<<j.str();\n        processor.releaseResources();',
             const auto afterDiagnostics=processor.getStreamingDiagnostics();
             std::ostringstream lifetime;
             lifetime<<std::fixed<<std::setprecision(3)
-                <<"{\\"source\\":\\"real-JUCE native switch 60s post-test\\","
-                <<"\\"prior_rss_mb\\":"<<beforeRss<<","
-                <<"\\"after_single_preset_rss_mb\\":"<<afterSwitchRss<<","
-                <<"\\"idle_rss_mb\\":"<<idleRss<<","
-                <<"\\"live_stream_zones_before\\":"<<beforeZones<<","
-                <<"\\"live_stream_zones_after_switch\\":"<<afterSwitchZones<<","
-                <<"\\"live_stream_zones_after_750ms\\":"<<idleZones<<","
-                <<"\\"streamed_zones_after_switch\\":"<<afterDiagnostics.streamedZones<<","
-                <<"\\"notes\\":\\"RSS retained by allocator is not proof of live StreamedZone retention\\"}\\n";
+                <<"{\"source\":\"real-JUCE native switch 60s post-test\","
+                <<"\"prior_rss_mb\":"<<beforeRss<<","
+                <<"\"after_single_preset_rss_mb\":"<<afterSwitchRss<<","
+                <<"\"idle_rss_mb\":"<<idleRss<<","
+                <<"\"live_stream_zones_before\":"<<beforeZones<<","
+                <<"\"live_stream_zones_after_switch\":"<<afterSwitchZones<<","
+                <<"\"live_stream_zones_after_750ms\":"<<idleZones<<","
+                <<"\"streamed_zones_after_switch\":"<<afterDiagnostics.streamedZones<<","
+                <<"\"notes\":\"RSS retained by allocator is not proof of live StreamedZone retention\"}\\n";
             const auto detail=path.getSiblingFile("switch-lifetime-v055.json");
             insist(detail.replaceWithText(juce::String::fromUTF8(lifetime.str().c_str())),
                    "Impossible d'enregistrer le diagnostic du cache");
