@@ -1,5 +1,5 @@
 import unittest
-from tools.analyze_v055_stream_lifetime import evaluate
+from tools.analyze_v055_stream_lifetime import evaluate, diagnostic_failures
 class NativeLifetime(unittest.TestCase):
     def sample(self):
         return {"prior_rss_mb":450.0,"after_single_preset_rss_mb":449.0,
@@ -56,6 +56,26 @@ class NativeLifetime(unittest.TestCase):
             d[key]=250.
         d["malloc_in_use_idle_mb"]=-2.
         with self.assertRaises(ValueError):evaluate(d)
+
+    def test_strict_gate_refuses_missing_vm_evidence(self):
+        result=evaluate(self.sample())
+        self.assertTrue(diagnostic_failures(result,require_vm=True))
+        self.assertEqual(diagnostic_failures(result),[])
+
+    def test_strict_gate_refuses_extra_live_zones(self):
+        report=self.sample()
+        report["live_stream_zones_after_750ms"]=64
+        result=evaluate(report)
+        self.assertTrue(diagnostic_failures(result,require_clean_zones=True))
+
+    def test_strict_gate_accepts_measured_vm_and_16_zones(self):
+        report=self.sample()
+        for key in ("vm_footprint_before_mb","vm_footprint_after_switch_mb","vm_footprint_idle_mb",
+                    "vm_internal_before_mb","vm_internal_after_switch_mb","vm_internal_idle_mb",
+                    "vm_compressed_before_mb","vm_compressed_after_switch_mb","vm_compressed_idle_mb"):
+            report[key]=100.
+        result=evaluate(report)
+        self.assertEqual(diagnostic_failures(result,True,True),[])
 
     def test_invalid_count_fails(self):
         d=self.sample()
