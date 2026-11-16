@@ -26,6 +26,16 @@ def analyze(report):
         return statistics.median(rates) if rates else 0.
     last_growth=recent[-1][1]-recent[0][1]
     monotonic_increases=sum(b[1]>a[1] for a,b in zip(recent,recent[1:]))
+    by_layer={}
+    for layer in (1,4):
+        group=[(float(x["at_sec"]),float(x["rss_mb"])) for x in values
+               if x.get("layers")==layer and
+               math.isfinite(float(x["rss_mb"])) and float(x["rss_mb"])>0]
+        if len(group)>=4:
+            tail=group[-max(2,len(group)//3):]
+            by_layer[str(layer)]={"observations":len(group),
+                "last_third_growth_mb":round(tail[-1][1]-tail[0][1],3),
+                "last_third_median_rss_mb":round(statistics.median(x[1] for x in tail),3)}
     quarter=max(2,len(samples)//4)
     early=statistics.median(samples[:quarter])
     late=statistics.median(samples[-quarter:])
@@ -44,6 +54,7 @@ def analyze(report):
         "last_third_median_step_mb_per_sec":round(robust_slope(recent),3),
         "last_third_rss_increase_events":monotonic_increases,
         "last_third_rss_samples":len(recent),
+        "by_preset_layer_count":by_layer,
         "cache_stabilization_proven":False,
         "interpretation":"RSS trend only; no leak verdict without repeat runs and a steady-state baseline",
         "full_plugin_or_daw_qualified":False,
