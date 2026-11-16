@@ -65,6 +65,15 @@ def evaluate(d):
       "notes":"A single steady-state snapshot does not establish causality. Count 16 is expected for one 16-zone stress preset; count above 16 warrants further investigation."
     }
 
+def diagnostic_failures(result,require_vm=False,require_clean_zones=False):
+    problems=[]
+    if require_vm and not result["macos_vm_measurements_available"]:
+        problems.append("macOS task VM readings unavailable or invalid")
+    if require_clean_zones and (not result["count_matches_single_layer"] or
+                                result["engine_reported_streamed_zones"]!=16):
+        problems.append("streamed-zone ownership did not return to the 16-zone baseline")
+    return problems
+
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("path",type=Path)
@@ -73,12 +82,7 @@ def main():
     p.add_argument("--require-clean-zones",action="store_true",help="reject unexpected StreamedZone retention")
     args=p.parse_args()
     result=evaluate(json.loads(args.path.read_text("utf-8")))
-    failures=[]
-    if args.require_vm and not result["macos_vm_measurements_available"]:
-        failures.append("macOS task VM readings unavailable or invalid")
-    if args.require_clean_zones and (not result["count_matches_single_layer"] or
-                                     result["engine_reported_streamed_zones"]!=16):
-        failures.append("streamed-zone ownership did not return to the 16-zone baseline")
+    failures=diagnostic_failures(result,args.require_vm,args.require_clean_zones)
     result["strict_diagnostic_pass"]=not failures
     result["strict_diagnostic_failures"]=failures
     args.output.write_text(json.dumps(result,indent=2)+"\n",encoding="utf-8")
