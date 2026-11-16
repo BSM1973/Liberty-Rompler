@@ -14,7 +14,9 @@ COUNTERS=("underflows","cache_misses","dropped_pages","urgent_dropped")
 def summarize(report):
     trace=report.get("slice_last_second_diagnostics",[])
     found=[]
-    previous={key:0 for key in COUNTERS}
+    # A nonzero FIRST sample means the fault preceded the observed window.
+    baseline={key:int(trace[0][key]) if trace else 0 for key in COUNTERS}
+    previous=baseline.copy()
     for event in trace:
         at=float(event["at_sec"])
         for key in COUNTERS:
@@ -30,7 +32,8 @@ def summarize(report):
         "dropped_pages":int(report.get("dropped_pages",0)),
         "urgent_dropped":int(report.get("urgent_dropped",0)),
     }
-    early={key:max(0,final[key]-sum(x["increase"] for x in found if x["counter"]==key))
+    early={key:baseline[key]+max(0,final[key]-baseline[key]-
+           sum(x["increase"] for x in found if x["counter"]==key))
            for key in COUNTERS}
     return {"scenario":report.get("scenario"),"first_observed":found[0] if found else None,
         "all_observed_in_final_second":found,"events_before_trace_or_unobserved":early,
