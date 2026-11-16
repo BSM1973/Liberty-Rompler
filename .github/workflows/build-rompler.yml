@@ -634,7 +634,8 @@ jobs:
           set -euo pipefail
           python3 tools/analyze_v055_stream_lifetime.py \
             v044-reports/switch-lifetime-v055.json \
-            --output v044-reports/switch-lifetime-analysis-v055.json
+            --output v044-reports/switch-lifetime-analysis-v055.json \
+            --require-vm --require-clean-zones
           cat v044-reports/switch-lifetime-analysis-v055.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve extended preset stall diagnostics regardless of qualification
