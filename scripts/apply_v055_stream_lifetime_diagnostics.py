@@ -45,7 +45,23 @@ r'''#include <sys/resource.h>
 #ifdef __APPLE__
 #include <malloc/malloc.h>
 #endif''',"malloc-header")
-s=only(s,'static void insist(bool ok, const juce::String& msg) {',
+s=only(s,'struct VMStatsV055 {
+    double footprintMb=-1., internalMb=-1., compressedMb=-1.;
+};
+static VMStatsV055 vmStatsV055() noexcept {
+#ifdef __APPLE__
+    task_vm_info_data_t info{};
+    mach_msg_type_number_t count=TASK_VM_INFO_COUNT;
+    if(task_info(mach_task_self(),TASK_VM_INFO,
+                 reinterpret_cast<task_info_t>(&info),&count)==KERN_SUCCESS) {
+        return {double(info.phys_footprint)/1.e6,
+                double(info.internal)/1.e6,
+                double(info.compressed)/1.e6};
+    }
+#endif
+    return {};
+}
+static void insist(bool ok, const juce::String& msg) {',
 r'''struct AllocatorStatsV055 {
     double inUseMb=-1., reservedMb=-1.;
 };
@@ -71,16 +87,19 @@ r'''        std::cout<<j.str();
             using liberty::stream_v040::StreamedZone;
             const auto beforeRss=currentRssMb();
             const auto beforeAllocator=allocatorStatsV055();
+            const auto beforeVM=vmStatsV055();
             const auto beforeZones=StreamedZone::liveCount();
             const auto back=processor.selectPreset(
                 "liberty-stress-v044","stress-layer-1");
             insist(back.wasOk(),"Retour au preset simple impossible");
             const auto afterSwitchRss=currentRssMb();
             const auto afterAllocator=allocatorStatsV055();
+            const auto afterVM=vmStatsV055();
             const auto afterSwitchZones=StreamedZone::liveCount();
             std::this_thread::sleep_for(std::chrono::milliseconds(750));
             const auto idleRss=currentRssMb();
             const auto idleAllocator=allocatorStatsV055();
+            const auto idleVM=vmStatsV055();
             const auto idleZones=StreamedZone::liveCount();
             const auto afterDiagnostics=processor.getStreamingDiagnostics();
             std::ostringstream lifetime;
@@ -95,6 +114,15 @@ r'''        std::cout<<j.str();
                 <<"\"malloc_reserved_before_mb\":"<<beforeAllocator.reservedMb<<","
                 <<"\"malloc_reserved_after_switch_mb\":"<<afterAllocator.reservedMb<<","
                 <<"\"malloc_reserved_idle_mb\":"<<idleAllocator.reservedMb<<","
+                <<\"vm_footprint_before_mb\":<<beforeVM.footprintMb<<","
+                <<\"vm_footprint_after_switch_mb\":<<afterVM.footprintMb<<","
+                <<\"vm_footprint_idle_mb\":<<idleVM.footprintMb<<","
+                <<\"vm_internal_before_mb\":<<beforeVM.internalMb<<","
+                <<\"vm_internal_after_switch_mb\":<<afterVM.internalMb<<","
+                <<\"vm_internal_idle_mb\":<<idleVM.internalMb<<","
+                <<\"vm_compressed_before_mb\":<<beforeVM.compressedMb<<","
+                <<\"vm_compressed_after_switch_mb\":<<afterVM.compressedMb<<","
+                <<\"vm_compressed_idle_mb\":<<idleVM.compressedMb<<","
                 <<"\"live_stream_zones_before\":"<<beforeZones<<","
                 <<"\"live_stream_zones_after_switch\":"<<afterSwitchZones<<","
                 <<"\"live_stream_zones_after_750ms\":"<<idleZones<<","
