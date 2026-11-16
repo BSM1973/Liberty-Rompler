@@ -615,14 +615,6 @@ jobs:
             --output v044-reports/callback-spikes-v055.json
           cat v044-reports/callback-spikes-v055.json >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Strictly gate three repeat SLICE captures after preserving telemetry
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 tools/verify_slice_repeat_v053.py \
-            v044-reports/slice-repeat-1.json v044-reports/slice-repeat-2.json \
-            v044-reports/slice-repeat-3.json --output v044-reports/slice-repeat-summary-v053.json
-
       - name: Diagnose long preset-switch callback interruptions against preset times
         shell: bash
         run: |
@@ -631,6 +623,27 @@ jobs:
             v044-reports/switch-extended-v055.json \
             --output v044-reports/switch-callback-interruptions-v055.json
           cat v044-reports/switch-callback-interruptions-v055.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve extended preset stall diagnostics regardless of qualification
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: Liberty-Rompler-v0.55-extended-stall-diagnostics
+          path: |
+            v044-reports/switch-callback-interruptions-v055.json
+            v044-reports/switch-memory-summary-v055.json
+            v044-reports/switch-extended-v055.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Strictly gate three repeat SLICE captures after preserving telemetry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_slice_repeat_v053.py \
+            v044-reports/slice-repeat-1.json v044-reports/slice-repeat-2.json \
+            v044-reports/slice-repeat-3.json --output v044-reports/slice-repeat-summary-v053.json
 
       - name: Gate 60-second repeated preset stress with strict callback budget
         shell: bash
