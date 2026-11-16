@@ -15,6 +15,17 @@ def analyze(report):
     if len(points)<8:
         raise ValueError("Not enough valid real-JUCE RSS observations")
     samples=[x[1] for x in points]
+    # A warm cache can grow rapidly at the start and settle later.
+    # Quantify the latest half/third separately; do not infer leaks from RSS.
+    last_third=max(3,len(points)//3)
+    recent=points[-last_third:]
+    def robust_slope(series):
+        # Median of adjacent rates resists isolated allocator/cache jumps.
+        rates=[(b[1]-a[1])/(b[0]-a[0])
+               for a,b in zip(series,series[1:]) if b[0]>a[0]]
+        return statistics.median(rates) if rates else 0.
+    last_growth=recent[-1][1]-recent[0][1]
+    monotonic_increases=sum(b[1]>a[1] for a,b in zip(recent,recent[1:]))
     quarter=max(2,len(samples)//4)
     early=statistics.median(samples[:quarter])
     late=statistics.median(samples[-quarter:])
@@ -29,6 +40,11 @@ def analyze(report):
         "median_first_quarter_mb":round(early,3),
         "median_final_quarter_mb":round(late,3),
         "median_quarter_growth_mb":round(late-early,3),
+        "last_third_growth_mb":round(last_growth,3),
+        "last_third_median_step_mb_per_sec":round(robust_slope(recent),3),
+        "last_third_rss_increase_events":monotonic_increases,
+        "last_third_rss_samples":len(recent),
+        "cache_stabilization_proven":False,
         "interpretation":"RSS trend only; no leak verdict without repeat runs and a steady-state baseline",
         "full_plugin_or_daw_qualified":False,
     }
