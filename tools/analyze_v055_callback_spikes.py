@@ -30,11 +30,14 @@ def classify(report):
                   "cpu_bound" if cpu>budget else "off_cpu_or_blocked")
             records.append({"scenario":name,"at_sec":spike.get("at_sec"),
                 "callback_wall_ms":wall,"callback_thread_cpu_ms":cpu,
-                "budget_ms":round(budget,3),"classification":kind})
+                "budget_ms":round(budget,3),"classification":kind,
+                "non_cpu_wall_ms":round(max(0.,wall-cpu),3) if cpu is not None else None,
+                "thread_cpu_share_pct":round(100.*cpu/wall,2) if cpu is not None and wall>0 else None})
     return {"observed_spikes":len(records),
             "cpu_bound":sum(r["classification"]=="cpu_bound" for r in records),
             "off_cpu_or_blocked":sum(r["classification"]=="off_cpu_or_blocked" for r in records),
             "unclassified":sum(r["classification"]=="not_recorded" for r in records),
+            "observed_non_cpu_wall_ms":round(sum(r["non_cpu_wall_ms"] or 0. for r in records),3),
             "spikes":records,
             "limits":"Classification by time accounting only; requires host/OS tracing to establish root cause",
             "qualification_override":False}
