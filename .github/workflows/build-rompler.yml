@@ -23,6 +23,7 @@ on:
       - 'tools/analyze_v055_slice_first_fault.py'
       - 'tools/analyze_v055_long_switch_spikes.py'
       - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
+      - 'tools/analyze_v055_stream_lifetime.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
       - 'tests/spectral_dna_preset_crossfade_v055_test.cpp'
@@ -627,6 +628,15 @@ jobs:
             --output v044-reports/switch-callback-interruptions-v055.json
           cat v044-reports/switch-callback-interruptions-v055.json >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Analyze real StreamedZone lifetime after returning to a single-layer preset
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_v055_stream_lifetime.py \
+            v044-reports/switch-lifetime-v055.json \
+            --output v044-reports/switch-lifetime-analysis-v055.json
+          cat v044-reports/switch-lifetime-analysis-v055.json >> "$GITHUB_STEP_SUMMARY"
+
       - name: Preserve extended preset stall diagnostics regardless of qualification
         if: always()
         continue-on-error: true
@@ -636,6 +646,7 @@ jobs:
           path: |
             v044-reports/switch-callback-interruptions-v055.json
             v044-reports/switch-lifetime-v055.json
+            v044-reports/switch-lifetime-analysis-v055.json
             v044-reports/switch-memory-summary-v055.json
             v044-reports/switch-extended-v055.json
           if-no-files-found: ignore
