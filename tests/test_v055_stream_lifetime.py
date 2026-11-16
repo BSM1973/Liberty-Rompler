@@ -34,6 +34,20 @@ class NativeLifetime(unittest.TestCase):
         self.assertEqual(x["malloc_reserved_released_on_return_mb"],0.0)
         self.assertEqual(x["rss_change_on_return_mb"],0.0)
 
+    def test_vm_footprint_can_fall_while_rss_does_not(self):
+        d=self.sample()
+        d.update({"vm_footprint_before_mb":430.0,"vm_footprint_after_switch_mb":380.0,
+                  "vm_footprint_idle_mb":380.0,
+                  "vm_internal_before_mb":420.0,"vm_internal_after_switch_mb":370.0,
+                  "vm_internal_idle_mb":370.0,
+                  "vm_compressed_before_mb":10.0,"vm_compressed_after_switch_mb":10.0,
+                  "vm_compressed_idle_mb":10.0})
+        result=evaluate(d)
+        self.assertTrue(result["macos_vm_measurements_available"])
+        self.assertEqual(result["vm_footprint_released_on_return_mb"],50.0)
+        self.assertEqual(result["vm_internal_released_on_return_mb"],50.0)
+        self.assertFalse(result["leak_excluded"])
+
     def test_bad_allocator_field_fails(self):
         d=self.sample()
         for key in ("malloc_in_use_before_mb","malloc_in_use_after_switch_mb",
