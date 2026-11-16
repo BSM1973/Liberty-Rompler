@@ -21,6 +21,7 @@ on:
       - 'tools/analyze_v055_callback_spikes.py'
       - 'tools/enforce_v055_extended_switch.py'
       - 'tools/analyze_v055_slice_first_fault.py'
+      - 'tools/analyze_v055_long_switch_spikes.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
       - 'tests/spectral_dna_preset_crossfade_v055_test.cpp'
@@ -621,6 +622,15 @@ jobs:
           python3 tools/verify_slice_repeat_v053.py \
             v044-reports/slice-repeat-1.json v044-reports/slice-repeat-2.json \
             v044-reports/slice-repeat-3.json --output v044-reports/slice-repeat-summary-v053.json
+
+      - name: Diagnose long preset-switch callback interruptions against preset times
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m tools.analyze_v055_long_switch_spikes \
+            v044-reports/switch-extended-v055.json \
+            --output v044-reports/switch-callback-interruptions-v055.json
+          cat v044-reports/switch-callback-interruptions-v055.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Gate 60-second repeated preset stress with strict callback budget
         shell: bash
