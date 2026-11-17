@@ -535,6 +535,54 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
+      # Experimental binaries are published immediately after successful
+      # compilation. Strict DSP/streaming qualification continues unchanged;
+      # this separate preview must never be confused with a stable release.
+      - name: Package v0.55 experimental AU VST3 Standalone for hands-on tests
+        if: github.ref == 'refs/heads/feature/v055-spectral-dna'
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="dist/Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64"
+          mkdir -p "$target"
+          root="build/LibertyRompler_artefacts"
+          app="$(find "$root" -type d -name '*.app' -print -quit)"
+          vst="$(find "$root" -type d -name '*.vst3' -print -quit)"
+          au="$(find "$root" -type d -name '*.component' -print -quit)"
+          test -n "$app" && test -n "$vst" && test -n "$au"
+          ditto "$app" "$target/Liberty Rompler.app"
+          ditto "$vst" "$target/Liberty Rompler.vst3"
+          ditto "$au" "$target/Liberty Rompler.component"
+          cat > "$target/LISEZ-MOI-EXPERIMENTAL.txt" <<'EOF'
+          LIBERTY ROMPLER v0.55 — VERSION EXPERIMENTALE NON QUALIFIEE
+          Mac Apple Silicon (ARM64) — AU / VST3 / Application autonome.
+          Contient les changements SPECTRAL DNA de la branche feature/v055-spectral-dna.
+          ATTENTION : des interruptions audio, depassements de temps reel et rares
+          defauts de lecture SLICE ont ete observes dans les tests automatiques.
+          Ne pas utiliser dans un projet de production sans sauvegarde.
+          Cette version est destinee exclusivement aux essais et retours.
+          Signature macOS ad hoc, PAS de signature Developer ID ni notarisation.
+          Installer les plugins dans les dossiers habituels AU/VST3 de macOS
+          ou tester d'abord l'application autonome.
+          Le fichier n'inclut pas les banques de demonstration.
+          Les mesures de qualification sont conservees separement dans GitHub.
+          EOF
+          for bundle in "$target/Liberty Rompler.app" "$target/Liberty Rompler.vst3" "$target/Liberty Rompler.component"; do
+            codesign --force --deep --sign - "$bundle"
+            codesign --verify --deep --verbose "$bundle"
+          done
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64 Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64.zip)
+          test -s dist/Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64.zip
+
+      - name: Upload experimental v0.55 test binaries before strict RT gates
+        if: github.ref == 'refs/heads/feature/v055-spectral-dna'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64-AU-VST3-Standalone
+          path: dist/Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64.zip
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Enable detailed SLICE edge telemetry without weakening qualification
         shell: bash
         run: |
