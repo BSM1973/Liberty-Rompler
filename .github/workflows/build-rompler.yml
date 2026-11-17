@@ -23,6 +23,7 @@ on:
       - 'tools/analyze_v055_slice_first_fault.py'
       - 'tools/analyze_v055_long_switch_spikes.py'
       - 'tools/analyze_v055_long_control.py'
+      - 'tools/analyze_v055_slice_duration.py'
       - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
       - 'tools/analyze_v055_stream_lifetime.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
@@ -564,6 +565,7 @@ jobs:
           "$exe" "$RUNNER_TEMP" poly64 23 v044-reports/poly64.json
           "$exe" "$RUNNER_TEMP" switch 6 v044-reports/switch.json
           "$exe" "$RUNNER_TEMP" slice 6 v044-reports/slice.json
+          "$exe" "$RUNNER_TEMP" slice 8 v044-reports/slice-extended-8s-v055.json
           # Extended repeated preset loads: observe cache warmup versus a possible plateau.
           # Constant 64-voice sustained playback, no preset swaps.
           "$exe" "$RUNNER_TEMP" poly64 60 v044-reports/poly64-extended-v055.json
@@ -576,6 +578,15 @@ jobs:
             v044-reports/poly64.json v044-reports/switch.json \
             v044-reports/slice.json --output v044-reports/qualification.json
           cat v044-reports/qualification.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Compare SLICE faults at 6 and 8 seconds
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m tools.analyze_v055_slice_duration \
+            v044-reports/slice.json v044-reports/slice-extended-8s-v055.json \
+            --output v044-reports/slice-duration-comparison-v055.json
+          cat v044-reports/slice-duration-comparison-v055.json >> "$GITHUB_STEP_SUMMARY"
 
       - name: Repeat native SLICE three times with CPU-thread diagnostics
         continue-on-error: true
@@ -660,6 +671,8 @@ jobs:
           path: |
             v044-reports/switch-callback-interruptions-v055.json
             v044-reports/poly64-extended-v055.json
+            v044-reports/slice-extended-8s-v055.json
+            v044-reports/slice-duration-comparison-v055.json
             v044-reports/long-control-comparison-v055.json
             v044-reports/switch-lifetime-v055.json
             v044-reports/switch-lifetime-analysis-v055.json
@@ -667,6 +680,14 @@ jobs:
             v044-reports/switch-extended-v055.json
           if-no-files-found: ignore
           retention-days: 30
+
+      - name: Strictly qualify extended 8s SLICE streaming
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_slice_repeat_v053.py \
+            v044-reports/slice-extended-8s-v055.json \
+            --output v044-reports/slice-extended-8s-qualification-v055.json
 
       - name: Strictly gate three repeat SLICE captures after preserving telemetry
         shell: bash
