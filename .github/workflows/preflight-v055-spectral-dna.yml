@@ -61,6 +61,8 @@ on:
       - 'tests/test_v055_slice_first_fault.py'
       - 'tools/analyze_v055_long_switch_spikes.py'
       - 'tools/analyze_v055_long_control.py'
+      - 'tools/analyze_v055_slice_duration.py'
+      - 'tests/test_v055_slice_duration.py'
       - 'tests/test_v055_long_control.py'
       - 'tests/test_v055_long_switch_spikes.py'
       - 'Source/SlicePrefetchCadenceV053.h'
@@ -107,6 +109,8 @@ jobs:
           set -euo pipefail
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_rt_benchmark_v055.cpp -o /tmp/spectral-dna-rt-bench
           /tmp/spectral-dna-rt-bench
+      - name: Validate 6s/8s SLICE end-of-test comparison
+        run: python3 -m unittest discover -s tests -p 'test_v055_slice_duration.py' -v
       - name: Validate constant-polyphony 60-second comparison
         run: python3 -m unittest discover -s tests -p 'test_v055_long_control.py' -v
       - name: Validate 60-second preset-switch and scheduler correlation diagnostic
