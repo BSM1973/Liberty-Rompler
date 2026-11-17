@@ -22,6 +22,7 @@ on:
       - 'tools/enforce_v055_extended_switch.py'
       - 'tools/analyze_v055_slice_first_fault.py'
       - 'tools/analyze_v055_long_switch_spikes.py'
+      - 'tools/analyze_v055_long_control.py'
       - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
       - 'tools/analyze_v055_stream_lifetime.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
@@ -564,6 +565,8 @@ jobs:
           "$exe" "$RUNNER_TEMP" switch 6 v044-reports/switch.json
           "$exe" "$RUNNER_TEMP" slice 6 v044-reports/slice.json
           # Extended repeated preset loads: observe cache warmup versus a possible plateau.
+          # Constant 64-voice sustained playback, no preset swaps.
+          "$exe" "$RUNNER_TEMP" poly64 60 v044-reports/poly64-extended-v055.json
           "$exe" "$RUNNER_TEMP" switch 60 v044-reports/switch-extended-v055.json
           python3 tools/analyze_v055_switch_memory.py \
             v044-reports/switch-extended-v055.json \
@@ -619,6 +622,16 @@ jobs:
             --output v044-reports/callback-spikes-v055.json
           cat v044-reports/callback-spikes-v055.json >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Compare sustained 64-voice control with 60-second preset switching
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_v055_long_control.py \
+            v044-reports/poly64-extended-v055.json \
+            v044-reports/switch-extended-v055.json \
+            --output v044-reports/long-control-comparison-v055.json
+          cat v044-reports/long-control-comparison-v055.json >> "$GITHUB_STEP_SUMMARY"
+
       - name: Diagnose long preset-switch callback interruptions against preset times
         shell: bash
         run: |
@@ -646,6 +659,8 @@ jobs:
           name: Liberty-Rompler-v0.55-extended-stall-diagnostics
           path: |
             v044-reports/switch-callback-interruptions-v055.json
+            v044-reports/poly64-extended-v055.json
+            v044-reports/long-control-comparison-v055.json
             v044-reports/switch-lifetime-v055.json
             v044-reports/switch-lifetime-analysis-v055.json
             v044-reports/switch-memory-summary-v055.json
