@@ -13,6 +13,16 @@ class ExtendedSwitch(unittest.TestCase):
         r=self.report()
         r["callback_over_budget"]=8
         self.assertIn("callback_over_budget: 8",failures(r))
+    def test_fixed_polyphony_uses_same_strict_budget(self):
+        r=self.report()
+        r["scenario"]="poly64"
+        self.assertEqual(failures(r,"poly64"),[])
+        r["callback_over_budget"]=1
+        self.assertIn("callback_over_budget: 1",failures(r,"poly64"))
+
+    def test_fixed_polyphony_rejects_switch_report(self):
+        self.assertTrue(failures(self.report(),"poly64"))
+
     def test_short_run_fails(self):
         r=self.report()
         r["elapsed_wall_sec"]=20.
