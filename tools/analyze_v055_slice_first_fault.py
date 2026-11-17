@@ -12,7 +12,8 @@ from pathlib import Path
 COUNTERS=("underflows","cache_misses","dropped_pages","urgent_dropped")
 
 def summarize(report):
-    trace=report.get("slice_last_second_diagnostics",[])
+    trace=report.get("slice_full_run_diagnostics") or report.get("slice_last_second_diagnostics",[])
+    trace_scope="full_run" if report.get("slice_full_run_diagnostics") else "last_second"
     found=[]
     # A nonzero FIRST sample means the fault preceded the observed window.
     baseline={key:int(trace[0][key]) if trace else 0 for key in COUNTERS}
@@ -35,8 +36,9 @@ def summarize(report):
     early={key:baseline[key]+max(0,final[key]-baseline[key]-
            sum(x["increase"] for x in found if x["counter"]==key))
            for key in COUNTERS}
-    return {"scenario":report.get("scenario"),"first_observed":found[0] if found else None,
-        "all_observed_in_final_second":found,"events_before_trace_or_unobserved":early,
+    return {"scenario":report.get("scenario"),"trace_scope":trace_scope, "first_observed":found[0] if found else None,
+        "all_observed_in_final_second":found if trace_scope=="last_second" else [e for e in found if float(e["at_sec"])>=float(report.get("elapsed_wall_sec",0))-1.0],
+        "all_observed_in_trace":found,"events_before_trace_or_unobserved":early,
         "final_counts":final,
         "time_resolution":"One processBlock (512/44100 = ~11.61 ms), not sample exact",
         "qualification_override":False}
