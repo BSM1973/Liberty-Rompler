@@ -9,10 +9,10 @@ import json
 import math
 from pathlib import Path
 
-def failures(report):
+def failures(report,expected_scenario="switch"):
     issues=[]
-    if report.get("scenario")!="switch":
-        issues.append("expected switch stress scene")
+    if report.get("scenario")!=expected_scenario:
+        issues.append(f"expected {expected_scenario} stress scene")
     if float(report.get("elapsed_wall_sec",0))<55.:
         issues.append("extended switch stress lasted less than 55 wall seconds")
     for field in ("callback_over_budget","underflow_blocks","cache_misses",
@@ -29,14 +29,15 @@ def failures(report):
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("report",type=Path)
+    p.add_argument("--scenario",choices=("switch","poly64"),default="switch")
     args=p.parse_args()
     data=json.loads(args.report.read_text(encoding="utf-8"))
-    problems=failures(data)
+    problems=failures(data,args.scenario)
     if problems:
         for item in problems:
             print("EXTENDED PRESET FAIL:",item)
         raise SystemExit(1)
-    print("Extended 60-second real-JUCE preset stress: PASS")
+    print(f"Extended 60-second real-JUCE {args.scenario} stress: PASS")
 
 if __name__=="__main__":
     main()
