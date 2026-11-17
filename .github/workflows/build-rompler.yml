@@ -697,6 +697,13 @@ jobs:
             v044-reports/slice-repeat-1.json v044-reports/slice-repeat-2.json \
             v044-reports/slice-repeat-3.json --output v044-reports/slice-repeat-summary-v053.json
 
+      - name: Gate 60-second constant 64-voice control with strict callback budget
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/enforce_v055_extended_switch.py \
+            v044-reports/poly64-extended-v055.json --scenario poly64
+
       - name: Gate 60-second repeated preset stress with strict callback budget
         shell: bash
         run: |
