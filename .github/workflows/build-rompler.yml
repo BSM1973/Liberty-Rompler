@@ -26,6 +26,9 @@ on:
       - 'tools/analyze_v055_slice_duration.py'
       - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
       - 'scripts/apply_v055_audio_qos_diagnostics.py'
+      - 'tests/scheduler_reference_v055.cpp'
+      - 'tools/analyze_v055_scheduler_reference.py'
+      - 'tests/test_v055_scheduler_reference.py'
       - 'tools/analyze_v055_stream_lifetime.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
@@ -703,6 +706,19 @@ jobs:
             --output v044-reports/switch-callback-interruptions-v055.json
           cat v044-reports/switch-callback-interruptions-v055.json >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Compare native 64 voices against a synthetic macOS scheduler reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
+            tests/scheduler_reference_v055.cpp -o "$RUNNER_TEMP/scheduler-reference-v055"
+          "$RUNNER_TEMP/scheduler-reference-v055" 60 v044-reports/scheduler-reference-v055.json
+          python3 tools/analyze_v055_scheduler_reference.py \
+            v044-reports/scheduler-reference-v055.json \
+            v044-reports/poly64-extended-v055.json \
+            --output v044-reports/scheduler-reference-analysis-v055.json
+          cat v044-reports/scheduler-reference-analysis-v055.json >> "$GITHUB_STEP_SUMMARY"
+
       - name: Analyze real StreamedZone lifetime after returning to a single-layer preset
         shell: bash
         run: |
@@ -721,6 +737,8 @@ jobs:
           name: Liberty-Rompler-v0.55-extended-stall-diagnostics
           path: |
             v044-reports/switch-callback-interruptions-v055.json
+            v044-reports/scheduler-reference-v055.json
+            v044-reports/scheduler-reference-analysis-v055.json
             v044-reports/poly64-extended-v055.json
             v044-reports/slice-extended-8s-v055.json
             v044-reports/slice-duration-comparison-v055.json
