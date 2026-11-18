@@ -47,6 +47,8 @@ on:
       - 'scripts/inspect_slice_underflow_v055.py'
       - 'scripts/apply_v055_slice_tail_telemetry.py'
       - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
+      - 'scripts/apply_v055_audio_qos_diagnostics.py'
+      - 'tests/test_v055_audio_qos_diagnostics.py'
       - 'tools/analyze_v055_stream_lifetime.py'
       - 'tests/test_v055_stream_lifetime.py'
       - 'tools/analyze_v055_switch_memory.py'
@@ -186,7 +188,10 @@ jobs:
           /tmp/dna-preset-stress-v055
           python3 scripts/apply_v055_slice_tail_telemetry.py
           python3 scripts/apply_v055_stream_lifetime_diagnostics.py
+          python3 scripts/apply_v055_audio_qos_diagnostics.py
+          python3 -m unittest discover -s tests -p 'test_v055_audio_qos_diagnostics.py' -v
           grep -q 'live_stream_zones_after_750ms' tests/rompler_audio_stress_v044.cpp
+          grep -q 'QOS_CLASS_USER_INTERACTIVE' tests/rompler_audio_stress_v044.cpp
           grep -q 'LifetimeSentinel lifetimeSentinel' Source/StreamedZoneV040.h
           grep -q 'slice_last_second_diagnostics' tests/rompler_audio_stress_v044.cpp
           python3 scripts/inspect_slice_underflow_v055.py
