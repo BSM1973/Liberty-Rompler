@@ -25,6 +25,7 @@ on:
       - 'tools/analyze_v055_long_control.py'
       - 'tools/analyze_v055_slice_duration.py'
       - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
+      - 'scripts/apply_v055_audio_qos_diagnostics.py'
       - 'tools/analyze_v055_stream_lifetime.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
@@ -589,7 +590,9 @@ jobs:
           set -euo pipefail
           python3 scripts/apply_v055_slice_tail_telemetry.py
           python3 scripts/apply_v055_stream_lifetime_diagnostics.py
+          python3 scripts/apply_v055_audio_qos_diagnostics.py
           grep -q 'live_stream_zones_after_750ms' tests/rompler_audio_stress_v044.cpp
+          grep -q 'LIBERTY_NATIVE_AUDIO_QOS' tests/rompler_audio_stress_v044.cpp
           grep -q 'slice_last_second_diagnostics' tests/rompler_audio_stress_v044.cpp
 
       - name: Compile real JUCE offline stress runner
