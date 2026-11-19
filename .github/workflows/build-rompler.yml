@@ -32,6 +32,9 @@ on:
       - 'tools/make_factory_100_v055.py'
       - 'tests/test_v055_factory_100.py'
       - 'scripts/INSTALLER_FACTORY_100_MAC.command'
+      - 'Source/LibraryLocationV056.h'
+      - 'scripts/apply_v056_factory_library.py'
+      - 'scripts/INSTALLER_ROMPLER_V056_MAC.command'
       - 'tools/analyze_v055_stream_lifetime.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
@@ -501,6 +504,16 @@ jobs:
           grep -q 'spectralMixForLayer(' Source/PluginProcessor.cpp
           grep -q 'spectral.render(left,right' Source/PluginProcessor.cpp
 
+      - name: Integrate v0.56 factory auto-load and movable library root into real JUCE source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/apply_v056_factory_library.py
+          grep -q 'library-location-v056.json' Source/LibraryLocationV056.h
+          grep -q 'relocateBankLibrary' Source/PluginProcessor.cpp
+          grep -q 'CHANGER LE DOSSIER PRESETS + SAMPLES' Source/PluginEditor.h
+          grep -q 'project(LibertyRompler VERSION 0.56.0' CMakeLists.txt
+
       - name: Validate bank files, Unicode and no-overlap geometry
         shell: bash
         run: |
@@ -562,12 +575,12 @@ jobs:
       # Experimental binaries are published immediately after successful
       # compilation. Strict DSP/streaming qualification continues unchanged;
       # this separate preview must never be confused with a stable release.
-      - name: Package v0.55 experimental AU VST3 Standalone for hands-on tests
+      - name: Package v0.56 experimental AU VST3 Standalone for hands-on tests
         if: github.ref == 'refs/heads/feature/v055-spectral-dna'
         shell: bash
         run: |
           set -euo pipefail
-          target="dist/Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64"
+          target="dist/Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64"
           mkdir -p "$target"
           root="build/LibertyRompler_artefacts"
           app="$(find "$root" -type d -name '*.app' -print -quit)"
@@ -580,11 +593,15 @@ jobs:
           test -f Banks/Factory-Starter-v055-100/manifest.json
           mkdir -p "$target/Banks"
           ditto Banks/Factory-Starter-v055-100 "$target/Banks/Factory-Starter-v055-100"
-          cp scripts/INSTALLER_FACTORY_100_MAC.command "$target/INSTALLER_FACTORY_100_MAC.command"
-          chmod +x "$target/INSTALLER_FACTORY_100_MAC.command"
+          cp scripts/INSTALLER_ROMPLER_V056_MAC.command "$target/INSTALLER_ROMPLER_V056_MAC.command"
+          chmod +x "$target/INSTALLER_ROMPLER_V056_MAC.command"
           cat > "$target/LISEZ-MOI-EXPERIMENTAL.txt" <<'EOF'
-          LIBERTY ROMPLER v0.55 — VERSION EXPERIMENTALE NON QUALIFIEE
+          LIBERTY ROMPLER v0.56 — VERSION EXPERIMENTALE NON QUALIFIEE
           Mac Apple Silicon (ARM64) — AU / VST3 / Application autonome.
+          Installation : double-cliquer INSTALLER_ROMPLER_V056_MAC.command.
+          Le ROMpler charge automatiquement la banque Factory 100 au premier démarrage.
+          REGLAGES : CHANGER LE DOSSIER PRESETS + SAMPLES permet de sélectionner
+          un autre disque et de copier sans perte l'ensemble des banques et WAV.
           Contient les changements SPECTRAL DNA de la branche feature/v055-spectral-dna.
           ATTENTION : des interruptions audio, depassements de temps reel et rares
           defauts de lecture SLICE ont ete observes dans les tests automatiques.
@@ -593,9 +610,9 @@ jobs:
           Signature macOS ad hoc, PAS de signature Developer ID ni notarisation.
           Installer les plugins dans les dossiers habituels AU/VST3 de macOS
           ou tester d'abord l'application autonome.
-          Inclus : banque Factory Starter v0.55 de 100 presets avec 400 WAV.
-          Double-cliquer INSTALLER_FACTORY_100_MAC.command pour installer
-          la banque dans votre dossier utilisateur, sans toucher aux banques existantes.
+          Inclus : banque Factory Starter v0.56 de 100 presets avec 400 WAV.
+          L'installateur v0.56 place AU/VST3/Standalone ET les 100 presets
+          dans les dossiers utilisateur attendus par le navigateur du ROMpler.
           Fermer puis relancer Liberty ROMpler pour actualiser le navigateur.
           Les mesures de qualification sont conservees separement dans GitHub.
           EOF
@@ -603,15 +620,29 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --verbose "$bundle"
           done
-          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64 Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64.zip)
-          test -s dist/Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64.zip
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64 Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64.zip)
+          test -s dist/Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64.zip
+          test -x "$target/INSTALLER_ROMPLER_V056_MAC.command"
+          test -s "$target/Banks/Factory-Starter-v055-100/manifest.json"
+          # The very same archive must contain all 400 sample WAVs.
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+          path=Path("dist/Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64.zip")
+          with zipfile.ZipFile(path) as z:
+              names=z.namelist()
+          wav=[n for n in names if "/Banks/Factory-Starter-v055-100/Samples/" in n and n.endswith(".wav")]
+          assert len(wav)==400, len(wav)
+          assert any(n.endswith("/INSTALLER_ROMPLER_V056_MAC.command") for n in names)
+          print("v0.56 delivery: 400 WAV, manifest, interactive installer and native plug-ins in one artifact")
+          PY
 
-      - name: Upload experimental v0.55 test binaries before strict RT gates
+      - name: Upload experimental v0.56 test binaries before strict RT gates
         if: github.ref == 'refs/heads/feature/v055-spectral-dna'
         uses: actions/upload-artifact@v4
         with:
-          name: Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64-AU-VST3-Standalone
-          path: dist/Liberty-Rompler-v0.55-EXPERIMENTAL-macOS-arm64.zip
+          name: Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64-AU-VST3-Standalone
+          path: dist/Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64.zip
           if-no-files-found: error
           retention-days: 30
 
