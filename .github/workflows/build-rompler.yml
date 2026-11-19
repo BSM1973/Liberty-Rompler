@@ -29,6 +29,9 @@ on:
       - 'tests/scheduler_reference_v055.cpp'
       - 'tools/analyze_v055_scheduler_reference.py'
       - 'tests/test_v055_scheduler_reference.py'
+      - 'tools/make_factory_100_v055.py'
+      - 'tests/test_v055_factory_100.py'
+      - 'scripts/INSTALLER_FACTORY_100_MAC.command'
       - 'tools/analyze_v055_stream_lifetime.py'
       - 'Source/SpectralDNAPresetFadeV055.h'
       - 'tests/spectral_dna_preset_fade_v055_test.cpp'
@@ -509,6 +512,23 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_*.py' -v
           test -f Banks/Factory-Starter/manifest.json
           test -f Banks/Expansion-Demo/manifest.json
+          # v0.55 separate, non-destructive 100-program factory bank.
+          # Keep the legacy demo banks unchanged for v0.54 regression tests.
+          python3 tools/make_factory_100_v055.py --output Banks
+          python3 tools/validate_banks.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("Banks/Factory-Starter-v055-100")
+          manifest=json.loads((root/"manifest.json").read_text(encoding="utf-8"))
+          presets=manifest["presets"]
+          assert manifest["id"]=="liberty-factory-starter-100-v055"
+          assert len(presets)==100 and len({p["id"] for p in presets})==100
+          assert len({p["category"] for p in presets})==10
+          assert all(len(p["zones"])==4 for p in presets)
+          assert len(list((root/"Samples").glob("*.wav")))==400
+          print("FACTORY 100 verified: 100 presets, 10 categories, 400 stereo WAV.")
+          PY
 
       - name: Download JUCE 8.0.10
         uses: actions/checkout@v4
@@ -557,6 +577,11 @@ jobs:
           ditto "$app" "$target/Liberty Rompler.app"
           ditto "$vst" "$target/Liberty Rompler.vst3"
           ditto "$au" "$target/Liberty Rompler.component"
+          test -f Banks/Factory-Starter-v055-100/manifest.json
+          mkdir -p "$target/Banks"
+          ditto Banks/Factory-Starter-v055-100 "$target/Banks/Factory-Starter-v055-100"
+          cp scripts/INSTALLER_FACTORY_100_MAC.command "$target/INSTALLER_FACTORY_100_MAC.command"
+          chmod +x "$target/INSTALLER_FACTORY_100_MAC.command"
           cat > "$target/LISEZ-MOI-EXPERIMENTAL.txt" <<'EOF'
           LIBERTY ROMPLER v0.55 — VERSION EXPERIMENTALE NON QUALIFIEE
           Mac Apple Silicon (ARM64) — AU / VST3 / Application autonome.
@@ -568,7 +593,10 @@ jobs:
           Signature macOS ad hoc, PAS de signature Developer ID ni notarisation.
           Installer les plugins dans les dossiers habituels AU/VST3 de macOS
           ou tester d'abord l'application autonome.
-          Le fichier n'inclut pas les banques de demonstration.
+          Inclus : banque Factory Starter v0.55 de 100 presets avec 400 WAV.
+          Double-cliquer INSTALLER_FACTORY_100_MAC.command pour installer
+          la banque dans votre dossier utilisateur, sans toucher aux banques existantes.
+          Fermer puis relancer Liberty ROMpler pour actualiser le navigateur.
           Les mesures de qualification sont conservees separement dans GitHub.
           EOF
           for bundle in "$target/Liberty Rompler.app" "$target/Liberty Rompler.vst3" "$target/Liberty Rompler.component"; do
