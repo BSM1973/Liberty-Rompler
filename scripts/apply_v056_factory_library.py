@@ -172,9 +172,15 @@ once(e_cpp,
     settingsLocation.setBounds(left+18,work.getY()+272,width-36,27);
     streamingDiagnostics.setBounds(work.getX()+24,work.getY()+346,
                                    work.getWidth()-48,juce::jmax(110,work.getHeight()-366));''')
-once(e_cpp,
-    '''    setupLabel(subtitleLabel, "Prototype 0.15  |  AU / VST3 / STANDALONE", 10, quiet);''',
-    '''    setupLabel(subtitleLabel, "LIBERTY ROMPLER v0.56  |  AU / VST3 / STANDALONE", 10, quiet);''')
+# The upstream release overlay may change the subtitle version string.
+# Replace only the exact setupLabel(subtitleLabel) declaration line.
+source=e_cpp.read_text(encoding="utf-8")
+lines=[line for line in source.splitlines(keepends=True)
+       if "setupLabel(subtitleLabel," in line]
+if len(lines)!=1: raise SystemExit("v0.56 subtitle label anchor missing or repeated")
+source=source.replace(lines[0],
+    '    setupLabel(subtitleLabel, "LIBERTY ROMPLER v0.56  |  AU / VST3 / STANDALONE", 10, quiet);\n',1)
+e_cpp.write_text(source,encoding="utf-8")
 once(cmake,
     'project(LibertyRompler VERSION 0.1.0 LANGUAGES C CXX)',
     'project(LibertyRompler VERSION 0.56.0 LANGUAGES C CXX)')
