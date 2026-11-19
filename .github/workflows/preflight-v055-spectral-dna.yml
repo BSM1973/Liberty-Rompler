@@ -52,6 +52,9 @@ on:
       - 'tests/scheduler_reference_v055.cpp'
       - 'tools/analyze_v055_scheduler_reference.py'
       - 'tests/test_v055_scheduler_reference.py'
+      - 'tools/make_factory_100_v055.py'
+      - 'tests/test_v055_factory_100.py'
+      - 'scripts/INSTALLER_FACTORY_100_MAC.command'
       - 'tools/analyze_v055_stream_lifetime.py'
       - 'tests/test_v055_stream_lifetime.py'
       - 'tools/analyze_v055_switch_memory.py'
@@ -147,6 +150,11 @@ jobs:
           assert d['callback_over_budget']==len(d['callback_spikes'])
           PY
           python3 -m unittest discover -s tests -p 'test_v055_scheduler_reference.py' -v
+      - name: Verify new factory bank generator contract without audio release qualification
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check numpy
+          python3 -m unittest discover -s tests -p 'test_v055_factory_100.py' -v
       - name: Inspect baseline v0.48 spectral host interface
         run: python3 scripts/inspect_v048_api_v055.py
       - name: Reconstruct v0.54 JUCE integration for spectral DNA anchor inspection
