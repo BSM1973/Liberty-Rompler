@@ -157,11 +157,11 @@ once(e_cpp,
     '''            const auto card=juce::Rectangle<int>(area.getX(),area.getY(),area.getWidth(),
                                                 juce::jmin(272,area.getHeight()-20));''')
 once(e_cpp,
-    '''            paintTruncated(g,utf(u8"Les banques sont charg\u00e9es depuis le dossier de l'utilisateur."),
+    r'''            paintTruncated(g,utf(u8"Les banques sont charg\u00e9es depuis le dossier de l'utilisateur."),
                 {card.getX()+18,card.getY()+52,card.getWidth()-36,24},12,secondary);
             paintTruncated(g,utf(u8"Actualisez la biblioth\u00e8que apr\u00e8s l'installation d'une extension."),
                 {card.getX()+18,card.getY()+78,card.getWidth()-36,24},12,secondary);''',
-    '''            paintTruncated(g,utf(u8"Factory Starter : 100 presets et leurs samples install\u00e9s ensemble."),
+    r'''            paintTruncated(g,utf(u8"Factory Starter : 100 presets et leurs samples install\u00e9s ensemble."),
                 {card.getX()+18,card.getY()+52,card.getWidth()-36,24},12,secondary);
             paintTruncated(g,utf(u8"Choisissez un autre disque pour copier toute la biblioth\u00e8que."),
                 {card.getX()+18,card.getY()+78,card.getWidth()-36,24},12,secondary);''')
