@@ -54,7 +54,10 @@ install_bundle() {
   local source="$1" directory="$2" name="$3"
   local destination="$directory/$name"
   local stage="$directory/.liberty-rompler-v056-$STAMP-$RANDOM"
-  local backup="$directory/.$name.backup-v056-$STAMP"
+  # Backups are OUTSIDE active AU/VST3 and BankLibrary scan directories.
+  local backup_root="$BASE/Sauvegardes-v056"
+  mkdir -p "$backup_root"
+  local backup="$backup_root/$name.backup-v056-$STAMP"
   mkdir -p "$stage"
   if ! /usr/bin/ditto "$source" "$stage/$name"; then
     rm -rf "$stage"
