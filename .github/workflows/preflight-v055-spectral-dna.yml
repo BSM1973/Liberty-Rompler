@@ -55,6 +55,9 @@ on:
       - 'tools/make_factory_100_v055.py'
       - 'tests/test_v055_factory_100.py'
       - 'scripts/INSTALLER_FACTORY_100_MAC.command'
+      - 'Source/LibraryLocationV056.h'
+      - 'scripts/apply_v056_factory_library.py'
+      - 'scripts/INSTALLER_ROMPLER_V056_MAC.command'
       - 'tools/analyze_v055_stream_lifetime.py'
       - 'tests/test_v055_stream_lifetime.py'
       - 'tools/analyze_v055_switch_memory.py'
@@ -193,6 +196,10 @@ jobs:
           python3 scripts/apply_v055_preset_crossfade.py
           python3 scripts/harden_v055_preset_publication.py
           python3 scripts/apply_v055_rapid_presets.py
+          python3 scripts/apply_v056_factory_library.py
+          grep -q 'relocateBankLibrary' Source/PluginProcessor.cpp
+          grep -q 'library-location-v056.json' Source/LibraryLocationV056.h
+          grep -q 'CHANGER LE DOSSIER PRESETS + SAMPLES' Source/PluginEditor.h
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_rapid_presets_v055_test.cpp -o /tmp/dna-rapid-v055
           /tmp/dna-rapid-v055
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -pthread -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_publication_concurrency_v055_test.cpp -o /tmp/dna-pub-thread-test
