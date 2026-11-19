@@ -29,6 +29,13 @@ once(b_cpp,
     '#include "BankLibrary.h"',
     '#include "BankLibrary.h"\n#include "LibraryLocationV056.h"')
 once(b_cpp,
+    '''    for (const auto& folder : folders) {
+        const auto manifestFile = folder.getChildFile("manifest.json");''',
+    '''    for (const auto& folder : folders) {
+        // Avoid duplicate old bank IDs in hidden installer backup folders.
+        if (folder.getFileName().startsWith(".")) continue;
+        const auto manifestFile = folder.getChildFile("manifest.json");''')
+once(b_cpp,
     '''    return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
         .getChildFile("Liberty Music Software")
         .getChildFile("Liberty Rompler")
