@@ -96,9 +96,15 @@ def synth(category:str,variant:int,root:int)->tuple[np.ndarray,bool,int,int]:
     stereo=np.stack((l,r),axis=1)
     stereo=np.tanh(stereo*1.35)/np.tanh(1.35)
     stereo*=.34
-    pcm=np.asarray(np.round(stereo*32767),dtype='<i2')
     loop_start=int(.80*SAMPLE_RATE) if sustain else -1
     loop_end=int(1.80*SAMPLE_RATE) if sustain else -1
+    if sustain:
+        # Crossfade into audio BEFORE loop_start; the wrap then follows the
+        # original adjacent sample, preventing clicks on sustained sounds.
+        fade=max(64,int(.085*SAMPLE_RATE))
+        weight=.5-.5*np.cos(np.linspace(0,np.pi,fade,endpoint=True))
+        stereo[loop_end-fade:loop_end,:]=(1-weight[:,None])*stereo[loop_end-fade:loop_end,:]+weight[:,None]*stereo[loop_start-fade:loop_start,:]
+    pcm=np.asarray(np.round(stereo*32767),dtype='<i2')
     return pcm,sustain,loop_start,loop_end
 
 def generate(root:Path)->Path:
