@@ -184,4 +184,10 @@ e_cpp.write_text(source,encoding="utf-8")
 once(cmake,
     'project(LibertyRompler VERSION 0.1.0 LANGUAGES C CXX)',
     'project(LibertyRompler VERSION 0.56.0 LANGUAGES C CXX)')
+# Keep C++ files ASCII-only while preserving the French accents at runtime.
+# This project audits every C++ source and requires Unicode escape sequences.
+for generated in (p_cpp,e_cpp):
+    source=generated.read_text(encoding="utf-8")
+    source="".join(c if ord(c)<128 else "\\u"+format(ord(c),"04x") for c in source)
+    generated.write_text(source,encoding="utf-8")
 print("v0.56: library root preference, full-folder relocation, factory boot preset, UI and version patched.")
