@@ -31,14 +31,14 @@ inline juce::File configuredBankDirectory() {
 inline juce::Result saveBankDirectory(const juce::File& folder) {
     const auto dir=settingsDirectory();
     if (dir.createDirectory().failed())
-        return juce::Result::fail("Impossible de créer les préférences ROMpler.");
+        return juce::Result::fail("Impossible de cr\u00e9er les pr\u00e9f\u00e9rences ROMpler.");
     auto* obj=new juce::DynamicObject();
     obj->setProperty("version", "0.56");
     obj->setProperty("bankDirectory", folder.getFullPathName());
     const juce::String json=juce::JSON::toString(juce::var(obj), true);
     juce::TemporaryFile tmp(settingsFile());
     if (!tmp.getFile().replaceWithText(json) || !tmp.overwriteTargetFileWithTemporary())
-        return juce::Result::fail("Impossible de mémoriser le dossier de bibliothèque.");
+        return juce::Result::fail("Impossible de m\u00e9moriser le dossier de biblioth\u00e8que.");
     return juce::Result::ok();
 }
 inline juce::Result copyWholeLibrary(const juce::File& source,
@@ -47,13 +47,13 @@ inline juce::Result copyWholeLibrary(const juce::File& source,
     if (!selectedParent.isDirectory())
         return juce::Result::fail("Choisissez un dossier existant et accessible.");
     if (!source.isDirectory())
-        return juce::Result::fail("Bibliothèque source absente. Réinstallez Factory Starter 100.");
+        return juce::Result::fail("Biblioth\u00e8que source absente. R\u00e9installez Factory Starter 100.");
     if (selectedParent==source || selectedParent.isAChildOf(source) ||
         source.isAChildOf(selectedParent))
         return juce::Result::fail("Choisissez un autre emplacement, hors du dossier actuel.");
     const auto target=selectedParent.getChildFile("Liberty ROMpler Banks");
     if (target.exists())
-        return juce::Result::fail("Un dossier Liberty ROMpler Banks existe déjà ici : aucun fichier n'a été écrasé.");
+        return juce::Result::fail("Un dossier Liberty ROMpler Banks existe d\u00e9j\u00e0 ici : aucun fichier n'a \u00e9t\u00e9 \u00e9cras\u00e9.");
     const auto staging=selectedParent.getNonexistentChildFile(
         ".Liberty-ROMpler-v056-copie-", "", false);
     if (!source.copyDirectoryTo(staging)) {
@@ -66,18 +66,18 @@ inline juce::Result copyWholeLibrary(const juce::File& source,
     for (const auto& src : files) {
         if (src.isSymbolicLink()) {
             staging.deleteRecursively();
-            return juce::Result::fail("Lien symbolique non autorisé dans la bibliothèque source.");
+            return juce::Result::fail("Lien symbolique non autoris\u00e9 dans la biblioth\u00e8que source.");
         }
         const auto rel=src.getRelativePathFrom(source);
         const auto dst=staging.getChildFile(rel);
         if (!dst.existsAsFile() || dst.getSize()!=src.getSize()) {
             staging.deleteRecursively();
-            return juce::Result::fail("Copie incomplète : un sample ou manifeste est manquant.");
+            return juce::Result::fail("Copie incompl\u00e8te : un sample ou manifeste est manquant.");
         }
     }
     if (!staging.moveFileTo(target)) {
         staging.deleteRecursively();
-        return juce::Result::fail("Impossible de terminer la copie. Original inchangé.");
+        return juce::Result::fail("Impossible de terminer la copie. Original inchang\u00e9.");
     }
     copiedRoot=target;
     return juce::Result::ok();
