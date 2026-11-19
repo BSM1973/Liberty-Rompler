@@ -1,0 +1,245 @@
+name: Liberty ROMpler v0.55 - SPECTRAL DNA foundation preflight
+on:
+  push:
+    branches: [feature/v055-spectral-dna]
+    paths:
+      - 'Source/SpectralDNAV055.h'
+      - 'Source/SpectralDNAAnalysisV055.h'
+      - 'Source/SpectralDNAResynthesisV055.h'
+      - 'Source/SpectralDNAWolaV055.h'
+      - 'Source/SpectralDNARealtimeV055.h'
+      - 'Source/SpectralDNAMixV055.h'
+      - 'Source/SpectralDNAFormantsV055.h'
+      - 'Source/SpectralDNAFormantSlewV055.h'
+      - 'Source/SpectralDNAPresetFadeV055.h'
+      - 'Source/SpectralDNAPcmQueueV055.h'
+      - 'Source/SpectralDNASessionV055.h'
+      - 'tests/spectral_dna_v055_test.cpp'
+      - 'tests/spectral_dna_analysis_v055_test.cpp'
+      - 'tests/spectral_dna_resynthesis_v055_test.cpp'
+      - 'tests/spectral_dna_wola_v055_test.cpp'
+      - 'tests/spectral_dna_realtime_v055_test.cpp'
+      - 'tests/spectral_dna_pcm_queue_v055_test.cpp'
+      - 'tests/spectral_dna_session_v055_test.cpp'
+      - 'tests/spectral_dna_ab_mix_v055_test.cpp'
+      - 'tests/spectral_dna_native_ab_v055_test.cpp'
+      - 'tests/spectral_dna_formants_v055_test.cpp'
+      - 'tests/spectral_dna_formant_slew_v055_test.cpp'
+      - 'tests/spectral_dna_preset_fade_v055_test.cpp'
+      - 'tests/spectral_dna_preset_crossfade_v055_test.cpp'
+      - 'tests/spectral_dna_rt_benchmark_v055.cpp'
+      - '.github/workflows/preflight-v055-spectral-dna.yml'
+      - 'docs/SPECTRAL_DNA_V055.md'
+      - 'scripts/inspect_v048_api_v055.py'
+      - 'scripts/inspect_v055_generated.py'
+      - 'scripts/apply_v055_juce_spectral_dna.py'
+      - 'scripts/apply_v055_dna_ui.py'
+      - 'scripts/apply_v055_formants.py'
+      - 'scripts/apply_v055_preset_crossfade.py'
+      - 'scripts/harden_v055_preset_publication.py'
+      - 'scripts/apply_v055_rapid_presets.py'
+      - 'tests/spectral_dna_rapid_presets_v055_test.cpp'
+      - 'tests/spectral_dna_publication_concurrency_v055_test.cpp'
+      - 'tests/spectral_dna_64voice_concurrent_v055.cpp'
+      - 'tests/spectral_dna_native_formants_v055_test.cpp'
+      - 'tests/spectral_dna_64voice_v055_bench.cpp'
+      - 'tests/spectral_dna_preset_stress_v055.cpp'
+      - 'scripts/inspect_slice_underflow_v055.py'
+      - 'scripts/apply_v055_slice_tail_telemetry.py'
+      - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
+      - 'scripts/apply_v055_audio_qos_diagnostics.py'
+      - 'tests/test_v055_audio_qos_diagnostics.py'
+      - 'tests/scheduler_reference_v055.cpp'
+      - 'tools/analyze_v055_scheduler_reference.py'
+      - 'tests/test_v055_scheduler_reference.py'
+      - 'tools/make_factory_100_v055.py'
+      - 'tests/test_v055_factory_100.py'
+      - 'scripts/INSTALLER_FACTORY_100_MAC.command'
+      - 'Source/LibraryLocationV056.h'
+      - 'scripts/apply_v056_factory_library.py'
+      - 'scripts/INSTALLER_ROMPLER_V056_MAC.command'
+      - 'tools/analyze_v055_stream_lifetime.py'
+      - 'tests/test_v055_stream_lifetime.py'
+      - 'tools/analyze_v055_switch_memory.py'
+      - 'tests/test_v055_switch_memory.py'
+      - 'tools/enforce_v055_native_qualification.py'
+      - 'tests/test_v055_native_qualification.py'
+      - 'tools/analyze_v055_callback_spikes.py'
+      - 'tests/test_v055_callback_spikes.py'
+      - 'tools/enforce_v055_extended_switch.py'
+      - 'tests/test_v055_extended_switch.py'
+      - 'tools/analyze_v055_slice_first_fault.py'
+      - 'tests/test_v055_slice_first_fault.py'
+      - 'tools/analyze_v055_long_switch_spikes.py'
+      - 'tools/analyze_v055_long_control.py'
+      - 'tools/analyze_v055_slice_duration.py'
+      - 'tests/test_v055_slice_duration.py'
+      - 'tests/test_v055_long_control.py'
+      - 'tests/test_v055_long_switch_spikes.py'
+      - 'Source/SlicePrefetchCadenceV053.h'
+      - 'tests/slice_prefetch_v055_test.cpp'
+      - 'tests/slice_prefetch_v053_test.cpp'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  spectral-foundation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and execute C++17 deterministic spectral tests
+        run: |
+          set -euo pipefail
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_v055_test.cpp -o /tmp/spectral-dna-test
+          /tmp/spectral-dna-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_analysis_v055_test.cpp -o /tmp/spectral-dna-analysis-test
+          /tmp/spectral-dna-analysis-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_resynthesis_v055_test.cpp -o /tmp/spectral-dna-resynthesis-test
+          /tmp/spectral-dna-resynthesis-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_wola_v055_test.cpp -o /tmp/spectral-dna-wola-test
+          /tmp/spectral-dna-wola-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_realtime_v055_test.cpp -o /tmp/spectral-dna-rt-test
+          /tmp/spectral-dna-rt-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_pcm_queue_v055_test.cpp -o /tmp/spectral-dna-pcm-queue-test
+          /tmp/spectral-dna-pcm-queue-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_session_v055_test.cpp -o /tmp/spectral-dna-session-test
+          /tmp/spectral-dna-session-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_ab_mix_v055_test.cpp -o /tmp/spectral-dna-ab-mix-test
+          /tmp/spectral-dna-ab-mix-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_formants_v055_test.cpp -o /tmp/spectral-dna-formants-test
+          /tmp/spectral-dna-formants-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_formant_slew_v055_test.cpp -o /tmp/spectral-dna-formant-slew-test
+          /tmp/spectral-dna-formant-slew-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_preset_fade_v055_test.cpp -o /tmp/dna-preset-fade-v055
+          /tmp/dna-preset-fade-v055
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/slice_prefetch_v055_test.cpp -o /tmp/slice-prefetch-v055-test
+          /tmp/slice-prefetch-v055-test
+      - name: Report 64-voice output-stage CPU benchmark (informational only)
+        run: |
+          set -euo pipefail
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_rt_benchmark_v055.cpp -o /tmp/spectral-dna-rt-bench
+          /tmp/spectral-dna-rt-bench
+      - name: Validate 6s/8s SLICE end-of-test comparison
+        run: python3 -m unittest discover -s tests -p 'test_v055_slice_duration.py' -v
+      - name: Validate constant-polyphony 60-second comparison
+        run: python3 -m unittest discover -s tests -p 'test_v055_long_control.py' -v
+      - name: Validate 60-second preset-switch and scheduler correlation diagnostic
+        run: python3 -m unittest discover -s tests -p 'test_v055_long_switch_spikes.py' -v
+      - name: Validate StreamedZone post-unload lifecycle interpretation
+        run: python3 -m unittest discover -s tests -p 'test_v055_stream_lifetime.py' -v
+      - name: Validate native SLICE first-fault timestamp analysis
+        run: python3 -m unittest discover -s tests -p 'test_v055_slice_first_fault.py' -v
+      - name: Validate strict extended stress gate
+        run: python3 -m unittest discover -s tests -p 'test_v055_extended_switch.py' -v
+      - name: Validate diagnostic wall versus thread CPU classification
+        run: python3 -m unittest discover -s tests -p 'test_v055_callback_spikes.py' -v
+      - name: Validate strict v0.55 JUCE qualification gate
+        run: python3 -m unittest discover -s tests -p 'test_v055_native_qualification.py' -v
+      - name: Validate extended preset RSS report semantics
+        run: python3 -m unittest discover -s tests -p 'test_v055_switch_memory.py' -v
+      - name: Validate independent scheduler-reference probe (diagnostic only)
+        run: |
+          set -euo pipefail
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/scheduler_reference_v055.cpp -o /tmp/scheduler-reference-v055
+          /tmp/scheduler-reference-v055 0.3 /tmp/scheduler-reference-v055.json
+          python3 - <<'PY'
+          import json
+          with open('/tmp/scheduler-reference-v055.json',encoding='utf-8') as f:
+              d=json.load(f)
+          assert d['scenario']=='scheduler_reference'
+          assert d['qos_interactive_confirmed'] is False  # Linux is NOT macOS
+          assert d['elapsed_wall_sec']>=0.2
+          assert d['callback_over_budget']==len(d['callback_spikes'])
+          PY
+          python3 -m unittest discover -s tests -p 'test_v055_scheduler_reference.py' -v
+      - name: Verify new factory bank generator contract without audio release qualification
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check numpy
+          python3 -m unittest discover -s tests -p 'test_v055_factory_100.py' -v
+      - name: Inspect baseline v0.48 spectral host interface
+        run: python3 scripts/inspect_v048_api_v055.py
+      - name: Reconstruct v0.54 JUCE integration for spectral DNA anchor inspection
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/reconstruct_source_v014.sh
+          bash scripts/apply_v015_overlays.sh
+          bash scripts/apply_v016_preview.sh
+          bash scripts/apply_v017_audition.sh
+          python3 scripts/apply_v036_morph.py
+          python3 scripts/apply_v037_multisample.py
+          python3 scripts/apply_v038_bundle.py
+          python3 scripts/apply_v039_streaming.py
+          python3 scripts/apply_v040_long_wav.py
+          python3 scripts/apply_v041_shared_pool.py
+          python3 scripts/apply_v042_streaming_health.py
+          python3 scripts/apply_v043_diagnostics.py
+          python3 scripts/apply_v044_pool_headroom.py
+          python3 scripts/apply_v044_stress.py
+          python3 scripts/apply_v045_bundle.py
+          python3 scripts/apply_v046_bundle.py
+          python3 scripts/apply_v047_bundle.py
+          python3 scripts/apply_v048_bundle.py
+          python3 scripts/fix_v048_native_bench.py
+          python3 scripts/apply_v049_streaming.py
+          python3 scripts/apply_v050_poly64.py
+          python3 scripts/apply_v051_bundle.py
+          python3 scripts/apply_v052_bundle.py
+          python3 scripts/apply_v053_slice.py
+          python3 scripts/apply_v054_orbit.py
+          python3 scripts/inspect_v055_generated.py
+          python3 scripts/apply_v055_juce_spectral_dna.py
+          python3 scripts/apply_v055_dna_ui.py
+          python3 scripts/apply_v055_formants.py
+          python3 scripts/apply_v055_preset_crossfade.py
+          python3 scripts/harden_v055_preset_publication.py
+          python3 scripts/apply_v055_rapid_presets.py
+          python3 scripts/apply_v056_factory_library.py
+          grep -q 'relocateBankLibrary' Source/PluginProcessor.cpp
+          grep -q 'library-location-v056.json' Source/LibraryLocationV056.h
+          grep -q 'CHANGER LE DOSSIER PRESETS + SAMPLES' Source/PluginEditor.h
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_rapid_presets_v055_test.cpp -o /tmp/dna-rapid-v055
+          /tmp/dna-rapid-v055
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -pthread -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_publication_concurrency_v055_test.cpp -o /tmp/dna-pub-thread-test
+          /tmp/dna-pub-thread-test
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -pthread -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_64voice_concurrent_v055.cpp -o /tmp/dna-64voice-concurrent-v055
+          /tmp/dna-64voice-concurrent-v055
+          grep -q 'presetFade.mix(oldRaw,raw,tableCrossfade)' Source/SpectralEngineV048.h
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_preset_crossfade_v055_test.cpp -o /tmp/dna-preset-crossfade-v055
+          /tmp/dna-preset-crossfade-v055
+          grep -q 'libertySpectralDNAFormant' Source/PluginProcessor.cpp
+          grep -q 'formantShift' Source/SpectralEngineV048.h
+          grep -q 'currentFormant=formantSlew.next(formant)' Source/SpectralEngineV048.h
+          grep -q 'formantSlider.setBounds' Source/LibertyMorphPadV036.h
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_native_formants_v055_test.cpp -o /tmp/dna-native-formants-v055
+          /tmp/dna-native-formants-v055
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_64voice_v055_bench.cpp -o /tmp/dna-64voice-v055-bench
+          /tmp/dna-64voice-v055-bench
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_preset_stress_v055.cpp -o /tmp/dna-preset-stress-v055
+          /tmp/dna-preset-stress-v055
+          python3 scripts/apply_v055_slice_tail_telemetry.py
+          python3 scripts/apply_v055_stream_lifetime_diagnostics.py
+          python3 scripts/apply_v055_audio_qos_diagnostics.py
+          python3 -m unittest discover -s tests -p 'test_v055_audio_qos_diagnostics.py' -v
+          grep -q 'live_stream_zones_after_750ms' tests/rompler_audio_stress_v044.cpp
+          grep -q 'QOS_CLASS_USER_INTERACTIVE' tests/rompler_audio_stress_v044.cpp
+          grep -q 'LifetimeSentinel lifetimeSentinel' Source/StreamedZoneV040.h
+          grep -q 'slice_last_second_diagnostics' tests/rompler_audio_stress_v044.cpp
+          python3 scripts/inspect_slice_underflow_v055.py
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/slice_prefetch_v053_test.cpp -o /tmp/slice-prefetch-legacy-test
+          /tmp/slice-prefetch-legacy-test
+          python3 -m unittest discover -s tests -p 'test_v053_slice_rt.py' -v
+          grep -q 'SPECTRAL DNA ON' Source/LibertyMorphPadV036.h
+          grep -q 'getSpectralDNAMix()' Source/LibertyMorphPadV036.h
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -fsanitize=undefined -fno-sanitize-recover=all tests/spectral_dna_native_ab_v055_test.cpp -o /tmp/spectral-dna-native-ab-test
+          /tmp/spectral-dna-native-ab-test
+          grep -q 'libertySpectralDNAEnabled' Source/PluginProcessor.cpp
+          grep -q 'spectralMixForLayer(' Source/PluginProcessor.cpp
+          grep -q 'spectral.render(left,right' Source/PluginProcessor.cpp
+      - name: Enforce no changes to existing processor or v0.54 release pipeline
+        run: |
+          set -euo pipefail
+          grep -q 'enabled=false' Source/SpectralDNAV055.h
+          grep -q 'constexpr std::size_t kBins = 128' Source/SpectralDNAV055.h

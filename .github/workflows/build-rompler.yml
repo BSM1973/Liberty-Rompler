@@ -3,9 +3,51 @@ name: Liberty Rompler - Build macOS AU VST3 Standalone
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/v055-spectral-dna]
     paths:
       - '.github/workflows/build-rompler.yml'
+      - 'scripts/apply_v055_juce_spectral_dna.py'
+      - 'scripts/apply_v055_dna_ui.py'
+      - 'scripts/apply_v055_formants.py'
+      - 'scripts/apply_v055_preset_crossfade.py'
+      - 'scripts/harden_v055_preset_publication.py'
+      - 'scripts/apply_v055_rapid_presets.py'
+      - 'tests/spectral_dna_rapid_presets_v055_test.cpp'
+      - 'tests/spectral_dna_publication_concurrency_v055_test.cpp'
+      - 'tests/spectral_dna_64voice_concurrent_v055.cpp'
+      - 'scripts/apply_v055_slice_tail_telemetry.py'
+      - 'tools/analyze_v055_switch_memory.py'
+      - 'tools/enforce_v055_native_qualification.py'
+      - 'tools/analyze_v055_callback_spikes.py'
+      - 'tools/enforce_v055_extended_switch.py'
+      - 'tools/analyze_v055_slice_first_fault.py'
+      - 'tools/analyze_v055_long_switch_spikes.py'
+      - 'tools/analyze_v055_long_control.py'
+      - 'tools/analyze_v055_slice_duration.py'
+      - 'scripts/apply_v055_stream_lifetime_diagnostics.py'
+      - 'scripts/apply_v055_audio_qos_diagnostics.py'
+      - 'tests/scheduler_reference_v055.cpp'
+      - 'tools/analyze_v055_scheduler_reference.py'
+      - 'tests/test_v055_scheduler_reference.py'
+      - 'tools/make_factory_100_v055.py'
+      - 'tests/test_v055_factory_100.py'
+      - 'scripts/INSTALLER_FACTORY_100_MAC.command'
+      - 'Source/LibraryLocationV056.h'
+      - 'scripts/apply_v056_factory_library.py'
+      - 'scripts/INSTALLER_ROMPLER_V056_MAC.command'
+      - 'tools/analyze_v055_stream_lifetime.py'
+      - 'Source/SpectralDNAPresetFadeV055.h'
+      - 'tests/spectral_dna_preset_fade_v055_test.cpp'
+      - 'tests/spectral_dna_preset_crossfade_v055_test.cpp'
+      - 'tests/spectral_dna_native_formants_v055_test.cpp'
+      - 'tests/spectral_dna_64voice_v055_bench.cpp'
+      - 'Source/SpectralDNAFormantSlewV055.h'
+      - 'tests/spectral_dna_formant_slew_v055_test.cpp'
+      - 'Source/SpectralDNAMixV055.h'
+      - 'tests/spectral_dna_native_ab_v055_test.cpp'
+      - 'Source/SlicePrefetchCadenceV053.h'
+      - 'tests/slice_prefetch_v055_test.cpp'
+      - 'tests/slice_prefetch_v053_test.cpp'
   workflow_dispatch:
 
 permissions:
@@ -427,6 +469,51 @@ jobs:
           test -s tests/orbit_engine_v054_test.cpp
           test -s tests/test_v054_orbit.py
 
+      - name: Integrate opt-in Liberty SPECTRAL DNA v0.55 into existing v0.48 JUCE resynthesis
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/apply_v055_juce_spectral_dna.py
+          python3 scripts/apply_v055_dna_ui.py
+          python3 scripts/apply_v055_formants.py
+          python3 scripts/apply_v055_preset_crossfade.py
+          python3 scripts/harden_v055_preset_publication.py
+          python3 scripts/apply_v055_rapid_presets.py
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_rapid_presets_v055_test.cpp -o /tmp/dna-rapid-presets-v055
+          /tmp/dna-rapid-presets-v055
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -pthread tests/spectral_dna_publication_concurrency_v055_test.cpp -o /tmp/dna-pub-thread-v055
+          /tmp/dna-pub-thread-v055
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic -pthread tests/spectral_dna_64voice_concurrent_v055.cpp -o /tmp/dna-64voice-concurrent-v055
+          /tmp/dna-64voice-concurrent-v055
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_preset_fade_v055_test.cpp -o /tmp/dna-preset-fade-v055
+          /tmp/dna-preset-fade-v055
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_preset_crossfade_v055_test.cpp -o /tmp/dna-preset-crossfade-v055
+          /tmp/dna-preset-crossfade-v055
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_native_formants_v055_test.cpp -o /tmp/dna-native-formants-v055
+          /tmp/dna-native-formants-v055
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_64voice_v055_bench.cpp -o /tmp/dna-64voice-v055-bench
+          /tmp/dna-64voice-v055-bench
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_formant_slew_v055_test.cpp -o /tmp/formant-slew-v055
+          /tmp/formant-slew-v055
+          grep -q 'SPECTRAL DNA ON' Source/LibertyMorphPadV036.h
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/spectral_dna_native_ab_v055_test.cpp -o /tmp/spectral-dna-native-ab
+          /tmp/spectral-dna-native-ab
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic tests/slice_prefetch_v055_test.cpp -o /tmp/slice-prefetch-v055-test
+          /tmp/slice-prefetch-v055-test
+          grep -q 'libertySpectralDNAEnabled' Source/PluginProcessor.cpp
+          grep -q 'spectralMixForLayer(' Source/PluginProcessor.cpp
+          grep -q 'spectral.render(left,right' Source/PluginProcessor.cpp
+
+      - name: Integrate v0.56 factory auto-load and movable library root into real JUCE source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/apply_v056_factory_library.py
+          grep -q 'library-location-v056.json' Source/LibraryLocationV056.h
+          grep -q 'relocateBankLibrary' Source/PluginProcessor.cpp
+          grep -q 'CHANGER LE DOSSIER PRESETS + SAMPLES' Source/PluginEditor.h
+          grep -q 'project(LibertyRompler VERSION 0.56.0' CMakeLists.txt
+
       - name: Validate bank files, Unicode and no-overlap geometry
         shell: bash
         run: |
@@ -438,6 +525,23 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_*.py' -v
           test -f Banks/Factory-Starter/manifest.json
           test -f Banks/Expansion-Demo/manifest.json
+          # v0.55 separate, non-destructive 100-program factory bank.
+          # Keep the legacy demo banks unchanged for v0.54 regression tests.
+          python3 tools/make_factory_100_v055.py --output Banks
+          python3 tools/validate_banks.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("Banks/Factory-Starter-v055-100")
+          manifest=json.loads((root/"manifest.json").read_text(encoding="utf-8"))
+          presets=manifest["presets"]
+          assert manifest["id"]=="liberty-factory-starter-100-v055"
+          assert len(presets)==100 and len({p["id"] for p in presets})==100
+          assert len({p["category"] for p in presets})==10
+          assert all(len(p["zones"])==4 for p in presets)
+          assert len(list((root/"Samples").glob("*.wav")))==400
+          print("FACTORY 100 verified: 100 presets, 10 categories, 400 stereo WAV.")
+          PY
 
       - name: Download JUCE 8.0.10
         uses: actions/checkout@v4
@@ -468,6 +572,91 @@ jobs:
             --target LibertyRompler_AU LibertyRompler_VST3 LibertyRompler_Standalone \
             --parallel 3
 
+      # Experimental binaries are published immediately after successful
+      # compilation. Strict DSP/streaming qualification continues unchanged;
+      # this separate preview must never be confused with a stable release.
+      - name: Package v0.56 experimental AU VST3 Standalone for hands-on tests
+        if: github.ref == 'refs/heads/feature/v055-spectral-dna'
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="dist/Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64"
+          mkdir -p "$target"
+          root="build/LibertyRompler_artefacts"
+          app="$(find "$root" -type d -name '*.app' -print -quit)"
+          vst="$(find "$root" -type d -name '*.vst3' -print -quit)"
+          au="$(find "$root" -type d -name '*.component' -print -quit)"
+          test -n "$app" && test -n "$vst" && test -n "$au"
+          ditto "$app" "$target/Liberty Rompler.app"
+          ditto "$vst" "$target/Liberty Rompler.vst3"
+          ditto "$au" "$target/Liberty Rompler.component"
+          test -f Banks/Factory-Starter-v055-100/manifest.json
+          mkdir -p "$target/Banks"
+          ditto Banks/Factory-Starter-v055-100 "$target/Banks/Factory-Starter-v055-100"
+          cp scripts/INSTALLER_ROMPLER_V056_MAC.command "$target/INSTALLER_ROMPLER_V056_MAC.command"
+          chmod +x "$target/INSTALLER_ROMPLER_V056_MAC.command"
+          cat > "$target/LISEZ-MOI-EXPERIMENTAL.txt" <<'EOF'
+          LIBERTY ROMPLER v0.56 — VERSION EXPERIMENTALE NON QUALIFIEE
+          Mac Apple Silicon (ARM64) — AU / VST3 / Application autonome.
+          Installation : double-cliquer INSTALLER_ROMPLER_V056_MAC.command.
+          Le ROMpler charge automatiquement la banque Factory 100 au premier démarrage.
+          REGLAGES : CHANGER LE DOSSIER PRESETS + SAMPLES permet de sélectionner
+          un autre disque et de copier sans perte l'ensemble des banques et WAV.
+          Contient les changements SPECTRAL DNA de la branche feature/v055-spectral-dna.
+          ATTENTION : des interruptions audio, depassements de temps reel et rares
+          defauts de lecture SLICE ont ete observes dans les tests automatiques.
+          Ne pas utiliser dans un projet de production sans sauvegarde.
+          Cette version est destinee exclusivement aux essais et retours.
+          Signature macOS ad hoc, PAS de signature Developer ID ni notarisation.
+          Installer les plugins dans les dossiers habituels AU/VST3 de macOS
+          ou tester d'abord l'application autonome.
+          Inclus : banque Factory Starter v0.56 de 100 presets avec 400 WAV.
+          L'installateur v0.56 place AU/VST3/Standalone ET les 100 presets
+          dans les dossiers utilisateur attendus par le navigateur du ROMpler.
+          Fermer puis relancer Liberty ROMpler pour actualiser le navigateur.
+          Les mesures de qualification sont conservees separement dans GitHub.
+          EOF
+          for bundle in "$target/Liberty Rompler.app" "$target/Liberty Rompler.vst3" "$target/Liberty Rompler.component"; do
+            codesign --force --deep --sign - "$bundle"
+            codesign --verify --deep --verbose "$bundle"
+          done
+          (cd dist && ditto -c -k --sequesterRsrc --keepParent Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64 Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64.zip)
+          test -s dist/Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64.zip
+          test -x "$target/INSTALLER_ROMPLER_V056_MAC.command"
+          test -s "$target/Banks/Factory-Starter-v055-100/manifest.json"
+          # The very same archive must contain all 400 sample WAVs.
+          python3 - <<'PY'
+          import zipfile
+          from pathlib import Path
+          path=Path("dist/Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64.zip")
+          with zipfile.ZipFile(path) as z:
+              names=z.namelist()
+          wav=[n for n in names if "/Banks/Factory-Starter-v055-100/Samples/" in n and n.endswith(".wav")]
+          assert len(wav)==400, len(wav)
+          assert any(n.endswith("/INSTALLER_ROMPLER_V056_MAC.command") for n in names)
+          print("v0.56 delivery: 400 WAV, manifest, interactive installer and native plug-ins in one artifact")
+          PY
+
+      - name: Upload experimental v0.56 test binaries before strict RT gates
+        if: github.ref == 'refs/heads/feature/v055-spectral-dna'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64-AU-VST3-Standalone
+          path: dist/Liberty-Rompler-v0.56-EXPERIMENTAL-macOS-arm64.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enable detailed SLICE edge telemetry without weakening qualification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/apply_v055_slice_tail_telemetry.py
+          python3 scripts/apply_v055_stream_lifetime_diagnostics.py
+          python3 scripts/apply_v055_audio_qos_diagnostics.py
+          grep -q 'live_stream_zones_after_750ms' tests/rompler_audio_stress_v044.cpp
+          grep -q 'LIBERTY_NATIVE_AUDIO_QOS' tests/rompler_audio_stress_v044.cpp
+          grep -q 'slice_last_second_diagnostics' tests/rompler_audio_stress_v044.cpp
+
       - name: Compile real JUCE offline stress runner
         shell: bash
         run: |
@@ -489,12 +678,31 @@ jobs:
           "$exe" "$RUNNER_TEMP" poly64 23 v044-reports/poly64.json
           "$exe" "$RUNNER_TEMP" switch 6 v044-reports/switch.json
           "$exe" "$RUNNER_TEMP" slice 6 v044-reports/slice.json
+          "$exe" "$RUNNER_TEMP" slice 8 v044-reports/slice-extended-8s-v055.json
+          # Extended repeated preset loads: observe cache warmup versus a possible plateau.
+          # Constant 64-voice sustained playback, no preset swaps.
+          "$exe" "$RUNNER_TEMP" poly64 60 v044-reports/poly64-extended-v055.json
+          "$exe" "$RUNNER_TEMP" switch 60 v044-reports/switch-extended-v055.json
+          python3 tools/analyze_v055_switch_memory.py \
+            v044-reports/switch-extended-v055.json \
+            --output v044-reports/switch-memory-summary-v055.json
+          cat v044-reports/switch-memory-summary-v055.json >> "$GITHUB_STEP_SUMMARY"
           python3 tools/verify_stress_v044.py \
             v044-reports/poly64.json v044-reports/switch.json \
             v044-reports/slice.json --output v044-reports/qualification.json
           cat v044-reports/qualification.json >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Compare SLICE faults at 6 and 8 seconds
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m tools.analyze_v055_slice_duration \
+            v044-reports/slice.json v044-reports/slice-extended-8s-v055.json \
+            --output v044-reports/slice-duration-comparison-v055.json
+          cat v044-reports/slice-duration-comparison-v055.json >> "$GITHUB_STEP_SUMMARY"
+
       - name: Repeat native SLICE three times with CPU-thread diagnostics
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -508,6 +716,17 @@ jobs:
             v044-reports/slice-repeat-3.json --output v044-reports/slice-repeat-summary-v053.json
           cat v044-reports/slice-repeat-summary-v053.json >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Extract first SLICE cache-miss/underflow windows
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_v055_slice_first_fault.py \
+            v044-reports/slice-repeat-1.json v044-reports/slice-repeat-2.json \
+            v044-reports/slice-repeat-3.json \
+            --output v044-reports/slice-first-fault-v055.json
+          cat v044-reports/slice-first-fault-v055.json >> "$GITHUB_STEP_SUMMARY"
+
       - name: Preserve native v0.54 stress telemetry
         continue-on-error: true
         if: always()
@@ -517,6 +736,113 @@ jobs:
           path: v044-reports/*.json
           if-no-files-found: ignore
           retention-days: 30
+
+      - name: Diagnose callback wall versus thread CPU overruns
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_v055_callback_spikes.py \
+            v044-reports/qualification.json \
+            --output v044-reports/callback-spikes-v055.json
+          cat v044-reports/callback-spikes-v055.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Compare sustained 64-voice control with 60-second preset switching
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_v055_long_control.py \
+            v044-reports/poly64-extended-v055.json \
+            v044-reports/switch-extended-v055.json \
+            --output v044-reports/long-control-comparison-v055.json
+          cat v044-reports/long-control-comparison-v055.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Diagnose long preset-switch callback interruptions against preset times
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m tools.analyze_v055_long_switch_spikes \
+            v044-reports/switch-extended-v055.json \
+            --output v044-reports/switch-callback-interruptions-v055.json
+          cat v044-reports/switch-callback-interruptions-v055.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Compare native 64 voices against a synthetic macOS scheduler reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          clang++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
+            tests/scheduler_reference_v055.cpp -o "$RUNNER_TEMP/scheduler-reference-v055"
+          "$RUNNER_TEMP/scheduler-reference-v055" 60 v044-reports/scheduler-reference-v055.json
+          python3 tools/analyze_v055_scheduler_reference.py \
+            v044-reports/scheduler-reference-v055.json \
+            v044-reports/poly64-extended-v055.json \
+            --output v044-reports/scheduler-reference-analysis-v055.json
+          cat v044-reports/scheduler-reference-analysis-v055.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Analyze real StreamedZone lifetime after returning to a single-layer preset
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_v055_stream_lifetime.py \
+            v044-reports/switch-lifetime-v055.json \
+            --output v044-reports/switch-lifetime-analysis-v055.json \
+            --require-vm --require-clean-zones
+          cat v044-reports/switch-lifetime-analysis-v055.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve extended preset stall diagnostics regardless of qualification
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: Liberty-Rompler-v0.55-extended-stall-diagnostics
+          path: |
+            v044-reports/switch-callback-interruptions-v055.json
+            v044-reports/scheduler-reference-v055.json
+            v044-reports/scheduler-reference-analysis-v055.json
+            v044-reports/poly64-extended-v055.json
+            v044-reports/slice-extended-8s-v055.json
+            v044-reports/slice-duration-comparison-v055.json
+            v044-reports/long-control-comparison-v055.json
+            v044-reports/switch-lifetime-v055.json
+            v044-reports/switch-lifetime-analysis-v055.json
+            v044-reports/switch-memory-summary-v055.json
+            v044-reports/switch-extended-v055.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Strictly qualify extended 8s SLICE streaming
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_slice_repeat_v053.py \
+            v044-reports/slice-extended-8s-v055.json \
+            --output v044-reports/slice-extended-8s-qualification-v055.json
+
+      - name: Strictly gate three repeat SLICE captures after preserving telemetry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_slice_repeat_v053.py \
+            v044-reports/slice-repeat-1.json v044-reports/slice-repeat-2.json \
+            v044-reports/slice-repeat-3.json --output v044-reports/slice-repeat-summary-v053.json
+
+      - name: Gate 60-second constant 64-voice control with strict callback budget
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/enforce_v055_extended_switch.py \
+            v044-reports/poly64-extended-v055.json --scenario poly64
+
+      - name: Gate 60-second repeated preset stress with strict callback budget
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/enforce_v055_extended_switch.py v044-reports/switch-extended-v055.json
+
+      - name: Gate v0.55 native JUCE callback and streaming qualification strictly
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/enforce_v055_native_qualification.py v044-reports/qualification.json
 
       - name: Compile real JUCE hybrid four-layer bench
         shell: bash
