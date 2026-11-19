@@ -170,8 +170,8 @@ once(e_cpp,
                                    work.getWidth()-48, juce::jmax(165, work.getHeight()-300));''',
     '''    settingsMove.setBounds(left+18,work.getY()+232,juce::jmin(370,width-36),36);
     settingsLocation.setBounds(left+18,work.getY()+272,width-36,27);
-    streamingDiagnostics.setBounds(work.getX()+24,work.getY()+330,
-                                   work.getWidth()-48,juce::jmax(110,work.getHeight()-350));''')
+    streamingDiagnostics.setBounds(work.getX()+24,work.getY()+346,
+                                   work.getWidth()-48,juce::jmax(110,work.getHeight()-366));''')
 once(e_cpp,
     '''    setupLabel(subtitleLabel, "Prototype 0.15  |  AU / VST3 / STANDALONE", 10, quiet);''',
     '''    setupLabel(subtitleLabel, "LIBERTY ROMPLER v0.56  |  AU / VST3 / STANDALONE", 10, quiet);''')
