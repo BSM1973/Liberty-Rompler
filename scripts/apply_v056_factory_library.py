@@ -98,7 +98,7 @@ once(p_cpp,
     const auto oldBank=currentBankId,oldPreset=currentPresetId;
     library.setDirectory(copied);
     if (library.find(oldBank,oldPreset)) {
-        // Rebind streaming readers to the files in the new library root.
+        // Rebind streaming readers to the files in the chosen library root.
         const auto reloaded=selectPreset(oldBank,oldPreset,true);
         if (reloaded.failed()) return reloaded;
     }
